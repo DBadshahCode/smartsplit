@@ -218,7 +218,7 @@ function renderTable(records, month) {
                             <i data-lucide="inbox" style="width:22px;height:22px;color:#e2e8f0;"></i>
                         </div>
                         <span style="font-size:14px;color:#94a3b8;font-weight:500;">No data for ${monthLabel}</span>
-                        <span style="font-size:13px;color:#cbd5e1;">Click Generate to calculate the distribution for this month</span>
+                        <span style="font-size:13px;color:#cbd5e1;"><?= session()->get('role') === 'admin' ? 'Click Generate to calculate' : 'Click View to load' ?> the distribution for this month</span>
                     </div>
                 </td>
             </tr>`;

@@ -22,8 +22,7 @@ class Expense extends BaseController
         $session = session();
         $role = $session->get('role');
         $userId = $session->get('user_id');
-        $userModel = new UserModel();
-        $users = $userModel->findAll();
+        $users = (new UserModel())->findAll();
 
         return view('expense/index', compact(
             'page_title',
@@ -33,11 +32,12 @@ class Expense extends BaseController
             'userId'
         ));
     }
+
     public function getExpenses()
     {
         $expenseModel = new ExpenseModel();
 
-        $builder = $expenseModel
+        $expenses = $expenseModel
             ->select('
                                 expenses.id,
                                 expenses.amount,
@@ -50,22 +50,22 @@ class Expense extends BaseController
             ->join('expense_types', 'expense_types.id = expenses.expense_type_id', 'left')
             ->join('users', 'users.id = expenses.paid_by', 'left')
             ->join('expense_involvements', 'expense_involvements.expense_id = expenses.id', 'left')
-            ->groupBy('expenses.id');
-
-
-        $expenses = $builder->findAll();
+            ->groupBy('expenses.id')
+            ->orderBy('expenses.id', 'DESC')   // newest first — fixes dashboard "recent 5" bug
+            ->findAll();
 
         return $this->response->setJSON([
             'data' => $expenses
         ]);
     }
+
     public function addExpense()
     {
         $expenseModel = new ExpenseModel();
         $involvementModel = new ExpenseInvolvementModel();
         $data = $this->request->getPost();
-        $paidBy = $this->request->getPost('paid_by');
-        $paidBy = $paidBy ? $paidBy : null;
+        $paidBy = $this->request->getPost('paid_by') ?: null;
+
         $expenseId = $expenseModel->insert([
             'expense_type_id' => $data['expense_type_id'],
             'amount' => $data['amount'],
@@ -73,13 +73,17 @@ class Expense extends BaseController
             'to_date' => $data['to_date'],
             'paid_by' => $paidBy,
         ]);
+
         foreach ($data['involved_users'] as $uid) {
-            $involvementModel->insert(
-                ['expense_id' => $expenseId, 'user_id' => $uid]
-            );
+            $involvementModel->insert([
+                'expense_id' => $expenseId,
+                'user_id' => $uid,
+            ]);
         }
+
         return $this->response->setJSON(['status' => 'success']);
     }
+
     public function deleteExpense($id)
     {
         (new ExpenseModel())->delete($id);

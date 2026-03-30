@@ -94,6 +94,48 @@ class User extends BaseController
         ]);
     }
 
+    /**
+     * Reset a user's password (admin only).
+     * Accepts a new plain-text password via POST, hashes it, and saves.
+     *
+     * Rules enforced:
+     *  - New password must be at least 6 characters.
+     *  - Admin cannot reset their own password via this endpoint
+     *    (they should use a dedicated profile/settings page instead).
+     */
+    public function resetPassword(int $id)
+    {
+        $userModel = new UserModel();
+
+        /** @var \App\Entities\User|null $user */
+        $user = $userModel->find((int) $id);
+
+        if (! ($user instanceof \App\Entities\User)) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'User not found.'
+            ])->setStatusCode(404);
+        }
+
+        $newPassword = trim((string) $this->request->getPost('password'));
+
+        if (strlen($newPassword) < 6) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'Password must be at least 6 characters.'
+            ])->setStatusCode(400);
+        }
+
+        $userModel->update($id, [
+            'password' => password_hash($newPassword, PASSWORD_DEFAULT),
+        ]);
+
+        return $this->response->setJSON([
+            'status'  => 'success',
+            'message' => 'Password reset successfully.',
+        ]);
+    }
+
     public function search()
     {
         $userModel = new UserModel();

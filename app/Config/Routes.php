@@ -65,6 +65,7 @@ $routes->group('', ['filter' => 'admin'], function ($routes) {
     $routes->post('/user/addUser',                'User::addUser');
     $routes->delete('/user/deleteUser/(:num)',    'User::deleteUser/$1');
     $routes->post('/user/updateRole/(:num)',      'User::updateRole/$1');
+    $routes->post('/user/resetPassword/(:num)',   'User::resetPassword/$1');
 
     // Final Distribution — generate (write action, admin only)
     $routes->post('/finaldistribution/generateDistribution/(:segment)', 'FinalDistribution::generateDistribution/$1');

@@ -200,6 +200,124 @@
 
 <?php endif; ?>
 
+<!-- ══════════════════════════════════════════════════════════════
+     RESET PASSWORD MODAL  (admin only)
+════════════════════════════════════════════════════════════════ -->
+<?php if (session()->get('role') === 'admin'): ?>
+
+<div id="reset-backdrop" onclick="closeResetModal()" style="
+    display:none;position:fixed;inset:0;
+    background:rgba(15,23,42,.45);z-index:100;
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+"></div>
+
+<div id="reset-pwd-modal" style="
+    display:none;position:fixed;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(0.97);
+    width:calc(100% - 32px);max-width:420px;
+    background:#fff;border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.15);
+    z-index:101;opacity:0;
+    transition:transform .2s ease, opacity .2s ease;
+">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:34px;height:34px;border-radius:8px;background:#fef9c3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="key-round" style="width:16px;height:16px;color:#a16207;"></i>
+            </div>
+            <div>
+                <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Reset Password</h3>
+                <p id="reset-modal-subtitle" style="font-size:12px;color:#94a3b8;margin:2px 0 0;">Set a new password for this user</p>
+            </div>
+        </div>
+        <button onclick="closeResetModal()" style="
+            width:32px;height:32px;border-radius:8px;
+            background:#f1f5f9;border:none;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            color:#64748b;transition:background .15s;
+        " onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+    </div>
+
+    <!-- Body -->
+    <form id="resetPwdForm" style="padding:20px 24px 24px;">
+        <input type="hidden" id="reset-user-id" value="">
+
+        <!-- Info strip -->
+        <div style="
+            display:flex;align-items:flex-start;gap:8px;
+            padding:10px 14px;margin-bottom:16px;
+            background:#fefce8;border:1px solid #fef08a;border-radius:8px;
+        ">
+            <i data-lucide="info" style="width:14px;height:14px;color:#a16207;flex-shrink:0;margin-top:1px;"></i>
+            <p style="font-size:12px;color:#854d0e;margin:0;line-height:1.5;">
+                The user will need to use this new password on their next login.
+                Share it with them securely.
+            </p>
+        </div>
+
+        <!-- New password -->
+        <div style="margin-bottom:16px;">
+            <label class="ss-label" for="reset-pwd">New Password <span style="color:#ef4444;">*</span></label>
+            <div style="position:relative;">
+                <i data-lucide="lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                <input type="password" id="reset-pwd" name="password"
+                    placeholder="Min. 6 characters"
+                    required autocomplete="new-password"
+                    class="ss-input" style="padding-left:38px;padding-right:44px;"
+                    onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                    onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+                    oninput="validateResetPwd()">
+                <button type="button" onclick="toggleResetPwd()" style="
+                    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                    background:none;border:none;cursor:pointer;color:#94a3b8;
+                    padding:4px;display:flex;align-items:center;min-width:32px;min-height:32px;
+                ">
+                    <i data-lucide="eye" id="reset-pwd-icon" style="width:15px;height:15px;"></i>
+                </button>
+            </div>
+            <p id="reset-pwd-error" style="display:none;font-size:12px;color:#ef4444;margin-top:5px;">
+                Password must be at least 6 characters.
+            </p>
+        </div>
+
+        <!-- Confirm password -->
+        <div style="margin-bottom:24px;">
+            <label class="ss-label" for="reset-pwd-confirm">Confirm Password <span style="color:#ef4444;">*</span></label>
+            <div style="position:relative;">
+                <i data-lucide="lock" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                <input type="password" id="reset-pwd-confirm"
+                    placeholder="Re-enter password"
+                    required autocomplete="new-password"
+                    class="ss-input" style="padding-left:38px;"
+                    onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                    onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+                    oninput="validateResetPwd()">
+            </div>
+            <p id="reset-match-error" style="display:none;font-size:12px;color:#ef4444;margin-top:5px;">
+                Passwords do not match.
+            </p>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;">
+            <button type="button" onclick="closeResetModal()" class="ss-btn ss-btn-ghost" style="flex:1;">
+                Cancel
+            </button>
+            <button type="submit" id="resetPwdSubmitBtn" class="ss-btn ss-btn-primary" style="flex:2;">
+                <i data-lucide="key-round" style="width:15px;height:15px;" id="resetPwdSubmitIcon"></i>
+                <span id="resetPwdSubmitText">Reset Password</span>
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<?php endif; ?>
+
 <?= $this->endSection() ?>
 
 
@@ -260,7 +378,6 @@ function loadUsers() {
                         onmouseover="this.style.background='#f8fafc'"
                         onmouseout="this.style.background=''">
 
-                <!-- Member column: avatar + name + email stacked -->
                 <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div style="
@@ -269,18 +386,14 @@ function loadUsers() {
                             display:flex;align-items:center;justify-content:center;
                             font-size:13px;font-weight:700;flex-shrink:0;
                         ">${initials(u.name)}</div>
-                        <div>
-                            <div style="font-size:14px;font-weight:600;color:#0f172a;">${u.name || '—'}</div>
-                        </div>
+                        <div style="font-size:14px;font-weight:600;color:#0f172a;">${u.name || '—'}</div>
                     </div>
                 </td>
 
-                <!-- Email -->
                 <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#64748b;">${u.email || '—'}</span>
                 </td>
 
-                <!-- Role badge -->
                 <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
                     <span style="
                         display:inline-flex;align-items:center;gap:5px;
@@ -294,50 +407,26 @@ function loadUsers() {
                 </td>
 
                 ${isAdmin ? `
-                <!-- Actions -->
                 <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">
                     <div style="display:inline-flex;align-items:center;gap:8px;">
-                        <!-- Role toggle -->
-                        <button
-                            class="toggleRoleBtn"
-                            data-id="${u.id}"
-                            data-name="${u.name}"
-                            data-role="${u.role}"
-                            title="${isAdminRole ? 'Demote to User' : 'Promote to Admin'}"
-                            style="
-                                display:inline-flex;align-items:center;gap:5px;
-                                padding:6px 12px;border-radius:6px;
-                                background:${isAdminRole ? '#fef9c3' : '#e0e7ff'};
-                                color:${isAdminRole ? '#a16207' : '#4338ca'};
-                                border:none;cursor:pointer;
-                                font-size:12px;font-weight:600;
-                                font-family:'DM Sans',sans-serif;
-                                min-height:32px;transition:background .15s;
-                            "
-                            onmouseover="this.style.opacity='0.8'"
-                            onmouseout="this.style.opacity='1'"
-                        >
+                        <button class="toggleRoleBtn"
+                            data-id="${u.id}" data-name="${u.name}" data-role="${u.role}"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;background:${isAdminRole ? '#fef9c3' : '#e0e7ff'};color:${isAdminRole ? '#a16207' : '#4338ca'};border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;min-height:32px;transition:opacity .15s;"
+                            onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                             <i data-lucide="${isAdminRole ? 'shield-off' : 'shield-check'}" style="width:12px;height:12px;"></i>
                             ${isAdminRole ? 'Demote' : 'Promote'}
                         </button>
-                        <!-- Delete -->
-                        <button
-                            class="deleteUserBtn"
-                            data-id="${u.id}"
-                            data-name="${u.name}"
-                            style="
-                                display:inline-flex;align-items:center;gap:5px;
-                                padding:6px 12px;border-radius:6px;
-                                background:#fee2e2;color:#dc2626;
-                                border:none;cursor:pointer;
-                                font-size:12px;font-weight:600;
-                                font-family:'DM Sans',sans-serif;
-                                transition:background .15s;
-                                min-height:32px;
-                            "
-                            onmouseover="this.style.background='#fecaca'"
-                            onmouseout="this.style.background='#fee2e2'"
-                        >
+                        <button class="resetPwdBtn"
+                            data-id="${u.id}" data-name="${u.name}"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;background:#f1f5f9;color:#475569;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;min-height:32px;transition:background .15s;"
+                            onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                            <i data-lucide="key-round" style="width:12px;height:12px;"></i>
+                            Reset
+                        </button>
+                        <button class="deleteUserBtn"
+                            data-id="${u.id}" data-name="${u.name}"
+                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;background:#fee2e2;color:#dc2626;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;min-height:32px;transition:background .15s;"
+                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                             <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
                             Delete
                         </button>
@@ -348,7 +437,7 @@ function loadUsers() {
 
         lucide.createIcons();
 
-        // Delete handler
+        // ── Delete handler ───────────────────────────────────────
         document.querySelectorAll('.deleteUserBtn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const id   = this.dataset.id;
@@ -357,18 +446,13 @@ function loadUsers() {
                 $.ajax({
                     url: '/user/deleteUser/' + id,
                     type: 'DELETE',
-                    success: function() {
-                        ssToast('User deleted successfully.', 'success');
-                        loadUsers();
-                    },
-                    error: function() {
-                        ssToast('Failed to delete user.', 'error');
-                    }
+                    success: function() { ssToast('User deleted successfully.', 'success'); loadUsers(); },
+                    error:   function() { ssToast('Failed to delete user.', 'error'); }
                 });
             });
         });
 
-        // Role toggle handler
+        // ── Role toggle handler ──────────────────────────────────
         document.querySelectorAll('.toggleRoleBtn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const id      = this.dataset.id;
@@ -376,40 +460,40 @@ function loadUsers() {
                 const current = this.dataset.role;
                 const action  = current === 'admin' ? 'Demote to User' : 'Promote to Admin';
                 if (!confirm(`${action} for "${name}"?`)) return;
-
-                // Disable button while request is in flight
                 const self = this;
-                self.disabled     = true;
-                self.style.opacity = '0.6';
-
+                self.disabled = true; self.style.opacity = '0.6';
                 $.ajax({
-                    url:  '/user/updateRole/' + id,
-                    type: 'POST',
+                    url: '/user/updateRole/' + id, type: 'POST',
                     success: function(res) {
                         if (res.status === 'success') {
                             ssToast(`${name} is now ${res.new_role === 'admin' ? 'an Admin' : 'a User'}.`, 'success');
                             loadUsers();
                         } else {
                             ssToast(res.message || 'Could not update role.', 'error');
-                            self.disabled      = false;
-                            self.style.opacity = '1';
+                            self.disabled = false; self.style.opacity = '1';
                         }
                     },
                     error: function(xhr) {
-                        const msg = xhr.responseJSON?.message || 'Something went wrong.';
-                        ssToast(msg, 'error');
-                        self.disabled      = false;
-                        self.style.opacity = '1';
+                        ssToast(xhr.responseJSON?.message || 'Something went wrong.', 'error');
+                        self.disabled = false; self.style.opacity = '1';
                     }
                 });
             });
         });
-    });
-}
+
+        // ── Reset password handler ───────────────────────────────
+        document.querySelectorAll('.resetPwdBtn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                openResetModal(this.dataset.id, this.dataset.name);
+            });
+        });
+
+    }); // end $.get
+} // end loadUsers
 loadUsers();
 
 
-// ── Modal open / close ───────────────────────────────────────────
+// ── Add user modal ───────────────────────────────────────────────
 function openAddModal() {
     const backdrop = document.getElementById('modal-backdrop');
     const modal    = document.getElementById('add-user-modal');
@@ -435,69 +519,173 @@ function closeAddModal() {
         resetAddBtn();
     }, 180);
 }
-// Close on Escape key
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeAddModal();
+    if (e.key === 'Escape') { closeAddModal(); closeResetModal(); }
 });
 
-// ── Password show/hide ───────────────────────────────────────────
 function toggleUserPwd() {
     const input = document.getElementById('u-password');
     const icon  = document.getElementById('u-pwd-icon');
-    const isHidden = input.type === 'password';
-    input.type = isHidden ? 'text' : 'password';
-    icon.setAttribute('data-lucide', isHidden ? 'eye-off' : 'eye');
+    input.type  = input.type === 'password' ? 'text' : 'password';
+    icon.setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
     lucide.createIcons();
 }
 
-// ── Submit button loading state helpers ──────────────────────────
 function setAddBtnLoading() {
-    const btn  = document.getElementById('addUserBtn');
+    const btn = document.getElementById('addUserBtn');
     const text = document.getElementById('addUserBtnText');
     const icon = document.getElementById('addUserBtnIcon');
-    btn.disabled          = true;
-    btn.style.opacity     = '0.75';
-    text.textContent      = 'Saving…';
-    icon.setAttribute('data-lucide', 'loader');
-    lucide.createIcons();
+    btn.disabled = true; btn.style.opacity = '0.75';
+    text.textContent = 'Saving…';
+    icon.setAttribute('data-lucide', 'loader'); lucide.createIcons();
 }
 function resetAddBtn() {
-    const btn  = document.getElementById('addUserBtn');
+    const btn = document.getElementById('addUserBtn');
+    if (!btn) return;
     const text = document.getElementById('addUserBtnText');
     const icon = document.getElementById('addUserBtnIcon');
-    if (!btn) return;
-    btn.disabled      = false;
-    btn.style.opacity = '1';
-    text.textContent  = 'Save User';
-    icon.setAttribute('data-lucide', 'user-plus');
-    lucide.createIcons();
+    btn.disabled = false; btn.style.opacity = '1';
+    text.textContent = 'Save User';
+    icon.setAttribute('data-lucide', 'user-plus'); lucide.createIcons();
 }
 
-// ── Add user form submit ─────────────────────────────────────────
 const addForm = document.getElementById('addUserForm');
 if (addForm) {
     addForm.addEventListener('submit', function(e) {
         e.preventDefault();
         setAddBtnLoading();
-
         $.ajax({
-            url:  '/user/addUser',
-            type: 'POST',
-            data: $(this).serialize(),
+            url: '/user/addUser', type: 'POST', data: $(this).serialize(),
             success: function(res) {
                 if (res.status === 'success') {
                     ssToast('User added successfully!', 'success');
-                    closeAddModal();
-                    loadUsers();
+                    closeAddModal(); loadUsers();
                 } else {
                     ssToast(res.message || 'Could not add user.', 'error');
                     resetAddBtn();
                 }
             },
             error: function(xhr) {
-                const msg = xhr.responseJSON?.message || 'Something went wrong.';
-                ssToast(msg, 'error');
+                ssToast(xhr.responseJSON?.message || 'Something went wrong.', 'error');
                 resetAddBtn();
+            }
+        });
+    });
+}
+
+
+// ── Reset password modal ─────────────────────────────────────────
+let resetUserId = null;
+
+function openResetModal(id, name) {
+    resetUserId = id;
+    document.getElementById('reset-user-id').value = id;
+    document.getElementById('reset-modal-subtitle').textContent = 'Set a new password for ' + name;
+    document.getElementById('reset-pwd').value         = '';
+    document.getElementById('reset-pwd-confirm').value = '';
+    document.getElementById('reset-pwd-error').style.display   = 'none';
+    document.getElementById('reset-match-error').style.display = 'none';
+    document.getElementById('reset-pwd').style.borderColor         = '#e2e8f0';
+    document.getElementById('reset-pwd-confirm').style.borderColor = '#e2e8f0';
+    const backdrop = document.getElementById('reset-backdrop');
+    const modal    = document.getElementById('reset-pwd-modal');
+    if (!backdrop || !modal) return;
+    backdrop.style.display = 'block';
+    modal.style.display    = 'block';
+    requestAnimationFrame(function() {
+        modal.style.opacity   = '1';
+        modal.style.transform = 'translate(-50%,-50%) scale(1)';
+    });
+    document.getElementById('reset-pwd').focus();
+}
+
+function closeResetModal() {
+    const modal    = document.getElementById('reset-pwd-modal');
+    const backdrop = document.getElementById('reset-backdrop');
+    if (!modal || !backdrop) return;
+    modal.style.opacity   = '0';
+    modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
+    setTimeout(function() {
+        modal.style.display    = 'none';
+        backdrop.style.display = 'none';
+        resetAddResetBtn();
+        resetUserId = null;
+    }, 180);
+}
+
+function toggleResetPwd() {
+    const input = document.getElementById('reset-pwd');
+    const icon  = document.getElementById('reset-pwd-icon');
+    input.type  = input.type === 'password' ? 'text' : 'password';
+    icon.setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
+    lucide.createIcons();
+}
+
+function validateResetPwd() {
+    const pwd      = document.getElementById('reset-pwd').value;
+    const confirm  = document.getElementById('reset-pwd-confirm').value;
+    const lenErr   = document.getElementById('reset-pwd-error');
+    const matchErr = document.getElementById('reset-match-error');
+    const pwdInput  = document.getElementById('reset-pwd');
+    const confInput = document.getElementById('reset-pwd-confirm');
+
+    if (pwd.length > 0 && pwd.length < 6) {
+        lenErr.style.display = 'block'; pwdInput.style.borderColor = '#ef4444';
+    } else {
+        lenErr.style.display = 'none';  pwdInput.style.borderColor = '#e2e8f0';
+    }
+    if (confirm.length > 0 && pwd !== confirm) {
+        matchErr.style.display = 'block'; confInput.style.borderColor = '#ef4444';
+    } else {
+        matchErr.style.display = 'none';  confInput.style.borderColor = '#e2e8f0';
+    }
+}
+
+function setResetBtnLoading() {
+    const btn = document.getElementById('resetPwdSubmitBtn');
+    if (!btn) return;
+    btn.disabled = true; btn.style.opacity = '0.75';
+    document.getElementById('resetPwdSubmitText').textContent = 'Resetting…';
+    document.getElementById('resetPwdSubmitIcon').setAttribute('data-lucide', 'loader');
+    lucide.createIcons();
+}
+function resetAddResetBtn() {
+    const btn = document.getElementById('resetPwdSubmitBtn');
+    if (!btn) return;
+    btn.disabled = false; btn.style.opacity = '1';
+    document.getElementById('resetPwdSubmitText').textContent = 'Reset Password';
+    document.getElementById('resetPwdSubmitIcon').setAttribute('data-lucide', 'key-round');
+    lucide.createIcons();
+}
+
+const resetForm = document.getElementById('resetPwdForm');
+if (resetForm) {
+    resetForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const pwd     = document.getElementById('reset-pwd').value;
+        const confirm = document.getElementById('reset-pwd-confirm').value;
+        if (pwd.length < 6) {
+            document.getElementById('reset-pwd-error').style.display = 'block'; return;
+        }
+        if (pwd !== confirm) {
+            document.getElementById('reset-match-error').style.display = 'block'; return;
+        }
+        setResetBtnLoading();
+        $.ajax({
+            url: '/user/resetPassword/' + resetUserId, type: 'POST',
+            data: { password: pwd },
+            success: function(res) {
+                if (res.status === 'success') {
+                    ssToast('Password reset successfully.', 'success');
+                    closeResetModal();
+                } else {
+                    ssToast(res.message || 'Failed to reset password.', 'error');
+                    resetAddResetBtn();
+                }
+            },
+            error: function(xhr) {
+                ssToast(xhr.responseJSON?.message || 'Something went wrong.', 'error');
+                resetAddResetBtn();
             }
         });
     });
