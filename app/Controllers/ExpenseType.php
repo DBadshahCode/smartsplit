@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\ExpenseType as ExpenseTypeModel;
 
 class ExpenseType extends BaseController

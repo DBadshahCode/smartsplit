@@ -2,16 +2,16 @@
 
 namespace App\Libraries;
 
-use App\Models\Expense             as ExpenseModel;
-use App\Models\ExpenseType         as ExpenseTypeModel;
-use App\Models\ExpenseInvolvement  as ExpenseInvolvementModel;
-use App\Models\ChapatiExpense      as ChapatiExpenseModel;
-use App\Models\ChapatiAbsence      as ChapatiAbsenceModel;
+use App\Models\AbsentDay as AbsentDayModel;
+use App\Models\ChapatiAbsence as ChapatiAbsenceModel;
+use App\Models\ChapatiExpense as ChapatiExpenseModel;
 use App\Models\ChapatiExtraExpense as ChapatiExtraExpenseModel;
 use App\Models\ChapatiExtraInvolvement as ChapatiExtraInvolvementModel;
-use App\Models\AbsentDay           as AbsentDayModel;
-use App\Models\User                as UserModel;
-use App\Models\FinalDistribution   as FinalDistributionModel;
+use App\Models\Expense as ExpenseModel;
+use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
+use App\Models\ExpenseType as ExpenseTypeModel;
+use App\Models\FinalDistribution as FinalDistributionModel;
+use App\Models\User as UserModel;
 
 class ExpenseCalculatorService
 {
@@ -22,9 +22,9 @@ class ExpenseCalculatorService
     {
         if (!isset($dist[$uid])) {
             $dist[$uid] = [
-                'chapati_amount'        => 0.0,
+                'chapati_amount' => 0.0,
                 'other_expenses_amount' => 0.0,
-                'advance'               => 0.0,
+                'advance' => 0.0,
             ];
         }
     }
@@ -63,20 +63,20 @@ class ExpenseCalculatorService
     public function calculateFinalDistribution(string $month): array
     {
         // ── Model instances ──────────────────────────────────────────────────
-        $expenseModel                 = new ExpenseModel();
-        $expenseTypeModel             = new ExpenseTypeModel();
-        $expenseInvolvementModel      = new ExpenseInvolvementModel();
-        $chapatiExpenseModel          = new ChapatiExpenseModel();
-        $chapatiAbsenceModel          = new ChapatiAbsenceModel();
-        $chapatiExtraExpenseModel     = new ChapatiExtraExpenseModel();
+        $expenseModel = new ExpenseModel();
+        $expenseTypeModel = new ExpenseTypeModel();
+        $expenseInvolvementModel = new ExpenseInvolvementModel();
+        $chapatiExpenseModel = new ChapatiExpenseModel();
+        $chapatiAbsenceModel = new ChapatiAbsenceModel();
+        $chapatiExtraExpenseModel = new ChapatiExtraExpenseModel();
         $chapatiExtraInvolvementModel = new ChapatiExtraInvolvementModel();
-        $absentDayModel               = new AbsentDayModel();
-        $userModel                    = new UserModel();
-        $finalDistributionModel       = new FinalDistributionModel();
+        $absentDayModel = new AbsentDayModel();
+        $userModel = new UserModel();
+        $finalDistributionModel = new FinalDistributionModel();
 
         // ── Date range for the requested month ───────────────────────────────
         $startDate = $month . '-01';
-        $endDate   = date('Y-m-t', strtotime($startDate));
+        $endDate = date('Y-m-t', strtotime($startDate));
 
         // ── Wipe any previously generated rows for this month ────────────────
         $finalDistributionModel->where('month', $month)->delete();
@@ -105,7 +105,7 @@ class ExpenseCalculatorService
 
         // Pre-load all absent_days for the month once (avoids N+1 queries)
         $allAbsentRows = $absentDayModel->where('month', $month)->findAll();
-        $absentByUser  = [];
+        $absentByUser = [];
         foreach ($allAbsentRows as $row) {
             $absentByUser[(int) $row->user_id] = (int) $row->days_absent;
         }
@@ -151,8 +151,8 @@ class ExpenseCalculatorService
                 case 'daysPresent':
                     // FIX: use toTimestamp() — $expense->from_date is a CI4 Time
                     // object; plain strtotime() on it returns false → 0.
-                    $from      = $this->toTimestamp($expense->from_date);
-                    $to        = $this->toTimestamp($expense->to_date);
+                    $from = $this->toTimestamp($expense->from_date);
+                    $to = $this->toTimestamp($expense->to_date);
                     $totalDays = (int) floor(($to - $from) / 86400) + 1;
 
                     if ($totalDays <= 0) {
@@ -160,14 +160,14 @@ class ExpenseCalculatorService
                         break;
                     }
 
-                    $presentDays    = [];
+                    $presentDays = [];
                     $sumPresentDays = 0;
 
                     foreach ($userIds as $uid) {
-                        $daysAbsent        = $absentByUser[$uid] ?? 0;
-                        $days              = max(0, $totalDays - $daysAbsent);
+                        $daysAbsent = $absentByUser[$uid] ?? 0;
+                        $days = max(0, $totalDays - $daysAbsent);
                         $presentDays[$uid] = $days;
-                        $sumPresentDays   += $days;
+                        $sumPresentDays += $days;
                     }
 
                     if ($sumPresentDays > 0) {
@@ -206,7 +206,7 @@ class ExpenseCalculatorService
         | Neither table has a paid_by column, so no advance is recorded.
         |----------------------------------------------------------------------
         */
-        $allUsers   = $userModel->findAll();
+        $allUsers = $userModel->findAll();
         $allUserIds = array_map(fn($u) => (int) $u->id, $allUsers);
 
         $chapatiExpenses = $chapatiExpenseModel
@@ -217,8 +217,8 @@ class ExpenseCalculatorService
         foreach ($chapatiExpenses as $chapati) {
 
             // FIX: same strtotime issue — use toTimestamp() here too.
-            $from      = $this->toTimestamp($chapati->from_date);
-            $to        = $this->toTimestamp($chapati->to_date);
+            $from = $this->toTimestamp($chapati->from_date);
+            $to = $this->toTimestamp($chapati->to_date);
             $totalDays = (int) floor(($to - $from) / 86400) + 1;
 
             if ($totalDays <= 0) {
@@ -236,14 +236,14 @@ class ExpenseCalculatorService
             }
 
             // ── Base chapati split across ALL users ───────────────────────
-            $presentDays    = [];
+            $presentDays = [];
             $sumPresentDays = 0;
 
             foreach ($allUserIds as $uid) {
-                $daysAbsent        = $absenceByUser[$uid] ?? 0;
-                $days              = max(0, $totalDays - $daysAbsent);
+                $daysAbsent = $absenceByUser[$uid] ?? 0;
+                $days = max(0, $totalDays - $daysAbsent);
                 $presentDays[$uid] = $days;
-                $sumPresentDays   += $days;
+                $sumPresentDays += $days;
             }
 
             if ($sumPresentDays > 0) {
@@ -273,7 +273,7 @@ class ExpenseCalculatorService
                 }
 
                 $extraUserIds = array_map(fn($i) => (int) $i->user_id, $involved);
-                $share        = (float) $extra->amount / count($extraUserIds);
+                $share = (float) $extra->amount / count($extraUserIds);
 
                 foreach ($extraUserIds as $uid) {
                     $this->initUser($dist, $uid);
@@ -311,23 +311,23 @@ class ExpenseCalculatorService
         */
         foreach ($dist as $uid => $row) {
 
-            $chapati     = (float) $row['chapati_amount'];
-            $other       = (float) $row['other_expenses_amount'];
+            $chapati = (float) $row['chapati_amount'];
+            $other = (float) $row['other_expenses_amount'];
             $advancePaid = (float) $row['advance'];
 
             $totalShare = $chapati + $other;
-            $balance    = $totalShare - $advancePaid;
-            $dueAmount  = $balance > 0 ? $balance : 0.0;
+            $balance = $totalShare - $advancePaid;
+            $dueAmount = $balance > 0 ? $balance : 0.0;
 
             $insertData = [
-                'user_id'               => $uid,
-                'month'                 => $month,
-                'chapati_amount'        => round($chapati,     0),
-                'other_expenses_amount' => round($other,       0),
-                'advance_amount'        => round($advancePaid, 0),
-                'due_amount'            => round($dueAmount,   0),
-                'final_amount'          => round($balance,     0),
-                'generated_at'          => date('Y-m-d H:i:s'),
+                'user_id' => $uid,
+                'month' => $month,
+                'chapati_amount' => round($chapati, 0),
+                'other_expenses_amount' => round($other, 0),
+                'advance_amount' => round($advancePaid, 0),
+                'due_amount' => round($dueAmount, 0),
+                'final_amount' => round($balance, 0),
+                'generated_at' => date('Y-m-d H:i:s'),
             ];
 
             if (!$finalDistributionModel->insert($insertData)) {

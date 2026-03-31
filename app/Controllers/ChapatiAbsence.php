@@ -3,10 +3,9 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\ChapatiAbsence as ChapatiAbsenceModel;
-use App\Models\User as UserModel;
 use App\Models\ChapatiExpense as ChapatiExpenseModel;
+use App\Models\User as UserModel;
 
 class ChapatiAbsence extends BaseController
 {

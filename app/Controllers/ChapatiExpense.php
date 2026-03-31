@@ -3,12 +3,11 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
-use App\Models\ExpenseType as ExpenseTypeModel;
-use App\Models\ChapatiExpense as ChapatiExpenseModel;
 use App\Models\ChapatiAbsence as ChapatiAbsenceModel;
+use App\Models\ChapatiExpense as ChapatiExpenseModel;
 use App\Models\ChapatiExtraExpense as ChapatiExtraExpenseModel;
 use App\Models\ChapatiExtraInvolvement as ChapatiExtraInvolvementModel;
+use App\Models\ExpenseType as ExpenseTypeModel;
 
 class ChapatiExpense extends BaseController
 {
@@ -65,8 +64,8 @@ class ChapatiExpense extends BaseController
         return $this->response->setJSON(['status' => 'success']);
     }
     public function deleteChapatiExpense($id)
-{
-    (new ChapatiExpenseModel())->delete($id);
-    return $this->response->setJSON(['status' => 'deleted']);
-}
+    {
+        (new ChapatiExpenseModel())->delete($id);
+        return $this->response->setJSON(['status' => 'deleted']);
+    }
 }

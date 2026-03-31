@@ -3,10 +3,9 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
-use App\Models\ExpenseType as ExpenseTypeModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
+use App\Models\ExpenseType as ExpenseTypeModel;
 use App\Models\User as UserModel;
 
 class Expense extends BaseController
@@ -39,19 +38,21 @@ class Expense extends BaseController
 
         $expenses = $expenseModel
             ->select('
-                                expenses.id,
-                                expenses.amount,
-                                expenses.from_date,
-                                expenses.to_date,
-                                expense_types.name as expense_type,
-                                users.name as paid_by_name,
-                                COUNT(expense_involvements.user_id) as total_involved
-                            ')
+                expenses.id,
+                expenses.amount,
+                expenses.from_date,
+                expenses.to_date,
+                expense_types.name as expense_type,
+                users.name as paid_by_name,
+                COUNT(expense_involvements.user_id) as total_involved,
+                GROUP_CONCAT(involved_users.name ORDER BY involved_users.name SEPARATOR \', \') as involved_names
+            ')
             ->join('expense_types', 'expense_types.id = expenses.expense_type_id', 'left')
             ->join('users', 'users.id = expenses.paid_by', 'left')
             ->join('expense_involvements', 'expense_involvements.expense_id = expenses.id', 'left')
+            ->join('users as involved_users', 'involved_users.id = expense_involvements.user_id', 'left')
             ->groupBy('expenses.id')
-            ->orderBy('expenses.id', 'DESC')   // newest first — fixes dashboard "recent 5" bug
+            ->orderBy('expenses.id', 'DESC')
             ->findAll();
 
         return $this->response->setJSON([

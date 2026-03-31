@@ -3,9 +3,8 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
-use App\Models\FinalDistribution as FinalDistributionModel;
 use App\Libraries\ExpenseCalculatorService;
+use App\Models\FinalDistribution as FinalDistributionModel;
 
 class FinalDistribution extends BaseController
 {

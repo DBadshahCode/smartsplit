@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\User as UserModel;
-use CodeIgniter\HTTP\ResponseInterface;
 
 class User extends BaseController
 {
@@ -57,9 +56,9 @@ class User extends BaseController
         /** @var \App\Entities\User|null $currentUser */
         $currentUser = $userModel->find((int) $id);
 
-        if (! ($currentUser instanceof \App\Entities\User)) {
+        if (!($currentUser instanceof \App\Entities\User)) {
             return $this->response->setJSON([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'User not found.'
             ])->setStatusCode(404);
         }
@@ -67,7 +66,7 @@ class User extends BaseController
         // Prevent changing your own role
         if ((int) $id === (int) session()->get('user_id')) {
             return $this->response->setJSON([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'You cannot change your own role.'
             ])->setStatusCode(403);
         }
@@ -79,7 +78,7 @@ class User extends BaseController
             $adminCount = $userModel->where('role', 'admin')->countAllResults();
             if ($adminCount <= 1) {
                 return $this->response->setJSON([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Cannot demote the only admin. Promote another user first.'
                 ])->setStatusCode(400);
             }
@@ -88,9 +87,9 @@ class User extends BaseController
         $userModel->update($id, ['role' => $newRole]);
 
         return $this->response->setJSON([
-            'status'   => 'success',
+            'status' => 'success',
             'new_role' => $newRole,
-            'message'  => "Role updated to {$newRole}."
+            'message' => "Role updated to {$newRole}."
         ]);
     }
 
@@ -110,9 +109,9 @@ class User extends BaseController
         /** @var \App\Entities\User|null $user */
         $user = $userModel->find((int) $id);
 
-        if (! ($user instanceof \App\Entities\User)) {
+        if (!($user instanceof \App\Entities\User)) {
             return $this->response->setJSON([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'User not found.'
             ])->setStatusCode(404);
         }
@@ -121,7 +120,7 @@ class User extends BaseController
 
         if (strlen($newPassword) < 6) {
             return $this->response->setJSON([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Password must be at least 6 characters.'
             ])->setStatusCode(400);
         }
@@ -131,7 +130,7 @@ class User extends BaseController
         ]);
 
         return $this->response->setJSON([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Password reset successfully.',
         ]);
     }
@@ -148,7 +147,7 @@ class User extends BaseController
 
         foreach ($users as $user) {
             $results[] = [
-                'id'   => $user->id,
+                'id' => $user->id,
                 'text' => $user->name
             ];
         }
