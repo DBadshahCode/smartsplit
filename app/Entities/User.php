@@ -12,6 +12,7 @@ class User extends Entity
         'id' => 'integer',
         'name' => 'string',
         'email' => 'string',
+        'password' => 'string',
         'role' => 'string',
         'joined_date' => 'datetime',
     ];
