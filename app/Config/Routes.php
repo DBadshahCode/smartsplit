@@ -7,9 +7,9 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // ── Public routes (no auth required) ────────────────────────────
-$routes->get('/auth/login',       'Auth::login');
-$routes->post('/auth/loginUser',  'Auth::loginUser');
-$routes->get('/auth/logout',      'Auth::logout');
+$routes->get('/auth/login', 'Auth::login');
+$routes->post('/auth/loginUser', 'Auth::loginUser');
+$routes->get('/auth/logout', 'Auth::logout');
 
 // ── Authenticated routes (any logged-in user) ────────────────────
 $routes->group('', ['filter' => 'auth'], function ($routes) {
@@ -18,40 +18,42 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Home::index');
 
     // Expense Types
-    $routes->get('/expensetype',                              'ExpenseType::index');
-    $routes->get('/expensetype/getExpenseTypes',              'ExpenseType::getExpenseTypes');
-    $routes->post('/expensetype/addExpenseType',              'ExpenseType::addExpenseType');
-    $routes->delete('/expensetype/deleteExpenseType/(:num)',  'ExpenseType::deleteExpenseType/$1');
+    $routes->get('/expensetype', 'ExpenseType::index');
+    $routes->get('/expensetype/getExpenseTypes', 'ExpenseType::getExpenseTypes');
+    $routes->post('/expensetype/addExpenseType', 'ExpenseType::addExpenseType');
+    $routes->delete('/expensetype/deleteExpenseType/(:num)', 'ExpenseType::deleteExpenseType/$1');
 
     // Expenses
-    $routes->get('/expense',                         'Expense::index');
-    $routes->get('/expense/getExpenses',             'Expense::getExpenses');
-    $routes->post('/expense/addExpense',             'Expense::addExpense');
+    $routes->get('/expense', 'Expense::index');
+    $routes->get('/expense/getExpenses', 'Expense::getExpenses');
+    $routes->get('/expense/getExpense/(:num)', 'Expense::getExpense/$1');
+    $routes->post('/expense/addExpense', 'Expense::addExpense');
+    $routes->post('/expense/updateExpense/(:num)', 'Expense::updateExpense/$1');
     $routes->delete('/expense/deleteExpense/(:num)', 'Expense::deleteExpense/$1');
 
     // Chapati Expenses
-    $routes->get('/chapatiexpense',                                    'ChapatiExpense::index');
-    $routes->get('/chapatiexpense/getChapatiExpenses',                 'ChapatiExpense::getChapatiExpenses');
-    $routes->post('/chapatiexpense/addChapatiExpense',                 'ChapatiExpense::addChapatiExpense');
-    $routes->delete('/chapatiexpense/deleteChapatiExpense/(:num)',     'ChapatiExpense::deleteChapatiExpense/$1');
+    $routes->get('/chapatiexpense', 'ChapatiExpense::index');
+    $routes->get('/chapatiexpense/getChapatiExpenses', 'ChapatiExpense::getChapatiExpenses');
+    $routes->post('/chapatiexpense/addChapatiExpense', 'ChapatiExpense::addChapatiExpense');
+    $routes->delete('/chapatiexpense/deleteChapatiExpense/(:num)', 'ChapatiExpense::deleteChapatiExpense/$1');
 
     // Chapati Absences
-    $routes->get('/chapatiabsence',                          'ChapatiAbsence::index');
-    $routes->get('/chapatiabsence/getAbsences',              'ChapatiAbsence::getAbsences');
-    $routes->post('/chapatiabsence/addAbsence',              'ChapatiAbsence::addAbsence');
-    $routes->delete('/chapatiabsence/deleteAbsence/(:num)',  'ChapatiAbsence::deleteAbsence/$1');
+    $routes->get('/chapatiabsence', 'ChapatiAbsence::index');
+    $routes->get('/chapatiabsence/getAbsences', 'ChapatiAbsence::getAbsences');
+    $routes->post('/chapatiabsence/addAbsence', 'ChapatiAbsence::addAbsence');
+    $routes->delete('/chapatiabsence/deleteAbsence/(:num)', 'ChapatiAbsence::deleteAbsence/$1');
 
     // Chapati Extra Expenses
-    $routes->get('/chapatiextraexpense',                         'ChapatiExtraExpense::index');
-    $routes->get('/chapatiextraexpense/getExtraExpenses',        'ChapatiExtraExpense::getExtraExpenses');
-    $routes->post('/chapatiextraexpense/addExtraExpense',        'ChapatiExtraExpense::addExtraExpense');
-    $routes->delete('/chapatiextraexpense/delete/(:num)',        'ChapatiExtraExpense::delete/$1');
+    $routes->get('/chapatiextraexpense', 'ChapatiExtraExpense::index');
+    $routes->get('/chapatiextraexpense/getExtraExpenses', 'ChapatiExtraExpense::getExtraExpenses');
+    $routes->post('/chapatiextraexpense/addExtraExpense', 'ChapatiExtraExpense::addExtraExpense');
+    $routes->delete('/chapatiextraexpense/delete/(:num)', 'ChapatiExtraExpense::delete/$1');
 
     // User search (used by expense/extra expense forms for all users)
     $routes->get('/user/search', 'User::search');
 
     // Final Distribution — view only for all authenticated users
-    $routes->get('/finaldistribution',                             'FinalDistribution::index');
+    $routes->get('/finaldistribution', 'FinalDistribution::index');
     $routes->get('/finaldistribution/getDistribution/(:segment)', 'FinalDistribution::getDistribution/$1');
 
 });
@@ -60,14 +62,42 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 $routes->group('', ['filter' => 'admin'], function ($routes) {
 
     // Users management — full CRUD
-    $routes->get('/user',                         'User::index');
-    $routes->get('/user/getUsers',                'User::getUsers');
-    $routes->post('/user/addUser',                'User::addUser');
-    $routes->delete('/user/deleteUser/(:num)',    'User::deleteUser/$1');
-    $routes->post('/user/updateRole/(:num)',      'User::updateRole/$1');
-    $routes->post('/user/resetPassword/(:num)',   'User::resetPassword/$1');
+    $routes->get('/user', 'User::index');
+    $routes->get('/user/getUsers', 'User::getUsers');
+    $routes->post('/user/addUser', 'User::addUser');
+    $routes->delete('/user/deleteUser/(:num)', 'User::deleteUser/$1');
+    $routes->post('/user/updateRole/(:num)', 'User::updateRole/$1');
+    $routes->post('/user/resetPassword/(:num)', 'User::resetPassword/$1');
 
     // Final Distribution — generate (write action, admin only)
     $routes->post('/finaldistribution/generateDistribution/(:segment)', 'FinalDistribution::generateDistribution/$1');
 
 });
+
+// ── Migration route (production only, protected by a secret key) ────────────────────────────
+// migration url: /migrate/my-secret-123
+if (ENVIRONMENT === 'production') {
+    $routes->get('/migrate/(:any)', function ($key) {
+
+        if ($key !== 'my-secret-123') {
+            return 'Unauthorized';
+        }
+
+        $migrate = \Config\Services::migrations();
+
+        try {
+            // Run migrations
+            $migrate->latest();
+
+            // Run seeder
+            $seeder = \Config\Database::seeder();
+            $seeder->call('GroupSeeder');
+            $seeder->call('UserSeeder');
+            $seeder->call('ExpenseTypeSeeder');
+
+            return 'Migration + Seeding successful.';
+        } catch (\Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    });
+}

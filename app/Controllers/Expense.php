@@ -90,4 +90,66 @@ class Expense extends BaseController
         (new ExpenseModel())->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
     }
+
+    public function getExpense($id)
+    {
+        $expenseModel = new ExpenseModel();
+        $involvementModel = new ExpenseInvolvementModel();
+
+        /** @var \App\Entities\Expense|null $expense */
+        $expense = $expenseModel->find($id);
+        if (!($expense instanceof \App\Entities\Expense)) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
+        }
+
+        // Collect involved user IDs for this expense
+        $rows = $involvementModel->where('expense_id', $id)->findAll();
+        $involvedIds = array_map(fn($r) => (int) $r->user_id, $rows);
+
+        return $this->response->setJSON([
+            'data' => [
+                'id' => (int) $expense->id,
+                'expense_type_id' => (int) $expense->expense_type_id,
+                'amount' => $expense->amount,
+                'from_date' => (string) $expense->from_date,
+                'to_date' => (string) $expense->to_date,
+                'paid_by' => $expense->paid_by,
+                'involved_ids' => $involvedIds,
+            ],
+        ]);
+    }
+
+    public function updateExpense($id)
+    {
+        $expenseModel = new ExpenseModel();
+        $involvementModel = new ExpenseInvolvementModel();
+
+        /** @var \App\Entities\Expense|null $expense */
+        $expense = $expenseModel->find($id);
+        if (!($expense instanceof \App\Entities\Expense)) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
+        }
+
+        $data = $this->request->getPost();
+        $paidBy = $this->request->getPost('paid_by') ?: null;
+
+        $expenseModel->update($id, [
+            'expense_type_id' => $data['expense_type_id'],
+            'amount' => $data['amount'],
+            'from_date' => $data['from_date'],
+            'to_date' => $data['to_date'],
+            'paid_by' => $paidBy,
+        ]);
+
+        // Replace involvements: delete old, insert new
+        $involvementModel->where('expense_id', $id)->delete();
+        foreach ($data['involved_users'] as $uid) {
+            $involvementModel->insert([
+                'expense_id' => $id,
+                'user_id' => $uid,
+            ]);
+        }
+
+        return $this->response->setJSON(['status' => 'success']);
+    }
 }

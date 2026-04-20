@@ -288,6 +288,210 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     EDIT EXPENSE MODAL
+════════════════════════════════════════════════════════════════ -->
+
+<!-- Edit Backdrop -->
+<div id="edit-modal-backdrop" onclick="closeEditModal()" style="
+    display:none;position:fixed;inset:0;
+    background:rgba(15,23,42,.45);z-index:100;
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+"></div>
+
+<!-- Edit Modal -->
+<div id="edit-expense-modal" style="
+    display:none;position:fixed;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%) scale(0.97);
+    width:calc(100% - 32px);max-width:500px;
+    max-height:90vh;
+    background:#fff;border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.15);
+    z-index:101;opacity:0;
+    transition:transform .2s ease, opacity .2s ease;
+    flex-direction:column;
+">
+    <!-- Modal header -->
+    <div
+        style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div
+                style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="pencil" style="width:16px;height:16px;color:#4338ca;"></i>
+            </div>
+            <div>
+                <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Edit Expense</h3>
+                <p style="font-size:12px;color:#94a3b8;margin:2px 0 0;">Update the expense details below</p>
+            </div>
+        </div>
+        <button onclick="closeEditModal()" style="
+            width:32px;height:32px;border-radius:8px;
+            background:#f1f5f9;border:none;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            color:#64748b;transition:background .15s;flex-shrink:0;
+        " onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i data-lucide="x" style="width:16px;height:16px;"></i>
+        </button>
+    </div>
+
+    <!-- Modal body — scrollable -->
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
+        <form id="editExpenseForm" style="padding:20px 24px 24px;">
+            <input type="hidden" id="edit-expense-id" name="expense_id" value="">
+
+            <!-- Expense Type -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="edit-exp-type">Expense Type <span style="color:#ef4444;">*</span></label>
+                <div style="position:relative;">
+                    <i data-lucide="tag"
+                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                    <select id="edit-exp-type" name="expense_type_id" required class="ss-input"
+                        style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
+                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        <option value="">— Select type —</option>
+                        <?php foreach ($expenseTypes as $type): ?>
+                            <option value="<?= $type->id ?>"><?= esc($type->name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                </div>
+            </div>
+
+            <!-- Amount -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="edit-exp-amount">Amount <span style="color:#ef4444;">*</span></label>
+                <div style="position:relative;">
+                    <span
+                        style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:600;color:#94a3b8;pointer-events:none;font-family:'JetBrains Mono',monospace;">₹</span>
+                    <input type="number" id="edit-exp-amount" name="amount" placeholder="0.00" min="0" step="0.01"
+                        required class="ss-input" style="padding-left:30px;font-family:'JetBrains Mono',monospace;"
+                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                </div>
+            </div>
+
+            <!-- Date range -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div>
+                    <label class="ss-label" for="edit-exp-from">From Date</label>
+                    <div style="position:relative;">
+                        <i data-lucide="calendar"
+                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                        <input type="date" id="edit-exp-from" name="from_date" class="ss-input"
+                            style="padding-left:38px;"
+                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                    </div>
+                </div>
+                <div>
+                    <label class="ss-label" for="edit-exp-to">To Date</label>
+                    <div style="position:relative;">
+                        <i data-lucide="calendar"
+                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                        <input type="date" id="edit-exp-to" name="to_date" class="ss-input" style="padding-left:38px;"
+                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paid By -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label">
+                    Paid By
+                    <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional</span>
+                </label>
+
+                <?php if ($role === 'admin'): ?>
+                    <div style="position:relative;">
+                        <i data-lucide="user"
+                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                        <select id="edit-paid-by" name="paid_by" class="ss-input"
+                            style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
+                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                            <option value="">— Not paid yet —</option>
+                            <?php foreach ($users as $user): ?>
+                                <option value="<?= $user->id ?>"><?= esc($user->name) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <i data-lucide="chevron-down"
+                            style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                    </div>
+                <?php else: ?>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div
+                            style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                                <input type="radio" name="edit_paid_by_option" value="me" id="edit-pbo-me"
+                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
+                                    onchange="toggleEditPaidBy(this.value)">
+                                <span style="font-size:13px;font-weight:500;color:#334155;">Paid by me</span>
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                                <input type="radio" name="edit_paid_by_option" value="none" id="edit-pbo-none"
+                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
+                                    onchange="toggleEditPaidBy(this.value)">
+                                <span style="font-size:13px;font-weight:500;color:#334155;">Not paid yet</span>
+                            </label>
+                        </div>
+                        <input type="hidden" name="paid_by" id="edit-paid-by-value" value="">
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Involved Roommates -->
+            <div style="margin-bottom:24px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <label class="ss-label" style="margin-bottom:0;">Involved Roommates <span
+                            style="color:#ef4444;">*</span></label>
+                    <div style="display:flex;gap:6px;">
+                        <button type="button" onclick="editSelectAllUsers()" class="ss-btn ss-btn-ghost"
+                            style="padding:4px 10px;font-size:12px;min-height:28px;">All</button>
+                        <button type="button" onclick="editDeselectAllUsers()" class="ss-btn ss-btn-ghost"
+                            style="padding:4px 10px;font-size:12px;min-height:28px;">None</button>
+                    </div>
+                </div>
+                <div id="edit-involved-users-list" style="
+                    border:1px solid #e2e8f0;border-radius:8px;
+                    overflow:hidden;max-height:180px;overflow-y:auto;
+                    -webkit-overflow-scrolling:touch;
+                ">
+                    <?php foreach ($users as $user): ?>
+                        <label style="
+                            display:flex;align-items:center;gap:10px;
+                            padding:10px 14px;cursor:pointer;
+                            border-bottom:1px solid #f1f5f9;
+                            transition:background .1s;
+                        " onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                            <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>" class="edit-involved-cb"
+                                style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;flex-shrink:0;">
+                            <span style="font-size:14px;font-weight:500;color:#334155;"><?= esc($user->name) ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <p id="edit-involved-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                    Please select at least one roommate.
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:10px;">
+                <button type="button" onclick="closeEditModal()" class="ss-btn ss-btn-ghost" style="flex:1;">
+                    Cancel
+                </button>
+                <button type="submit" id="editExpenseBtn" class="ss-btn ss-btn-primary" style="flex:2;">
+                    <i data-lucide="save" style="width:15px;height:15px;" id="editExpenseBtnIcon"></i>
+                    <span id="editExpenseBtnText">Save Changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?= $this->endSection() ?>
 
 
@@ -400,24 +604,42 @@
                     </span>
                 </td>
 
-                <!-- Delete -->
+                <!-- Actions -->
                 <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">
-                    <button class="deleteExpenseBtn"
-                        data-id="${e.id}"
-                        style="
-                            display:inline-flex;align-items:center;gap:5px;
-                            padding:6px 12px;border-radius:6px;
-                            background:#fee2e2;color:#dc2626;
-                            border:none;cursor:pointer;
-                            font-size:12px;font-weight:600;
-                            font-family:'DM Sans',sans-serif;
-                            min-height:32px;transition:background .15s;
-                        "
-                        onmouseover="this.style.background='#fecaca'"
-                        onmouseout="this.style.background='#fee2e2'">
-                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
-                        Delete
-                    </button>
+                    <div style="display:inline-flex;gap:6px;align-items:center;">
+                        <button class="editExpenseBtn"
+                            data-id="${e.id}"
+                            style="
+                                display:inline-flex;align-items:center;gap:5px;
+                                padding:6px 12px;border-radius:6px;
+                                background:#e0e7ff;color:#4338ca;
+                                border:none;cursor:pointer;
+                                font-size:12px;font-weight:600;
+                                font-family:'DM Sans',sans-serif;
+                                min-height:32px;transition:background .15s;
+                            "
+                            onmouseover="this.style.background='#c7d2fe'"
+                            onmouseout="this.style.background='#e0e7ff'">
+                            <i data-lucide="pencil" style="width:12px;height:12px;"></i>
+                            Edit
+                        </button>
+                        <button class="deleteExpenseBtn"
+                            data-id="${e.id}"
+                            style="
+                                display:inline-flex;align-items:center;gap:5px;
+                                padding:6px 12px;border-radius:6px;
+                                background:#fee2e2;color:#dc2626;
+                                border:none;cursor:pointer;
+                                font-size:12px;font-weight:600;
+                                font-family:'DM Sans',sans-serif;
+                                min-height:32px;transition:background .15s;
+                            "
+                            onmouseover="this.style.background='#fecaca'"
+                            onmouseout="this.style.background='#fee2e2'">
+                            <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+                            Delete
+                        </button>
+                    </div>
                 </td>
             </tr>`;
             }).join('');
@@ -440,6 +662,13 @@
                             ssToast('Failed to delete expense.', 'error');
                         }
                     });
+                });
+            });
+
+            // Edit handler
+            document.querySelectorAll('.editExpenseBtn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    openEditModal(this.dataset.id);
                 });
             });
         });
@@ -559,6 +788,159 @@
             resetAddBtn();
         });
     });
+
+    // ── Edit modal: open / close ────────────────────────────────────
+    var _editingId = null;
+
+    function openEditModal(id) {
+        _editingId = id;
+        // Show modal immediately with loading state
+        var backdrop = document.getElementById('edit-modal-backdrop');
+        var modal = document.getElementById('edit-expense-modal');
+        backdrop.style.display = 'block';
+        modal.style.display = 'flex';
+        requestAnimationFrame(function () {
+            modal.style.opacity = '1';
+            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        });
+
+        // Fetch expense data
+        $.get('/expense/getExpense/' + id, function (res) {
+            var d = res.data;
+
+            // Populate fields
+            document.getElementById('edit-expense-id').value = d.id;
+            document.getElementById('edit-exp-type').value = d.expense_type_id;
+            document.getElementById('edit-exp-amount').value = d.amount;
+
+            // Dates: CI4 Time serialises as "YYYY-MM-DD HH:MM:SS" — take first 10 chars
+            var fromStr = (d.from_date || '').substring(0, 10);
+            var toStr = (d.to_date || '').substring(0, 10);
+            document.getElementById('edit-exp-from').value = fromStr;
+            document.getElementById('edit-exp-to').value = toStr;
+
+            // Paid by — admin select vs user radio
+            var isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
+            if (isAdmin) {
+                var sel = document.getElementById('edit-paid-by');
+                if (sel) sel.value = d.paid_by || '';
+            } else {
+                var meRadio = document.getElementById('edit-pbo-me');
+                var noneRadio = document.getElementById('edit-pbo-none');
+                var hiddenPb = document.getElementById('edit-paid-by-value');
+                var myId = '<?= (int) $userId ?>';
+                if (d.paid_by && String(d.paid_by) === myId) {
+                    if (meRadio) meRadio.checked = true;
+                    if (hiddenPb) hiddenPb.value = myId;
+                } else {
+                    if (noneRadio) noneRadio.checked = true;
+                    if (hiddenPb) hiddenPb.value = '';
+                }
+            }
+
+            // Involved checkboxes
+            var involvedIds = d.involved_ids || [];
+            document.querySelectorAll('.edit-involved-cb').forEach(function (cb) {
+                cb.checked = involvedIds.indexOf(parseInt(cb.value)) !== -1;
+            });
+
+            lucide.createIcons();
+            document.getElementById('edit-exp-type').focus();
+        }).fail(function () {
+            ssToast('Failed to load expense data.', 'error');
+            closeEditModal();
+        });
+    }
+
+    function closeEditModal() {
+        var modal = document.getElementById('edit-expense-modal');
+        var backdrop = document.getElementById('edit-modal-backdrop');
+        modal.style.opacity = '0';
+        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
+        setTimeout(function () {
+            modal.style.display = 'none';
+            backdrop.style.display = 'none';
+            document.getElementById('editExpenseForm').reset();
+            document.getElementById('edit-involved-error').style.display = 'none';
+            resetEditBtn();
+            _editingId = null;
+        }, 180);
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeEditModal();
+    });
+
+
+    // ── Edit modal: involved-users helpers ──────────────────────────
+    function editSelectAllUsers() {
+        document.querySelectorAll('.edit-involved-cb').forEach(function (cb) { cb.checked = true; });
+    }
+    function editDeselectAllUsers() {
+        document.querySelectorAll('.edit-involved-cb').forEach(function (cb) { cb.checked = false; });
+    }
+
+
+    // ── Edit modal: non-admin paid-by toggle ────────────────────────
+    function toggleEditPaidBy(val) {
+        var input = document.getElementById('edit-paid-by-value');
+        if (input) {
+            input.value = val === 'me' ? '<?= (int) $userId ?>' : '';
+        }
+    }
+
+
+    // ── Edit modal: button state helpers ────────────────────────────
+    function setEditBtnLoading() {
+        var btn = document.getElementById('editExpenseBtn');
+        var text = document.getElementById('editExpenseBtnText');
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        text.textContent = 'Saving…';
+        window.setLucideIcon('editExpenseBtnIcon', 'loader');
+    }
+    function resetEditBtn() {
+        var btn = document.getElementById('editExpenseBtn');
+        var text = document.getElementById('editExpenseBtnText');
+        if (!btn) return;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        text.textContent = 'Save Changes';
+        window.setLucideIcon('editExpenseBtnIcon', 'save');
+    }
+
+
+    // ── Edit modal: form submit ──────────────────────────────────────
+    document.getElementById('editExpenseForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var checked = document.querySelectorAll('.edit-involved-cb:checked');
+        if (checked.length === 0) {
+            document.getElementById('edit-involved-error').style.display = 'block';
+            var list = document.getElementById('edit-involved-users-list');
+            list.style.borderColor = '#ef4444';
+            setTimeout(function () { list.style.borderColor = '#e2e8f0'; }, 2000);
+            return;
+        }
+        document.getElementById('edit-involved-error').style.display = 'none';
+
+        setEditBtnLoading();
+
+        $.post('/expense/updateExpense/' + _editingId, $(this).serialize(), function (res) {
+            if (res.status === 'success') {
+                ssToast('Expense updated successfully!', 'success');
+                closeEditModal();
+                loadExpenses();
+            } else {
+                ssToast('Failed to update expense.', 'error');
+                resetEditBtn();
+            }
+        }, 'json').fail(function () {
+            ssToast('Something went wrong.', 'error');
+            resetEditBtn();
+        });
+    });
+
 
     /* ── Involved-users tooltip ── */
     (function () {

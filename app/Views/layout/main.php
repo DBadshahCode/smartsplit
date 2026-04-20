@@ -1024,6 +1024,22 @@
                 backdrop.style.display = 'none';
             }, 180);
         };
+        // ── setLucideIcon: safely swaps a lucide icon after SVG render ──
+        // After lucide renders <i> → <svg>, setAttribute alone won't re-render.
+        // This replaces the element with a fresh <i> then calls createIcons on it.
+        window.setLucideIcon = function (id, iconName) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const fresh = document.createElement('i');
+            // Copy over any inline style from the existing element (svg or i)
+            const existingStyle = el.getAttribute('style') || '';
+            fresh.setAttribute('data-lucide', iconName);
+            fresh.setAttribute('id', id);
+            if (existingStyle) fresh.setAttribute('style', existingStyle);
+            el.parentNode.replaceChild(fresh, el);
+            lucide.createIcons({ nodes: [fresh] });
+        };
+
         window.copyUpiId = function () {
             const upiText = document.getElementById('upi-id-text')?.textContent?.trim();
             if (!upiText) return;
