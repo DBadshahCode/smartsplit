@@ -7,17 +7,17 @@ use CodeIgniter\Entity\Entity;
 class AbsentDay extends Entity
 {
     protected $datamap = [];
-    protected $dates   = ['created_at', 'updated_at', 'deleted_at'];
-    protected $casts   = [
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+    protected $casts = [
         'id' => 'integer',
         'user_id' => 'integer',
-        'month' => 'string',
+        'expense_id' => 'integer',
         'days_absent' => 'integer',
     ];
     protected $attributes = [
         'id' => null,
         'user_id' => null,
-        'month' => null,
+        'expense_id' => null,
         'days_absent' => null,
     ];
 }

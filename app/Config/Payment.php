@@ -10,7 +10,7 @@ use CodeIgniter\Config\BaseConfig;
  * Set your UPI ID below. This is used to generate the
  * payment QR code shown in the app's profile dropdown.
  *
- * Format:  yourname@bankname  (e.g. sulya@upi, 9876543210@paytm)
+ * Format:  yourname@bankname
  */
 class Payment extends BaseConfig
 {

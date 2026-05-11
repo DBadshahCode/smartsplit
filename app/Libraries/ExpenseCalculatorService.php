@@ -92,7 +92,8 @@ class ExpenseCalculatorService
         | For each expense:
         |   • equal      → each involved user pays an equal share.
         |   • daysPresent→ share is proportional to days present in the period;
-        |                   absences come from the `absent_days` table (month-level).
+        |                   absences come from the `absent_days` table, keyed by
+        |                   expense_id + user_id (mirrors chapati_absences).
         |   • custom     → logged as a warning; no silent skipping.
         | The payer (paid_by) always gets the full expense amount credited
         | as advance, regardless of split method.
@@ -103,12 +104,11 @@ class ExpenseCalculatorService
             ->where('from_date <=', $endDate)
             ->findAll();
 
-        // Pre-load all absent_days for the month once (avoids N+1 queries)
-        $allAbsentRows = $absentDayModel->where('month', $month)->findAll();
-        $absentByUser = [];
-        foreach ($allAbsentRows as $row) {
-            $absentByUser[(int) $row->user_id] = (int) $row->days_absent;
-        }
+        // Lazy-load cache: absent_days per expense, loaded on first daysPresent
+        // encounter for that expense. Avoids N+1 while not loading data that is
+        // never needed (e.g. months where all expenses are split equally).
+        // Structure: $absentByExpense[expense_id][user_id] = days_absent (int)
+        $absentByExpense = [];
 
         foreach ($expenses as $expense) {
 
@@ -160,11 +160,26 @@ class ExpenseCalculatorService
                         break;
                     }
 
+                    // Lazy-load absent_days for this expense if not yet cached.
+                    // absent_days is keyed by expense_id + user_id, exactly like
+                    // chapati_absences is keyed by chapati_expense_id + user_id.
+                    if (!isset($absentByExpense[$expense->id])) {
+                        $absentRows = $absentDayModel
+                            ->where('expense_id', $expense->id)
+                            ->findAll();
+
+                        $map = [];
+                        foreach ($absentRows as $row) {
+                            $map[(int) $row->user_id] = (int) $row->days_absent;
+                        }
+                        $absentByExpense[$expense->id] = $map;
+                    }
+
                     $presentDays = [];
                     $sumPresentDays = 0;
 
                     foreach ($userIds as $uid) {
-                        $daysAbsent = $absentByUser[$uid] ?? 0;
+                        $daysAbsent = $absentByExpense[$expense->id][$uid] ?? 0;
                         $days = max(0, $totalDays - $daysAbsent);
                         $presentDays[$uid] = $days;
                         $sumPresentDays += $days;
@@ -297,7 +312,7 @@ class ExpenseCalculatorService
         | SECTION 3 — PERSIST FINAL DISTRIBUTION
         |----------------------------------------------------------------------
         | For each user in the accumulator:
-        |   total_share   = chapati_amount + other_expenses_amount
+        |   total_share    = chapati_amount + other_expenses_amount
         |   advance_amount = total amount this user actually paid out
         |   balance        = total_share − advance_amount
         |

@@ -42,6 +42,9 @@
                         Type</th>
                     <th
                         style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
+                        Description</th>
+                    <th
+                        style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
                         Amount</th>
                     <th
                         style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
@@ -141,6 +144,19 @@
                     </select>
                     <i data-lucide="chevron-down"
                         style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="exp-description">Description</label>
+                <div style="position:relative;">
+                    <i data-lucide="edit-3"
+                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent" class="ss-input"
+                        style="padding-left:38px;"
+                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
                 </div>
             </div>
 
@@ -360,6 +376,14 @@
                 </div>
             </div>
 
+            <!-- Description -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="edit-exp-description">Description</label>
+                <input type="text" id="edit-exp-description" name="description" placeholder="e.g. Rent" class="ss-input"
+                    onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                    onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+            </div>
+
             <!-- Amount -->
             <div style="margin-bottom:16px;">
                 <label class="ss-label" for="edit-exp-amount">Amount <span style="color:#ef4444;">*</span></label>
@@ -369,7 +393,7 @@
                     <input type="number" id="edit-exp-amount" name="amount" placeholder="0.00" min="0" step="0.01"
                         required class="ss-input" style="padding-left:30px;font-family:'JetBrains Mono',monospace;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        ) onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
                 </div>
             </div>
 
@@ -556,6 +580,13 @@
                     ">
                         <i data-lucide="tag" style="width:11px;height:11px;"></i>
                         ${e.expense_type || '—'}
+                    </span>
+                </td>
+
+                <!-- Description -->
+                <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;max-width:220px;">
+                    <span style="font-size:13px;color:#64748b;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        ${e.description || '<span style="color:#cbd5e1;font-style:italic;">No description</span>'}
                     </span>
                 </td>
 
@@ -810,6 +841,7 @@
 
             // Populate fields
             document.getElementById('edit-expense-id').value = d.id;
+            document.getElementById('edit-exp-description').value = d.description;
             document.getElementById('edit-exp-type').value = d.expense_type_id;
             document.getElementById('edit-exp-amount').value = d.amount;
 

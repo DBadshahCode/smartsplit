@@ -1,9 +1,10 @@
 <?php
-$uri     = service('uri');
-$seg1    = $uri->getSegment(1);
+$uri = service('uri');
+$seg1 = $uri->getSegment(1);
 
 // Helper: returns 'active' class string if the segment matches
-function navActive(string $segment, string $check): string {
+function navActive(string $segment, string $check): string
+{
     return $segment === $check ? 'active' : '';
 }
 ?>
@@ -23,61 +24,59 @@ function navActive(string $segment, string $check): string {
         <!-- Main -->
         <div class="nav-section-label">Main</div>
 
-        <a href="<?= base_url('/') ?>"
-           class="nav-link <?= ($seg1 === '') ? 'active' : '' ?>">
+        <a href="<?= base_url('/') ?>" class="nav-link <?= ($seg1 === '') ? 'active' : '' ?>">
             <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Dashboard</span>
         </a>
 
         <?php if (session()->get('role') === 'admin'): ?>
-        <a href="<?= base_url('/user') ?>"
-           class="nav-link <?= navActive($seg1, 'user') ?>">
-            <i data-lucide="users" class="nav-icon w-4 h-4"></i>
-            <span class="nav-text">Users</span>
-        </a>
+            <a href="<?= base_url('/user') ?>" class="nav-link <?= navActive($seg1, 'user') ?>">
+                <i data-lucide="users" class="nav-icon w-4 h-4"></i>
+                <span class="nav-text">Users</span>
+            </a>
         <?php endif; ?>
 
         <!-- Expenses -->
         <div class="nav-section-label">Expenses</div>
 
-        <a href="<?= base_url('/expensetype') ?>"
-           class="nav-link <?= navActive($seg1, 'expensetype') ?>">
+        <a href="<?= base_url('/expensetype') ?>" class="nav-link <?= navActive($seg1, 'expensetype') ?>">
             <i data-lucide="tag" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Expense Types</span>
         </a>
 
-        <a href="<?= base_url('/expense') ?>"
-           class="nav-link <?= navActive($seg1, 'expense') ?>">
+        <a href="<?= base_url('/expense') ?>" class="nav-link <?= navActive($seg1, 'expense') ?>">
             <i data-lucide="receipt" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Expenses</span>
         </a>
 
-        <!-- Chapati -->
-        <div class="nav-section-label">Chapati</div>
+        <a href="<?= base_url('/absentday') ?>" class="nav-link <?= navActive($seg1, 'absentday') ?>">
+            <i data-lucide="calendar-x" class="nav-icon w-4 h-4"></i>
+            <span class="nav-text">Absent Days</span>
+        </a>
 
-        <a href="<?= base_url('/chapatiexpense') ?>"
-           class="nav-link <?= navActive($seg1, 'chapatiexpense') ?>">
+        <!-- Chapati -->
+        <!-- <div class="nav-section-label">Chapati</div>
+
+        <a href="<?= base_url('/chapatiexpense') ?>" class="nav-link <?= navActive($seg1, 'chapatiexpense') ?>">
             <i data-lucide="utensils" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Chapati Expenses</span>
         </a>
 
-        <a href="<?= base_url('/chapatiabsence') ?>"
-           class="nav-link <?= navActive($seg1, 'chapatiabsence') ?>">
+        <a href="<?= base_url('/chapatiabsence') ?>" class="nav-link <?= navActive($seg1, 'chapatiabsence') ?>">
             <i data-lucide="calendar-x" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Chapati Absences</span>
         </a>
 
         <a href="<?= base_url('/chapatiextraexpense') ?>"
-           class="nav-link <?= navActive($seg1, 'chapatiextraexpense') ?>">
+            class="nav-link <?= navActive($seg1, 'chapatiextraexpense') ?>">
             <i data-lucide="plus-circle" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Extra Expenses</span>
-        </a>
+        </a> -->
 
         <!-- Reports -->
         <div class="nav-section-label">Reports</div>
 
-        <a href="<?= base_url('/finaldistribution') ?>"
-           class="nav-link <?= navActive($seg1, 'finaldistribution') ?>">
+        <a href="<?= base_url('/finaldistribution') ?>" class="nav-link <?= navActive($seg1, 'finaldistribution') ?>">
             <i data-lucide="bar-chart-2" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Final Distribution</span>
         </a>
@@ -86,10 +85,9 @@ function navActive(string $segment, string $check): string {
 
     <!-- Sidebar footer -->
     <div class="sidebar-footer">
-        <a href="<?= base_url('/auth/logout') ?>"
-           class="nav-link" style="color:rgba(239,68,68,.75);"
-           onmouseover="this.style.background='rgba(239,68,68,.12)';this.style.color='#f87171';"
-           onmouseout="this.style.background='';this.style.color='rgba(239,68,68,.75)';">
+        <a href="<?= base_url('/auth/logout') ?>" class="nav-link" style="color:rgba(239,68,68,.75);"
+            onmouseover="this.style.background='rgba(239,68,68,.12)';this.style.color='#f87171';"
+            onmouseout="this.style.background='';this.style.color='rgba(239,68,68,.75)';">
             <i data-lucide="log-out" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Logout</span>
         </a>

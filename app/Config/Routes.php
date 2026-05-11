@@ -31,6 +31,13 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('/expense/updateExpense/(:num)', 'Expense::updateExpense/$1');
     $routes->delete('/expense/deleteExpense/(:num)', 'Expense::deleteExpense/$1');
 
+    // Absent Days
+    $routes->get('absentday', 'AbsentDay::index');
+    $routes->get('absentday/getExpenses', 'AbsentDay::getExpenses');
+    $routes->get('absentday/getAbsentDays/(:segment)', 'AbsentDay::getAbsentDays/$1');
+    $routes->post('absentday/upsert', 'AbsentDay::upsert');
+    $routes->delete('absentday/delete/(:num)', 'AbsentDay::delete/$1');
+
     // Chapati Expenses
     $routes->get('/chapatiexpense', 'ChapatiExpense::index');
     $routes->get('/chapatiexpense/getChapatiExpenses', 'ChapatiExpense::getChapatiExpenses');
@@ -71,33 +78,55 @@ $routes->group('', ['filter' => 'admin'], function ($routes) {
 
     // Final Distribution — generate (write action, admin only)
     $routes->post('/finaldistribution/generateDistribution/(:segment)', 'FinalDistribution::generateDistribution/$1');
+    $routes->get('/finaldistribution/exportExcel/(:segment)', 'FinalDistribution::exportExcel/$1');
 
 });
 
-// ── Migration route (production only, protected by a secret key) ────────────────────────────
-// migration url: /migrate/my-secret-123
-if (ENVIRONMENT === 'production') {
-    $routes->get('/migrate/(:any)', function ($key) {
+// ── Migration routes (protected by secret key) ──────────────────────────────
+$routes->get('/migrate/(:any)', function ($key) {
+    if ($key !== 'SmartSplit2026') {
+        return 'Unauthorized';
+    }
 
-        if ($key !== 'my-secret-123') {
-            return 'Unauthorized';
-        }
+    $migrate = \Config\Services::migrations();
+    $seeder = \Config\Database::seeder();
 
-        $migrate = \Config\Services::migrations();
+    try {
+        $migrate->latest();
+        $seeder->call('UserSeeder');
+        $seeder->call('ExpenseTypeSeeder');
+        return 'Migration + Seeding successful.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
 
-        try {
-            // Run migrations
-            $migrate->latest();
+$routes->get('/migrate-only/(:any)', function ($key) {
+    if ($key !== 'SmartSplit2026') {
+        return 'Unauthorized';
+    }
 
-            // Run seeder
-            $seeder = \Config\Database::seeder();
-            $seeder->call('GroupSeeder');
-            $seeder->call('UserSeeder');
-            $seeder->call('ExpenseTypeSeeder');
+    try {
+        \Config\Services::migrations()->latest();
+        return 'Migration successful.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
 
-            return 'Migration + Seeding successful.';
-        } catch (\Exception $e) {
-            return 'Error: ' . $e->getMessage();
-        }
-    });
-}
+$routes->get('/seed-only/(:any)', function ($key) {
+    if ($key !== 'SmartSplit2026') {
+        return 'Unauthorized';
+    }
+
+    $seeder = \Config\Database::seeder();
+
+    try {
+        $seeder->call('UserSeeder');
+        $seeder->call('ExpenseTypeSeeder');
+        $seeder->call('ExpenseSeeder');
+        return 'Seeding successful.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});

@@ -1,5 +1,5 @@
 <?php
-$currentYear  = date('Y');
+$currentYear = date('Y');
 $softwareName = 'SmartSplit';
 ?>
 <footer class="mt-auto px-7 py-5 border-t border-surface-100">
@@ -8,7 +8,7 @@ $softwareName = 'SmartSplit';
             &copy; <?= $currentYear ?> <?= $softwareName ?>. All rights reserved.
         </p>
         <p class="text-xs text-surface-300 font-mono">
-            v1.0.0
+            v2.0.0
         </p>
     </div>
 </footer>

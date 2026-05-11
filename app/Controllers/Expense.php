@@ -39,6 +39,7 @@ class Expense extends BaseController
         $expenses = $expenseModel
             ->select('
                 expenses.id,
+                expenses.description,
                 expenses.amount,
                 expenses.from_date,
                 expenses.to_date,
@@ -69,6 +70,7 @@ class Expense extends BaseController
 
         $expenseId = $expenseModel->insert([
             'expense_type_id' => $data['expense_type_id'],
+            'description' => $data['description'],
             'amount' => $data['amount'],
             'from_date' => $data['from_date'],
             'to_date' => $data['to_date'],
@@ -110,6 +112,7 @@ class Expense extends BaseController
             'data' => [
                 'id' => (int) $expense->id,
                 'expense_type_id' => (int) $expense->expense_type_id,
+                'description' => $expense->description,
                 'amount' => $expense->amount,
                 'from_date' => (string) $expense->from_date,
                 'to_date' => (string) $expense->to_date,
@@ -135,6 +138,7 @@ class Expense extends BaseController
 
         $expenseModel->update($id, [
             'expense_type_id' => $data['expense_type_id'],
+            'description' => $data['description'],
             'amount' => $data['amount'],
             'from_date' => $data['from_date'],
             'to_date' => $data['to_date'],

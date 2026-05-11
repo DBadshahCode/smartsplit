@@ -365,6 +365,7 @@
             transition: border-color .15s, box-shadow .15s;
             min-height: 44px;
             /* touch tap target */
+            appearance: none;
             -webkit-appearance: none;
         }
 
