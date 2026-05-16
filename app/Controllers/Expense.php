@@ -108,6 +108,12 @@ class Expense extends BaseController
         $rows = $involvementModel->where('expense_id', $id)->findAll();
         $involvedIds = array_map(fn($r) => (int) $r->user_id, $rows);
 
+        // Determine if current user can edit this expense
+        $session = session();
+        $role = $session->get('role');
+        $currentUserId = (int) $session->get('user_id');
+        $canEdit = $this->canEditExpense($expense, $role, $currentUserId);
+
         return $this->response->setJSON([
             'data' => [
                 'id' => (int) $expense->id,
@@ -118,6 +124,7 @@ class Expense extends BaseController
                 'to_date' => (string) $expense->to_date,
                 'paid_by' => $expense->paid_by,
                 'involved_ids' => $involvedIds,
+                'can_edit' => $canEdit,
             ],
         ]);
     }
@@ -131,6 +138,16 @@ class Expense extends BaseController
         $expense = $expenseModel->find($id);
         if (!($expense instanceof \App\Entities\Expense)) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
+        }
+
+        // Check if user has permission to edit this expense
+        $session = session();
+        $role = $session->get('role');
+        $currentUserId = (int) $session->get('user_id');
+        if (!$this->canEditExpense($expense, $role, $currentUserId)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'You do not have permission to edit this expense'
+            ]);
         }
 
         $data = $this->request->getPost();
@@ -155,5 +172,31 @@ class Expense extends BaseController
         }
 
         return $this->response->setJSON(['status' => 'success']);
+    }
+
+    /**
+     * Determine if the current user can edit this expense
+     * Rules:
+     * - Admins can always edit
+     * - Non-admins can only edit if they are the paid_by user
+     * - Non-admins can edit if paid_by is null/empty (not assigned)
+     */
+    private function canEditExpense($expense, $role, $currentUserId)
+    {
+        // Admin can always edit
+        if ($role === 'admin') {
+            return true;
+        }
+
+        // Non-admin can edit if paid_by is not set or if they are the paid_by user
+        if ($expense->paid_by === null || (int) $expense->paid_by === 0 || $expense->paid_by === '') {
+            return true;
+        }
+
+        if ((int) $expense->paid_by === $currentUserId) {
+            return true;
+        }
+
+        return false;
     }
 }

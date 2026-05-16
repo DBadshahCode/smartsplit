@@ -353,7 +353,33 @@
 
     <!-- Modal body — scrollable -->
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
-        <form id="editExpenseForm" style="padding:20px 24px 24px;">
+        <!-- Permission Denied Message -->
+        <div id="edit-permission-denied" style="display:none;padding:20px 24px;">
+            <div style="
+                display:flex;flex-direction:column;align-items:center;
+                justify-content:center;gap:12px;
+                padding:32px 24px;
+                text-align:center;
+            ">
+                <div style="
+                    width:56px;height:56px;
+                    border-radius:12px;background:#fee2e2;
+                    display:flex;align-items:center;justify-content:center;
+                ">
+                    <i data-lucide="lock" style="width:24px;height:24px;color:#dc2626;"></i>
+                </div>
+                <div>
+                    <h4 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 6px;">
+                        Cannot Edit This Expense
+                    </h4>
+                    <p style="font-size:13px;color:#64748b;margin:0;line-height:1.6;">
+                        You can only edit expenses that you paid for or expenses with no assigned payer. This expense was paid by another user.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form id="editExpenseForm" style="display:block;padding:20px 24px 24px;">
             <input type="hidden" id="edit-expense-id" name="expense_id" value="">
 
             <!-- Expense Type -->
@@ -838,6 +864,21 @@
         // Fetch expense data
         $.get('/expense/getExpense/' + id, function (res) {
             var d = res.data;
+            var canEdit = d.can_edit || false;
+
+            // Show permission denied message if user cannot edit
+            var permDeniedDiv = document.getElementById('edit-permission-denied');
+            var formDiv = document.querySelector('#edit-expense-modal form');
+            if (!canEdit) {
+                if (permDeniedDiv) permDeniedDiv.style.display = 'block';
+                if (formDiv) formDiv.style.display = 'none';
+                lucide.createIcons();
+                return;
+            }
+
+            // Hide permission denied message and show form
+            if (permDeniedDiv) permDeniedDiv.style.display = 'none';
+            if (formDiv) formDiv.style.display = 'block';
 
             // Populate fields
             document.getElementById('edit-expense-id').value = d.id;
