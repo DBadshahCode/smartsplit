@@ -58,17 +58,17 @@
 <div id="summary-cards" style="display:none;margin-bottom:24px;">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
 
-        <div class="ss-card" style="padding:16px 18px;">
+        <!-- <div class="ss-card" style="padding:16px 18px;">
             <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px;">Chapati Total</div>
             <div id="sum-chapati"
                 style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;font-family:'JetBrains Mono',monospace;">
                 —</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:3px;">Across all members</div>
-        </div>
+        </div> -->
 
         <div class="ss-card" style="padding:16px 18px;">
-            <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px;">Other Expenses</div>
-            <div id="sum-other"
+            <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px;">Expenses</div>
+            <div id="sum-expenses"
                 style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;font-family:'JetBrains Mono',monospace;">
                 —</div>
             <div style="font-size:11px;color:#94a3b8;margin-top:3px;">Across all members</div>
@@ -140,12 +140,12 @@
                     <th
                         style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
                         Member</th>
+                    <!-- <th
+                        style="padding:11px 16px;text-align:right;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
+                        Chapati</th> -->
                     <th
                         style="padding:11px 16px;text-align:right;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
-                        Chapati</th>
-                    <th
-                        style="padding:11px 16px;text-align:right;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
-                        Other</th>
+                        Expenses</th>
                     <th
                         style="padding:11px 16px;text-align:right;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;white-space:nowrap;">
                         Advance</th>
@@ -270,15 +270,15 @@
         }
 
         // Update summary cards
-        let sumChapati = 0, sumOther = 0, sumAdvance = 0, sumDue = 0;
+        let sumChapati = 0, sumExpenses = 0, sumAdvance = 0, sumDue = 0;
         records.forEach(function (r) {
-            sumChapati += parseFloat(r.chapati_amount || 0);
-            sumOther += parseFloat(r.other_expenses_amount || 0);
+            // sumChapati += parseFloat(r.chapati_amount || 0);
+            sumExpenses += parseFloat(r.expenses_amount || 0);
             sumAdvance += parseFloat(r.advance_amount || 0);
             sumDue += parseFloat(r.due_amount || 0);
         });
-        document.getElementById('sum-chapati').textContent = fmt(sumChapati);
-        document.getElementById('sum-other').textContent = fmt(sumOther);
+        // document.getElementById('sum-chapati').textContent = fmt(sumChapati);
+        document.getElementById('sum-expenses').textContent = fmt(sumExpenses);
         document.getElementById('sum-advance').textContent = fmt(sumAdvance);
         document.getElementById('sum-due').textContent = fmt(sumDue);
         cards.style.display = 'block';
@@ -322,17 +322,10 @@
                 </div>
             </td>
 
-            <!-- Chapati -->
+            <!-- Expenses -->
             <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">
                 <span style="font-size:13px;color:#64748b;font-family:'JetBrains Mono',monospace;">
-                    ${fmt(r.chapati_amount)}
-                </span>
-            </td>
-
-            <!-- Other expenses -->
-            <td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">
-                <span style="font-size:13px;color:#64748b;font-family:'JetBrains Mono',monospace;">
-                    ${fmt(r.other_expenses_amount)}
+                    ${fmt(r.expenses_amount)}
                 </span>
             </td>
 

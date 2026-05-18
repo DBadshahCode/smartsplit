@@ -38,7 +38,7 @@ class FinalDistribution extends BaseController
                 'name' => $user ? $user->name : 'Unknown',
                 'month' => $record->month,
                 'chapati_amount' => $record->chapati_amount,
-                'other_expenses_amount' => $record->other_expenses_amount,
+                'expenses_amount' => $record->other_expenses_amount,
                 'advance_amount' => $record->advance_amount,
                 'due_amount' => $record->due_amount,
                 'final_amount' => $record->final_amount,

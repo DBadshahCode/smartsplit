@@ -36,7 +36,7 @@
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;">All recorded expenses</div>
     </div>
 
-    <div class="ss-card" style="padding:20px 22px;">
+    <!-- <div class="ss-card" style="padding:20px 22px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">Chapati Records</span>
             <div
@@ -46,7 +46,7 @@
         </div>
         <div style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-chapati">—</div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Chapati expense periods</div>
-    </div>
+    </div> -->
 
     <?php if (session()->get('role') === 'admin'): ?>
         <div class="ss-card" style="padding:20px 22px;">
@@ -162,7 +162,7 @@
                     <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
                 </a>
 
-                <a href="<?= base_url('/chapatiexpense') ?>"
+                <!-- <a href="<?= base_url('/chapatiexpense') ?>"
                     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <div
@@ -174,9 +174,9 @@
                         <div style="font-size:12px;color:#94a3b8;">Add chapati period</div>
                     </div>
                     <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
-                </a>
+                </a> -->
 
-                <a href="<?= base_url('/chapatiabsence') ?>"
+                <a href="<?= base_url('/absentday') ?>"
                     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <div
@@ -295,8 +295,8 @@
         }).join('');
     });
 
-    $.get('/chapatiexpense/getChapatiExpenses', function (res) {
-        document.getElementById('stat-chapati').textContent = (res.data || []).length;
-    });
+    // $.get('/chapatiexpense/getChapatiExpenses', function (res) {
+    //     document.getElementById('stat-chapati').textContent = (res.data || []).length;
+    // });
 </script>
 <?= $this->endSection() ?>
