@@ -91,6 +91,7 @@ class Expense extends BaseController
 
     public function deleteExpense($id)
     {
+        (new ExpenseInvolvementModel())->where('expense_id', $id)->delete();
         (new ExpenseModel())->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
     }

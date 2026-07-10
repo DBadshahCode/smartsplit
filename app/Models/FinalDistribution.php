@@ -29,12 +29,12 @@ class FinalDistribution extends Model
 
     // Validation
     protected $validationRules = [
-        'expense_id' => 'required|is_natural_no_zero',
-        'user_id' => 'required|is_natural_no_zero',
-        'expense_share' => 'required|decimal',
-        'chapati_share' => 'required|decimal',
-        'extra_expense' => 'required|decimal',
-        'final_amount' => 'required|decimal',
+        // 'expense_id' => 'required|is_natural_no_zero',
+        // 'user_id' => 'required|is_natural_no_zero',
+        // 'expense_share' => 'required|decimal',
+        // 'chapati_share' => 'required|decimal',
+        // 'extra_expense' => 'required|decimal',
+        // 'final_amount' => 'required|decimal',
     ];
     protected $validationMessages = [];
     protected $skipValidation = false;
