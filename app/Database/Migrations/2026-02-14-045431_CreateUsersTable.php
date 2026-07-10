@@ -16,7 +16,6 @@ class CreateUsersTable extends Migration
             'email' => [
                 'type' => 'VARCHAR',
                 'constraint' => 150,
-                'unique' => true,
             ],
             'password' => [
                 'type' => 'VARCHAR',
@@ -44,18 +43,27 @@ class CreateUsersTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
 
-        $this->forge->addKey('name');
-        $this->forge->addKey('email');
-        $this->forge->addKey('created_at');
+        $this->forge->addKey('id', true);
+
+        $this->forge->addUniqueKey('email');
+        $this->forge->addKey('role');
 
         $this->forge->createTable('users');
     }
 
     public function down()
     {
-        $this->forge->dropTable('users');
+        $this->forge->dropTable('users', true);
     }
 }

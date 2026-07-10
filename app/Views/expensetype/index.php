@@ -364,142 +364,147 @@
                 btn.addEventListener('click', function () {
                     const id = this.dataset.id;
                     const name = this.dataset.name;
-                    if (!confirm(`Delete expense type "${name}"? This cannot be undone.`)) return;
-                    $.ajax({
-                        url: '<?= base_url('expensetype/deleteExpenseType') ?>/' + id,
-                        type: 'DELETE',
-                        success: function (res) {
-                            ssToast('Expense type deleted.', 'success');
-                            loadTypes();
-                        },
-                        error: function () {
-                            ssToast('Failed to delete expense type.', 'error');
+                    ssConfirm({
+                        title: 'Delete Expense Type',
+                        message: `Are you sure you want to delete expense type "${name}"? This cannot be undone.`,
+                        confirmText: 'Delete',
+                        onConfirm: function () {
+                            $.ajax({
+                                url: '/expensetype/deleteExpenseType/' + id,
+                                type: 'DELETE',
+                                success: function () {
+                                    ssToast('Expense type deleted.', 'success');
+                                    loadTypes();
+                                },
+                                error: function () {
+                                    ssToast('Failed to delete expense type.', 'error');
+                                }
+                            });
                         }
                     });
                 });
             });
-        });
-    }
+        }
     loadTypes();
 
 
-    // ── Split method selector ────────────────────────────────────────
-    let selectedSplit = '';
+        // ── Split method selector ────────────────────────────────────────
+        let selectedSplit = '';
 
-    function selectSplit(value) {
-        selectedSplit = value;
-        document.getElementById('et-split').value = value;
-        document.getElementById('split-error').style.display = 'none';
+        function selectSplit(value) {
+            selectedSplit = value;
+            document.getElementById('et-split').value = value;
+            document.getElementById('split-error').style.display = 'none';
 
-        ['equal', 'daysPresent', 'custom'].forEach(function (v) {
-            const el = document.getElementById('opt-' + v);
-            if (!el) return;
-            if (v === value) {
-                el.style.borderColor = '#5c6af0';
-                el.style.background = '#f0f4ff';
-                el.style.boxShadow = '0 0 0 3px rgba(92,106,240,.12)';
-            } else {
-                el.style.borderColor = '#e2e8f0';
-                el.style.background = '#fff';
-                el.style.boxShadow = 'none';
-            }
-        });
-    }
-
-
-    // ── Modal open / close ───────────────────────────────────────────
-    function openAddModal() {
-        const backdrop = document.getElementById('modal-backdrop');
-        const modal = document.getElementById('add-type-modal');
-        backdrop.style.display = 'block';
-        modal.style.display = 'block';
-        requestAnimationFrame(function () {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
-        });
-        document.getElementById('et-name').focus();
-    }
-
-    function closeAddModal() {
-        const modal = document.getElementById('add-type-modal');
-        const backdrop = document.getElementById('modal-backdrop');
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function () {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            document.getElementById('addExpenseTypeForm').reset();
-            selectSplit('');
-            selectedSplit = '';
-            resetAddBtn();
-        }, 180);
-    }
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeAddModal();
-    });
-
-
-    // ── Submit button helpers ────────────────────────────────────────
-    function setAddBtnLoading() {
-        const btn = document.getElementById('addTypeBtn');
-        const text = document.getElementById('addTypeBtnText');
-        const icon = document.getElementById('addTypeBtnIcon');
-        btn.disabled = true;
-        btn.style.opacity = '0.75';
-        text.textContent = 'Saving…';
-        icon.setAttribute('data-lucide', 'loader');
-        lucide.createIcons();
-    }
-    function resetAddBtn() {
-        const btn = document.getElementById('addTypeBtn');
-        const text = document.getElementById('addTypeBtnText');
-        const icon = document.getElementById('addTypeBtnIcon');
-        if (!btn) return;
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        text.textContent = 'Save Type';
-        icon.setAttribute('data-lucide', 'plus');
-        lucide.createIcons();
-    }
-
-
-    // ── Form submit ──────────────────────────────────────────────────
-    document.getElementById('addExpenseTypeForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        // Validate split method selected
-        if (!selectedSplit) {
-            document.getElementById('split-error').style.display = 'block';
-            document.getElementById('split-selector').style.animation = 'none';
-            // Shake the selector
-            const sel = document.getElementById('split-selector');
-            sel.style.transform = 'translateX(-6px)';
-            setTimeout(function () { sel.style.transform = 'translateX(6px)'; }, 80);
-            setTimeout(function () { sel.style.transform = 'translateX(0)'; }, 160);
-            return;
+            ['equal', 'daysPresent', 'custom'].forEach(function (v) {
+                const el = document.getElementById('opt-' + v);
+                if (!el) return;
+                if (v === value) {
+                    el.style.borderColor = '#5c6af0';
+                    el.style.background = '#f0f4ff';
+                    el.style.boxShadow = '0 0 0 3px rgba(92,106,240,.12)';
+                } else {
+                    el.style.borderColor = '#e2e8f0';
+                    el.style.background = '#fff';
+                    el.style.boxShadow = 'none';
+                }
+            });
         }
 
-        setAddBtnLoading();
 
-        $.post(
-            '<?= base_url('expensetype/addExpenseType') ?>',
-            $(this).serialize(),
-            function (res) {
-                if (res.status === 'success') {
-                    ssToast('Expense type saved successfully!', 'success');
-                    closeAddModal();
-                    loadTypes();
-                } else {
-                    ssToast('Failed to save expense type.', 'error');
-                    resetAddBtn();
-                }
-            },
-            'json'
-        ).fail(function () {
-            ssToast('Something went wrong.', 'error');
-            resetAddBtn();
+        // ── Modal open / close ───────────────────────────────────────────
+        function openAddModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            const modal = document.getElementById('add-type-modal');
+            backdrop.style.display = 'block';
+            modal.style.display = 'block';
+            requestAnimationFrame(function () {
+                modal.style.opacity = '1';
+                modal.style.transform = 'translate(-50%,-50%) scale(1)';
+            });
+            document.getElementById('et-name').focus();
+        }
+
+        function closeAddModal() {
+            const modal = document.getElementById('add-type-modal');
+            const backdrop = document.getElementById('modal-backdrop');
+            modal.style.opacity = '0';
+            modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
+            setTimeout(function () {
+                modal.style.display = 'none';
+                backdrop.style.display = 'none';
+                document.getElementById('addExpenseTypeForm').reset();
+                selectSplit('');
+                selectedSplit = '';
+                resetAddBtn();
+            }, 180);
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeAddModal();
         });
-    });
+
+
+        // ── Submit button helpers ────────────────────────────────────────
+        function setAddBtnLoading() {
+            const btn = document.getElementById('addTypeBtn');
+            const text = document.getElementById('addTypeBtnText');
+            const icon = document.getElementById('addTypeBtnIcon');
+            btn.disabled = true;
+            btn.style.opacity = '0.75';
+            text.textContent = 'Saving…';
+            icon.setAttribute('data-lucide', 'loader');
+            lucide.createIcons();
+        }
+        function resetAddBtn() {
+            const btn = document.getElementById('addTypeBtn');
+            const text = document.getElementById('addTypeBtnText');
+            const icon = document.getElementById('addTypeBtnIcon');
+            if (!btn) return;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            text.textContent = 'Save Type';
+            icon.setAttribute('data-lucide', 'plus');
+            lucide.createIcons();
+        }
+
+
+        // ── Form submit ──────────────────────────────────────────────────
+        document.getElementById('addExpenseTypeForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Validate split method selected
+            if (!selectedSplit) {
+                document.getElementById('split-error').style.display = 'block';
+                document.getElementById('split-selector').style.animation = 'none';
+                // Shake the selector
+                const sel = document.getElementById('split-selector');
+                sel.style.transform = 'translateX(-6px)';
+                setTimeout(function () { sel.style.transform = 'translateX(6px)'; }, 80);
+                setTimeout(function () { sel.style.transform = 'translateX(0)'; }, 160);
+                return;
+            }
+
+            setAddBtnLoading();
+
+            $.post(
+                '<?= base_url('expensetype/addExpenseType') ?>',
+                $(this).serialize(),
+                function (res) {
+                    if (res.status === 'success') {
+                        ssToast('Expense type saved successfully!', 'success');
+                        closeAddModal();
+                        loadTypes();
+                    } else {
+                        ssToast('Failed to save expense type.', 'error');
+                        resetAddBtn();
+                    }
+                },
+                'json'
+            ).fail(function () {
+                ssToast('Something went wrong.', 'error');
+                resetAddBtn();
+            });
+        });
 </script>
 <?= $this->endSection() ?>

@@ -26,31 +26,65 @@
                 <span id="expense-count">—</span> expenses recorded
             </p>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:13px;color:#64748b;">Total:</span>
-            <span id="expense-total"
-                style="font-size:15px;font-weight:700;color:#0f172a;font-family:'JetBrains Mono',monospace;">—</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;color:#64748b;">Total:</span>
+                <span id="expense-total"
+                    style="font-size:15px;font-weight:700;color:#0f172a;font-family:'JetBrains Mono',monospace;">—</span>
+            </div>
+            <!-- View toggle -->
+            <div style="display:flex;align-items:center;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px;">
+                <button id="btn-view-list" onclick="setView('list')" title="List view" style="
+                    width:32px;height:32px;border-radius:6px;border:none;cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    background:#fff;color:#5c6af0;transition:all .15s;">
+                    <i data-lucide="list" style="width:15px;height:15px;"></i>
+                </button>
+                <button id="btn-view-grid" onclick="setView('grid')" title="Grid view" style="
+                    width:32px;height:32px;border-radius:6px;border:none;cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    background:transparent;color:#94a3b8;transition:all .15s;">
+                    <i data-lucide="layout-grid" style="width:15px;height:15px;"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- SS.Table injects a search bar here, above the table -->
-    <div class="ss-table-wrap" style="border:none;border-radius:0;">
-        <table style="width:100%;border-collapse:collapse;min-width:620px;">
+    <!-- ── List view ── -->
+    <div id="expenses-list-wrap" class="ss-table-wrap" style="border:none;border-radius:0;">
+        <table style="width:100%;border-collapse:collapse;min-width:680px;">
             <thead>
                 <tr>
-                    <!-- SS.Table replaces these with sortable headers on init -->
-                    <th></th><!-- Type -->
-                    <th></th><!-- Description -->
-                    <th></th><!-- Amount -->
-                    <th></th><!-- Period -->
-                    <th></th><!-- Paid By -->
-                    <th></th><!-- Involved -->
-                    <th></th><!-- Actions -->
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="expenses-tbody"></tbody>
         </table>
-        <!-- SS.Table injects pager here, inside the wrap -->
+    </div>
+
+    <!-- ── Grid view ── -->
+    <div id="expenses-grid-wrap" style="display:none;padding:16px;">
+        <div id="expenses-grid" style="
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            gap:12px;">
+        </div>
+        <div id="expenses-grid-empty" style="display:none;padding:40px 16px;text-align:center;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <div
+                    style="width:48px;height:48px;border-radius:12px;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="receipt" style="width:22px;height:22px;color:#e2e8f0;"></i>
+                </div>
+                <span style="font-size:14px;color:#94a3b8;font-weight:500;">No expenses found</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -110,7 +144,8 @@
                     <select id="exp-type" name="expense_type_id" required class="ss-input"
                         style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+                        onchange="onAddTypeChange(this.value)">
                         <option value="">— Select type —</option>
                         <?php foreach ($expenseTypes as $type): ?>
                             <option value="<?= $type->id ?>"><?= esc($type->name) ?></option>
@@ -147,30 +182,62 @@
                 </div>
             </div>
 
+            <!-- Billing Month -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="exp-billing-month">
+                    Billing Month <span style="color:#ef4444;">*</span>
+                </label>
+                <div style="position:relative;">
+                    <i data-lucide="calendar-range"
+                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                    <input type="month" id="exp-billing-month" name="billing_month" value="<?= date('Y-m') ?>" required
+                        class="ss-input" style="padding-left:38px;"
+                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                </div>
+            </div>
+
             <!-- Date range -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                <div>
-                    <label class="ss-label" for="exp-from">From Date</label>
-                    <div style="position:relative;">
-                        <i data-lucide="calendar"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                        <input type="date" id="exp-from" name="from_date" value="<?= date('Y-m-d') ?>" class="ss-input"
-                            style="padding-left:38px;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+            <div id="add-date-range-wrap" style="margin-bottom:16px;">
+                <div id="add-date-range-hint" style="
+                    display:flex;align-items:center;gap:6px;
+                    padding:8px 12px;margin-bottom:10px;
+                    background:#fef9c3;border:1px solid #fde68a;border-radius:8px;
+                    font-size:12px;color:#92400e;">
+                    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
+                    <span id="add-date-range-hint-text">Select an expense type to see if dates are required.</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label class="ss-label" for="exp-from">
+                            From Date <span id="add-from-required-star" style="color:#ef4444;display:none;">*</span>
+                        </label>
+                        <div style="position:relative;">
+                            <i data-lucide="calendar"
+                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                            <input type="date" id="exp-from" name="from_date" value="<?= date('Y-m-d') ?>"
+                                class="ss-input" style="padding-left:38px;"
+                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="ss-label" for="exp-to">
+                            To Date <span id="add-to-required-star" style="color:#ef4444;display:none;">*</span>
+                        </label>
+                        <div style="position:relative;">
+                            <i data-lucide="calendar"
+                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                            <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>" class="ss-input"
+                                style="padding-left:38px;"
+                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="ss-label" for="exp-to">To Date</label>
-                    <div style="position:relative;">
-                        <i data-lucide="calendar"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                        <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>" class="ss-input"
-                            style="padding-left:38px;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                    </div>
-                </div>
+                <p id="add-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                    From Date and To Date are required for this expense type.
+                </p>
             </div>
 
             <!-- Paid By -->
@@ -180,7 +247,6 @@
                     <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional — can be set
                         later</span>
                 </label>
-
                 <?php if ($role === 'admin'): ?>
                     <div style="position:relative;">
                         <i data-lucide="user"
@@ -231,18 +297,12 @@
                             style="padding:4px 10px;font-size:12px;min-height:28px;">None</button>
                     </div>
                 </div>
-                <div id="involved-users-list" style="
-                    border:1px solid #e2e8f0;border-radius:8px;
-                    overflow:hidden;max-height:180px;overflow-y:auto;
-                    -webkit-overflow-scrolling:touch;
-                ">
+                <div id="involved-users-list"
+                    style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
                     <?php foreach ($users as $user): ?>
-                        <label style="
-                            display:flex;align-items:center;gap:10px;
-                            padding:10px 14px;cursor:pointer;
-                            border-bottom:1px solid #f1f5f9;
-                            transition:background .1s;
-                        " onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                        <label
+                            style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
                             <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>"
                                 style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;flex-shrink:0;">
                             <span style="font-size:14px;font-weight:500;color:#334155;"><?= esc($user->name) ?></span>
@@ -313,7 +373,6 @@
 
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
 
-        <!-- Permission denied state -->
         <div id="edit-permission-denied" style="display:none;padding:20px 24px;">
             <div
                 style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px 24px;text-align:center;">
@@ -343,7 +402,8 @@
                     <select id="edit-exp-type" name="expense_type_id" required class="ss-input"
                         style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+                        onchange="onEditTypeChange(this.value)">
                         <option value="">— Select type —</option>
                         <?php foreach ($expenseTypes as $type): ?>
                             <option value="<?= $type->id ?>"><?= esc($type->name) ?></option>
@@ -375,29 +435,62 @@
                 </div>
             </div>
 
+            <!-- Billing Month -->
+            <div style="margin-bottom:16px;">
+                <label class="ss-label" for="edit-exp-billing-month">
+                    Billing Month <span style="color:#ef4444;">*</span>
+                </label>
+                <div style="position:relative;">
+                    <i data-lucide="calendar-range"
+                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                    <input type="month" id="edit-exp-billing-month" name="billing_month" required class="ss-input"
+                        style="padding-left:38px;"
+                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                </div>
+            </div>
+
             <!-- Date range -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-                <div>
-                    <label class="ss-label" for="edit-exp-from">From Date</label>
-                    <div style="position:relative;">
-                        <i data-lucide="calendar"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                        <input type="date" id="edit-exp-from" name="from_date" class="ss-input"
-                            style="padding-left:38px;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+            <div id="edit-date-range-wrap" style="margin-bottom:16px;">
+                <div id="edit-date-range-hint" style="
+                    display:flex;align-items:center;gap:6px;
+                    padding:8px 12px;margin-bottom:10px;
+                    background:#fef9c3;border:1px solid #fde68a;border-radius:8px;
+                    font-size:12px;color:#92400e;">
+                    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
+                    <span id="edit-date-range-hint-text">Select an expense type to see if dates are required.</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label class="ss-label" for="edit-exp-from">
+                            From Date <span id="edit-from-required-star" style="color:#ef4444;display:none;">*</span>
+                        </label>
+                        <div style="position:relative;">
+                            <i data-lucide="calendar"
+                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                            <input type="date" id="edit-exp-from" name="from_date" class="ss-input"
+                                style="padding-left:38px;"
+                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="ss-label" for="edit-exp-to">
+                            To Date <span id="edit-to-required-star" style="color:#ef4444;display:none;">*</span>
+                        </label>
+                        <div style="position:relative;">
+                            <i data-lucide="calendar"
+                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                            <input type="date" id="edit-exp-to" name="to_date" class="ss-input"
+                                style="padding-left:38px;"
+                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
+                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="ss-label" for="edit-exp-to">To Date</label>
-                    <div style="position:relative;">
-                        <i data-lucide="calendar"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                        <input type="date" id="edit-exp-to" name="to_date" class="ss-input" style="padding-left:38px;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                    </div>
-                </div>
+                <p id="edit-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                    From Date and To Date are required for this expense type.
+                </p>
             </div>
 
             <!-- Paid By -->
@@ -456,18 +549,12 @@
                             style="padding:4px 10px;font-size:12px;min-height:28px;">None</button>
                     </div>
                 </div>
-                <div id="edit-involved-users-list" style="
-                    border:1px solid #e2e8f0;border-radius:8px;
-                    overflow:hidden;max-height:180px;overflow-y:auto;
-                    -webkit-overflow-scrolling:touch;
-                ">
+                <div id="edit-involved-users-list"
+                    style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
                     <?php foreach ($users as $user): ?>
-                        <label style="
-                            display:flex;align-items:center;gap:10px;
-                            padding:10px 14px;cursor:pointer;
-                            border-bottom:1px solid #f1f5f9;
-                            transition:background .1s;
-                        " onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                        <label
+                            style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
                             <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>" class="edit-involved-cb"
                                 style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;flex-shrink:0;">
                             <span style="font-size:14px;font-weight:500;color:#334155;"><?= esc($user->name) ?></span>
@@ -499,6 +586,13 @@
 <script>
     lucide.createIcons();
 
+    // ── Expense type → split_method map ─────────────────────────────
+    var SPLIT_METHOD_MAP = {
+        <?php foreach ($expenseTypes as $type): ?>
+                '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
+        <?php endforeach; ?>
+    };
+
     // ── Money formatter ──────────────────────────────────────────────
     function fmt(n) {
         return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
@@ -511,67 +605,303 @@
         return raw.substring(0, 10) || '—';
     }
 
-    // ── Initialise SS.Table ──────────────────────────────────────────
+    // ── View toggle ──────────────────────────────────────────────────
+    var _currentView = 'list';
+    var _lastData = [];
+
+    function setView(mode) {
+        _currentView = mode;
+        var listWrap = document.getElementById('expenses-list-wrap');
+        var gridWrap = document.getElementById('expenses-grid-wrap');
+        var btnList = document.getElementById('btn-view-list');
+        var btnGrid = document.getElementById('btn-view-grid');
+
+        if (mode === 'grid') {
+            listWrap.style.display = 'none';
+            gridWrap.style.display = 'block';
+            btnGrid.style.background = '#fff';
+            btnGrid.style.color = '#5c6af0';
+            btnList.style.background = 'transparent';
+            btnList.style.color = '#94a3b8';
+            renderGrid(_lastData);
+        } else {
+            listWrap.style.display = 'block';
+            gridWrap.style.display = 'none';
+            btnList.style.background = '#fff';
+            btnList.style.color = '#5c6af0';
+            btnGrid.style.background = 'transparent';
+            btnGrid.style.color = '#94a3b8';
+        }
+    }
+
+    // ── Grid card dropdown — one shared instance ─────────────────────
+    var _activeDropdown = null;
+
+    function openCardMenu(btn, id) {
+        // Close any open dropdown first
+        closeCardMenu();
+
+        var drop = document.createElement('div');
+        drop.id = 'card-dropdown-' + id;
+        drop.style.cssText = [
+            'position:absolute', 'top:100%', 'right:0', 'margin-top:4px',
+            'background:#fff', 'border:1px solid #e2e8f0', 'border-radius:10px',
+            'box-shadow:0 8px 24px rgba(0,0,0,.10)', 'z-index:200',
+            'min-width:140px', 'padding:4px 0', 'overflow:hidden',
+        ].join(';');
+
+        drop.innerHTML = ''
+            + '<button onclick="openEditModal(\'' + id + '\');closeCardMenu();" style="'
+            + 'width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;'
+            + 'font-size:13px;font-weight:500;color:#4338ca;border:none;background:transparent;'
+            + 'cursor:pointer;font-family:\'DM Sans\',sans-serif;text-align:left;transition:background .1s;"'
+            + ' onmouseover="this.style.background=\'#f5f7ff\'" onmouseout="this.style.background=\'transparent\'">'
+            + '<i data-lucide="pencil" style="width:13px;height:13px;flex-shrink:0;"></i>Edit'
+            + '</button>'
+            + '<button onclick="deleteFromCard(\'' + id + '\');closeCardMenu();" style="'
+            + 'width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;'
+            + 'font-size:13px;font-weight:500;color:#dc2626;border:none;background:transparent;'
+            + 'cursor:pointer;font-family:\'DM Sans\',sans-serif;text-align:left;transition:background .1s;"'
+            + ' onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'transparent\'">'
+            + '<i data-lucide="trash-2" style="width:13px;height:13px;flex-shrink:0;"></i>Delete'
+            + '</button>';
+
+        btn.parentNode.style.position = 'relative';
+        btn.parentNode.appendChild(drop);
+        lucide.createIcons({ nodes: [drop] });
+        _activeDropdown = drop;
+    }
+
+    function closeCardMenu() {
+        if (_activeDropdown) {
+            _activeDropdown.remove();
+            _activeDropdown = null;
+        }
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function (e) {
+        if (_activeDropdown && !_activeDropdown.contains(e.target) && !e.target.closest('.card-menu-btn')) {
+            closeCardMenu();
+        }
+    });
+
+    function deleteFromCard(id) {
+        ssConfirm({
+            title: 'Delete Expense',
+            message: 'Delete this expense? This cannot be undone.',
+            confirmText: 'Delete',
+            onConfirm: function () {
+                $.ajax({
+                    url: '/expense/deleteExpense/' + id,
+                    type: 'DELETE',
+                    success: function () {
+                        ssToast('Expense deleted.', 'success');
+                        _expenseTable.reload();
+                    },
+                    error: function () {
+                        ssToast('Failed to delete expense.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // ── Render grid cards ────────────────────────────────────────────
+    function renderGrid(data) {
+        var grid = document.getElementById('expenses-grid');
+        var emptyEl = document.getElementById('expenses-grid-empty');
+
+        if (!data || data.length === 0) {
+            grid.innerHTML = '';
+            emptyEl.style.display = 'block';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        grid.innerHTML = data.map(function (e) {
+            var billingMonth = e.billing_month || '—';
+
+            var paidByHtml = e.paid_by_name
+                ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#334155;">'
+                + '<i data-lucide="user" style="width:11px;height:11px;color:#94a3b8;"></i>'
+                + e.paid_by_name + '</span>'
+                : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
+                + 'font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">'
+                + '<i data-lucide="clock" style="width:10px;height:10px;"></i>Pending</span>';
+
+            return '<div style="'
+                + 'background:#fff;border:1px solid #e2e8f0;border-radius:12px;'
+                + 'padding:16px;display:flex;flex-direction:column;gap:12px;'
+                + 'transition:border-color .15s;"'
+                + ' onmouseover="this.style.borderColor=\'#c7d2fe\'" onmouseout="this.style.borderColor=\'#e2e8f0\'">'
+
+                // Top row: type badge + three-dot menu
+                + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
+                + '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;'
+                + 'font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
+                + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
+                + (e.expense_type || '—')
+                + '</span>'
+                + '<div style="position:relative;">'
+                + '<button class="card-menu-btn" onclick="openCardMenu(this,\'' + e.id + '\')" style="'
+                + 'width:30px;height:30px;border-radius:7px;border:1px solid #e2e8f0;'
+                + 'background:#f8fafc;cursor:pointer;display:flex;align-items:center;'
+                + 'justify-content:center;color:#64748b;transition:background .15s;flex-shrink:0;"'
+                + ' onmouseover="this.style.background=\'#e2e8f0\'" onmouseout="this.style.background=\'#f8fafc\'">'
+                + '<i data-lucide="more-horizontal" style="width:14px;height:14px;"></i>'
+                + '</button>'
+                + '</div>'
+                + '</div>'
+
+                // Amount
+                + '<div style="font-size:22px;font-weight:700;color:#0f172a;'
+                + 'font-family:\'JetBrains Mono\',monospace;letter-spacing:-0.02em;">'
+                + fmt(e.amount)
+                + '</div>'
+
+                // Meta row: billing month + paid by
+                + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
+                + '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;'
+                + 'font-size:11px;font-weight:600;background:#e0e7ff;color:#4338ca;'
+                + 'font-family:\'JetBrains Mono\',monospace;">'
+                + '<i data-lucide="calendar-range" style="width:10px;height:10px;"></i>'
+                + billingMonth
+                + '</span>'
+                + paidByHtml
+                + '</div>'
+
+                + '</div>';
+        }).join('');
+
+        lucide.createIcons({ nodes: [grid] });
+    }
+
+    // ── Date-range hint helpers ──────────────────────────────────────
+    function updateDateRangeUI(prefix, splitMethod) {
+        var isDaysPresent = splitMethod === 'daysPresent';
+        var hintEl = document.getElementById(prefix + '-date-range-hint');
+        var hintText = document.getElementById(prefix + '-date-range-hint-text');
+        var starFrom = document.getElementById(prefix + '-from-required-star');
+        var starTo = document.getElementById(prefix + '-to-required-star');
+        var errEl = document.getElementById(prefix + '-date-error');
+
+        if (isDaysPresent) {
+            hintEl.style.background = '#fce7f3';
+            hintEl.style.borderColor = '#fbcfe8';
+            hintEl.style.color = '#9d174d';
+            hintText.textContent = 'Required for this type — absent days are calculated from the date range.';
+            if (starFrom) starFrom.style.display = 'inline';
+            if (starTo) starTo.style.display = 'inline';
+        } else if (splitMethod === '') {
+            hintEl.style.background = '#fef9c3';
+            hintEl.style.borderColor = '#fde68a';
+            hintEl.style.color = '#92400e';
+            hintText.textContent = 'Select an expense type to see if dates are required.';
+            if (starFrom) starFrom.style.display = 'none';
+            if (starTo) starTo.style.display = 'none';
+        } else {
+            hintEl.style.background = '#f0fdf4';
+            hintEl.style.borderColor = '#bbf7d0';
+            hintEl.style.color = '#166534';
+            hintText.textContent = 'Optional for this expense type.';
+            if (starFrom) starFrom.style.display = 'none';
+            if (starTo) starTo.style.display = 'none';
+        }
+        if (errEl) errEl.style.display = 'none';
+    }
+
+    function onAddTypeChange(typeId) {
+        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        updateDateRangeUI('add', typeId ? method : '');
+    }
+    function onEditTypeChange(typeId) {
+        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        updateDateRangeUI('edit', typeId ? method : '');
+    }
+
+    function validateDates(prefix) {
+        var typeId = document.getElementById(
+            prefix === 'add' ? 'exp-type' : 'edit-exp-type'
+        ).value;
+        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        if (method !== 'daysPresent') return true;
+        var fromId = prefix === 'add' ? 'exp-from' : 'edit-exp-from';
+        var toId = prefix === 'add' ? 'exp-to' : 'edit-exp-to';
+        var fromVal = document.getElementById(fromId).value;
+        var toVal = document.getElementById(toId).value;
+        if (!fromVal || !toVal) {
+            document.getElementById(prefix + '-date-error').style.display = 'block';
+            return false;
+        }
+        document.getElementById(prefix + '-date-error').style.display = 'none';
+        return true;
+    }
+
+    // ── SS.Table init ────────────────────────────────────────────────
     var _expenseTable = SS.Table({
         tbodyId: 'expenses-tbody',
         url: '/expense/getExpenses',
         countId: 'expense-count',
-        searchPlaceholder: 'Search by type, description, paid by…',
+        searchPlaceholder: 'Search by type, description, paid by\u2026',
         pageSize: 15,
-        colSpan: 7,
+        colSpan: 8,
 
         cols: [
             { label: 'Type', key: 'expense_type' },
             { label: 'Description', key: 'description' },
             { label: 'Amount', key: 'amount' },
+            { label: 'Billing Month', key: 'billing_month' },
             { label: 'Period', key: 'from_date' },
             { label: 'Paid By', key: 'paid_by_name' },
             { label: 'Involved', key: 'total_involved', align: 'center' },
             { label: 'Actions', key: null, sortable: false, align: 'right' },
         ],
 
-        // Update the running total after each load
         onLoad: function (data) {
+            _lastData = data;
             var total = data.reduce(function (s, e) {
                 return s + parseFloat(e.amount || 0);
             }, 0);
             document.getElementById('expense-total').textContent = fmt(total);
+            // Keep grid in sync whenever data reloads
+            if (_currentView === 'grid') renderGrid(data);
         },
 
-        // Row template — exactly your original template literal, unchanged
         rowFn: function (e) {
             var fromDate = fmtDate(e.from_date);
             var toDate = fmtDate(e.to_date);
-            var period = (fromDate === toDate || toDate === '—')
-                ? fromDate
-                : fromDate + ' \u2192 ' + toDate;
+            var period = (!e.from_date && !e.to_date)
+                ? '<span style="color:#cbd5e1;font-style:italic;">—</span>'
+                : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
+
+            var billingMonth = e.billing_month || '—';
 
             return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
 
-                // Type
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
                 + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
                 + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
                 + (e.expense_type || '—')
                 + '</span></td>'
 
-                // Description
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;max-width:220px;">'
+                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;max-width:200px;">'
                 + '<span style="font-size:13px;color:#64748b;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
                 + (e.description || '<span style="color:#cbd5e1;font-style:italic;">No description</span>')
                 + '</span></td>'
 
-                // Amount
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
                 + '<span style="font-size:14px;font-weight:700;color:#0f172a;font-family:\'JetBrains Mono\',monospace;">'
-                + fmt(e.amount)
-                + '</span></td>'
+                + fmt(e.amount) + '</span></td>'
 
-                // Period
+                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
+                + '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#e0e7ff;color:#4338ca;font-family:\'JetBrains Mono\',monospace;">'
+                + '<i data-lucide="calendar-range" style="width:11px;height:11px;"></i>'
+                + billingMonth + '</span></td>'
+
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
                 + '<span style="font-size:13px;color:#64748b;">' + period + '</span></td>'
 
-                // Paid By
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
                 + (e.paid_by_name
                     ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#334155;">'
@@ -581,16 +911,13 @@
                     + '<i data-lucide="clock" style="width:11px;height:11px;"></i>Pending</span>')
                 + '</td>'
 
-                // Involved
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;text-align:center;">'
                 + '<span class="ss-involved-badge" data-names="' + (e.involved_names || '') + '" style="'
                 + 'display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;'
                 + 'font-size:12px;font-weight:600;background:#dbeafe;color:#1d4ed8;cursor:default;">'
                 + '<i data-lucide="users" style="width:11px;height:11px;"></i>'
-                + (e.total_involved || 0)
-                + '</span></td>'
+                + (e.total_involved || 0) + '</span></td>'
 
-                // Actions
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">'
                 + '<div style="display:inline-flex;gap:6px;align-items:center;">'
                 + '<button class="editExpenseBtn" data-id="' + e.id + '" style="'
@@ -610,20 +937,28 @@
                 + '</tr>';
         },
 
-        // Wire up action buttons after each render
-        onRender: function () {
+        onRender: function (data) {
+            // Wire list-view action buttons
             document.querySelectorAll('.deleteExpenseBtn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var id = this.dataset.id;
-                    if (!confirm('Delete this expense? This cannot be undone.')) return;
-                    $.ajax({
-                        url: '/expense/deleteExpense/' + id,
-                        type: 'DELETE',
-                        success: function () {
-                            ssToast('Expense deleted.', 'success');
-                            _expenseTable.reload();
-                        },
-                        error: function () { ssToast('Failed to delete expense.', 'error'); }
+                    ssConfirm({
+                        title: 'Delete Expense',
+                        message: 'Delete this expense? This cannot be undone.',
+                        confirmText: 'Delete',
+                        onConfirm: function () {
+                            $.ajax({
+                                url: '/expense/deleteExpense/' + id,
+                                type: 'DELETE',
+                                success: function () {
+                                    ssToast('Expense deleted.', 'success');
+                                    _expenseTable.reload();
+                                },
+                                error: function () {
+                                    ssToast('Failed to delete expense.', 'error');
+                                }
+                            });
+                        }
                     });
                 });
             });
@@ -633,11 +968,14 @@
                     openEditModal(this.dataset.id);
                 });
             });
+
+            // Keep grid in sync if currently in grid view
+            if (_currentView === 'grid') renderGrid(data);
         },
     });
 
 
-    // ── Add modal helpers ────────────────────────────────────────────
+    // ── Add modal ────────────────────────────────────────────────────
     function selectAllUsers() {
         document.querySelectorAll('#involved-users-list input[type="checkbox"]')
             .forEach(function (cb) { cb.checked = true; });
@@ -662,8 +1000,10 @@
             modal.style.opacity = '1';
             modal.style.transform = 'translate(-50%,-50%) scale(1)';
         });
+        updateDateRangeUI('add', '');
         document.getElementById('exp-type').focus();
     }
+
     function closeAddModal() {
         var modal = document.getElementById('add-expense-modal');
         var backdrop = document.getElementById('modal-backdrop');
@@ -675,6 +1015,8 @@
             document.getElementById('addExpenseForm').reset();
             deselectAllUsers();
             document.getElementById('involved-error').style.display = 'none';
+            document.getElementById('add-date-error').style.display = 'none';
+            updateDateRangeUI('add', '');
             var pboNone = document.getElementById('pbo-none');
             var pbInput = document.getElementById('paid-by-value');
             if (pboNone) pboNone.checked = true;
@@ -712,6 +1054,7 @@
             return;
         }
         document.getElementById('involved-error').style.display = 'none';
+        if (!validateDates('add')) return;
         setAddBtnLoading();
         $.post('/expense/addExpense', $(this).serialize(), function (res) {
             if (res.status === 'success') {
@@ -759,11 +1102,15 @@
             if (formDiv) formDiv.style.display = 'block';
 
             document.getElementById('edit-expense-id').value = d.id;
-            document.getElementById('edit-exp-description').value = d.description;
+            document.getElementById('edit-exp-description').value = d.description || '';
             document.getElementById('edit-exp-type').value = d.expense_type_id;
             document.getElementById('edit-exp-amount').value = d.amount;
+            document.getElementById('edit-exp-billing-month').value = d.billing_month || '';
             document.getElementById('edit-exp-from').value = (d.from_date || '').substring(0, 10);
             document.getElementById('edit-exp-to').value = (d.to_date || '').substring(0, 10);
+
+            var method = SPLIT_METHOD_MAP[String(d.expense_type_id)] || '';
+            updateDateRangeUI('edit', d.expense_type_id ? method : '');
 
             var isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
             if (isAdmin) {
@@ -806,6 +1153,8 @@
             backdrop.style.display = 'none';
             document.getElementById('editExpenseForm').reset();
             document.getElementById('edit-involved-error').style.display = 'none';
+            document.getElementById('edit-date-error').style.display = 'none';
+            updateDateRangeUI('edit', '');
             resetEditBtn();
             _editingId = null;
         }, 180);
@@ -817,7 +1166,6 @@
     function editDeselectAllUsers() {
         document.querySelectorAll('.edit-involved-cb').forEach(function (cb) { cb.checked = false; });
     }
-
     function toggleEditPaidBy(val) {
         var input = document.getElementById('edit-paid-by-value');
         if (input) input.value = val === 'me' ? '<?= (int) $userId ?>' : '';
@@ -852,6 +1200,7 @@
             return;
         }
         document.getElementById('edit-involved-error').style.display = 'none';
+        if (!validateDates('edit')) return;
         setEditBtnLoading();
         $.post('/expense/updateExpense/' + _editingId, $(this).serialize(), function (res) {
             if (res.status === 'success') {

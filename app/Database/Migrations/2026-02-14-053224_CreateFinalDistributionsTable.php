@@ -10,8 +10,7 @@ class CreateFinalDistributionsTable extends Migration
     {
         $fields = [
             'user_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
             ],
             'month' => [
@@ -19,27 +18,27 @@ class CreateFinalDistributionsTable extends Migration
                 'constraint' => 20,
             ],
             'chapati_amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,
             ],
             'other_expenses_amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,
             ],
             'due_amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,
             ],
             'advance_amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,
             ],
             'final_amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,
             ],
@@ -60,8 +59,17 @@ class CreateFinalDistributionsTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
+
+        $this->forge->addKey('id', true);
 
         $this->forge->addKey('user_id');
         $this->forge->addKey('month');
@@ -75,6 +83,6 @@ class CreateFinalDistributionsTable extends Migration
 
     public function down()
     {
-        $this->forge->dropTable('final_distributions');
+        $this->forge->dropTable('final_distributions', true);
     }
 }

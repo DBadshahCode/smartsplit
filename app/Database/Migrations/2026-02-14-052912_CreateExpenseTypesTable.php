@@ -39,12 +39,19 @@ class CreateExpenseTypesTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
 
-        $this->forge->addKey('name');
+        $this->forge->addKey('id', true);
+
         $this->forge->addKey('is_active');
-        $this->forge->addKey('created_at');
 
         $this->forge->addUniqueKey('name');
 
@@ -53,6 +60,6 @@ class CreateExpenseTypesTable extends Migration
 
     public function down()
     {
-        $this->forge->dropTable('expense_types');
+        $this->forge->dropTable('expense_types', true);
     }
 }

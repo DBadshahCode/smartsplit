@@ -13,6 +13,8 @@ class ExpenseSeeder extends Seeder
             $expenses[] = [
                 'expense_type_id' => ($i % 5) + 1, // Assuming there are 5 expense types
                 'amount' => rand(100, 1000),
+                'description' => "Expense description $i",
+                'billing_month' => date('Y-m', strtotime("-$i months")),
                 'from_date' => date('Y-m-d', strtotime("-$i days")),
                 'to_date' => date('Y-m-d', strtotime("-" . ($i - 1) . " days")),
                 'paid_by' => ($i % 5) + 1, // Assign users in a round-robin fashion

@@ -14,31 +14,17 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0f4ff',
-                            100: '#e0eaff',
-                            200: '#c7d8fd',
-                            300: '#a5bbfb',
-                            400: '#7f94f7',
-                            500: '#5c6af0',
-                            600: '#4549e4',
-                            700: '#3938ca',
-                            800: '#2f2fa3',
-                            900: '#2b2d82',
-                            950: '#1a1b4b',
+                            50: '#f0f4ff', 100: '#e0eaff', 200: '#c7d8fd',
+                            300: '#a5bbfb', 400: '#7f94f7', 500: '#5c6af0',
+                            600: '#4549e4', 700: '#3938ca', 800: '#2f2fa3',
+                            900: '#2b2d82', 950: '#1a1b4b',
                         },
                         surface: {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
-                            400: '#94a3b8',
-                            500: '#64748b',
-                            600: '#475569',
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0',
+                            300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b',
+                            600: '#475569', 700: '#334155', 800: '#1e293b',
+                            900: '#0f172a', 950: '#020617',
+                        },
                     },
                     fontFamily: {
                         display: ['"DM Sans"', 'sans-serif'],
@@ -53,9 +39,9 @@
                     borderRadius: {
                         'xl2': '1rem',
                         'xl3': '1.5rem',
-                    }
-                }
-            }
+                    },
+                },
+            },
         }
     </script>
 
@@ -66,24 +52,17 @@
         href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
 
-    <!-- Lucide Icons -->
+    <!-- Lucide Icons (UMD — global `lucide` object) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-    <!-- jQuery (needed by DataTables) -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <script type="text/javascript" src="<?= base_url('assets/js/ss-table.js') ?>"></script>
-
-    <!-- DataTables with Tailwind styling -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <!-- Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- SS.Table (custom table component — replaces DataTables) -->
+    <script src="<?= base_url('assets/js/ss-table.js') ?>"></script>
 
     <style>
-        /* ── Base ─────────────────────────────────────────── */
+        /* ── Reset / base ─────────────────────────────────── */
         *,
         *::before,
         *::after {
@@ -127,21 +106,21 @@
             border-bottom: 1px solid rgba(255, 255, 255, .08);
         }
 
+        /* Logo icon — flat colour, no gradient per project rules */
         .sidebar-logo .logo-icon {
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #5c6af0, #818cf8);
+            background: #5c6af0;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            box-shadow: 0 4px 12px rgba(92, 106, 240, .4);
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 12px 12px;
+            padding: 12px;
             overflow-y: auto;
         }
 
@@ -159,7 +138,6 @@
             align-items: center;
             gap: 10px;
             padding: 11px 12px;
-            /* ~44px tap target height */
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
@@ -168,7 +146,6 @@
             transition: background .15s, color .15s;
             margin-bottom: 2px;
             min-height: 44px;
-            /* explicit touch target */
             touch-action: manipulation;
         }
 
@@ -236,126 +213,13 @@
         }
 
         .page-content {
-            padding: 28px 28px;
+            padding: 28px;
         }
 
-        /* ── DataTables override ──────────────────────────── */
-        .dataTables_wrapper {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-        }
-
-        .dataTables_wrapper .dataTables_filter input,
-        .dataTables_wrapper .dataTables_length select {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 13px;
-            outline: none;
-            background: #fff;
-            color: #1e293b;
-        }
-
-        .dataTables_wrapper .dataTables_filter input:focus,
-        .dataTables_wrapper .dataTables_length select:focus {
-            border-color: #7f94f7;
-            box-shadow: 0 0 0 3px rgba(127, 148, 247, .15);
-        }
-
-        table.dataTable thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            font-size: 12px;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-            border-bottom: 1px solid #e2e8f0 !important;
-            padding: 12px 16px;
-        }
-
-        table.dataTable tbody td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-            vertical-align: middle;
-        }
-
-        table.dataTable tbody tr:hover td {
-            background: #f8fafc;
-        }
-
-        table.dataTable {
-            border-collapse: collapse !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            border-radius: 6px !important;
-            padding: 4px 10px !important;
-            font-size: 13px !important;
-            color: #475569 !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #5c6af0 !important;
-            border-color: #5c6af0 !important;
-            color: #fff !important;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #f1f5f9 !important;
-            border-color: #e2e8f0 !important;
-            color: #1e293b !important;
-        }
-
-        .dataTables_wrapper .dataTables_info {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-
-        /* ── Select2 override ─────────────────────────────── */
-        .select2-container--default .select2-selection--single,
-        .select2-container--default .select2-selection--multiple {
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 8px !important;
-            min-height: 44px !important;
-            /* touch tap target */
-            padding: 4px 8px !important;
-            font-family: 'DM Sans', sans-serif !important;
-            font-size: 15px !important;
-            background: #fff !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 34px !important;
-            color: #1e293b !important;
-        }
-
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px !important;
-        }
-
-        .select2-dropdown {
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 10px !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .10) !important;
-            overflow: hidden;
-        }
-
-        /* Larger touch targets inside dropdown */
-        .select2-container--default .select2-results__option {
-            padding: 10px 14px !important;
-            font-size: 15px !important;
-        }
-
-        .select2-container--default .select2-results__option--highlighted {
-            background-color: #5c6af0 !important;
-        }
-
-        /* ── Form inputs global style ─────────────────────── */
+        /* ── Form inputs ──────────────────────────────────── */
         .ss-input {
             width: 100%;
             padding: 11px 14px;
-            /* min 44px height with border */
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             font-size: 16px;
@@ -366,7 +230,6 @@
             outline: none;
             transition: border-color .15s, box-shadow .15s;
             min-height: 44px;
-            /* touch tap target */
             appearance: none;
             -webkit-appearance: none;
         }
@@ -403,7 +266,6 @@
             border: none;
             transition: all .15s;
             min-height: 44px;
-            /* touch tap target */
             touch-action: manipulation;
         }
 
@@ -457,7 +319,7 @@
             background: #e2e8f0;
         }
 
-        /* ── Table scroll wrapper (prevents horizontal overflow on mobile) ── */
+        /* ── Table wrapper ────────────────────────────────── */
         .ss-table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -466,12 +328,7 @@
             border: 1px solid #e2e8f0;
         }
 
-        .ss-table-wrap table.dataTable {
-            min-width: 520px;
-            /* ensures table doesn't collapse to unreadable width */
-        }
-
-        /* ── Card ─────────────────────────────────────────── */
+        /* ── Cards ────────────────────────────────────────── */
         .ss-card {
             background: #fff;
             border: 1px solid #e2e8f0;
@@ -488,7 +345,37 @@
             padding: 24px;
         }
 
-        /* ── Toast notification ───────────────────────────── */
+        /* ── Badges ───────────────────────────────────────── */
+        .ss-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ss-badge-green {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .ss-badge-red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .ss-badge-blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .ss-badge-amber {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        /* ── Toast ────────────────────────────────────────── */
         #ss-toast {
             position: fixed;
             bottom: 24px;
@@ -566,36 +453,6 @@
             margin-top: 2px;
         }
 
-        /* ── Badge ────────────────────────────────────────── */
-        .ss-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .ss-badge-green {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .ss-badge-red {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .ss-badge-blue {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .ss-badge-amber {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
         /* ── Mobile overlay ───────────────────────────────── */
         #sidebar-overlay {
             display: none;
@@ -605,10 +462,8 @@
             z-index: 39;
         }
 
-        /* ── Responsive breakpoints ───────────────────────── */
+        /* ── Responsive ───────────────────────────────────── */
         @media (max-width: 1023px) {
-
-            /* Sidebar hidden by default on mobile — slides in as drawer */
             #sidebar {
                 transform: translateX(-256px);
                 box-shadow: none;
@@ -619,32 +474,24 @@
                 box-shadow: 4px 0 32px rgba(0, 0, 0, .25);
             }
 
-            /* Topbar always full-width on mobile */
             #topbar {
                 left: 0 !important;
             }
 
-            /* Main content fills full width — no sidebar offset */
             #main-content {
                 margin-left: 0 !important;
             }
 
-            /* Tighter page padding on small screens */
             .page-content {
-                padding: 16px 16px;
+                padding: 16px;
             }
         }
 
         @media (min-width: 1024px) {
-
-            /* Hide mobile hamburger on desktop */
             .mobile-only {
                 display: none !important;
             }
-        }
 
-        /* On desktop: sidebar visible by default; .collapsed class overrides when toggled */
-        @media (min-width: 1024px) {
             #sidebar {
                 transform: translateX(0);
             }
@@ -691,244 +538,337 @@
          TOP BAR
     ════════════════════════════════════════════════════════ -->
         <header id="topbar">
+
             <!-- Hamburger — mobile only -->
-            <button onclick="toggleSidebar()"
-                class="mobile-only p-2 rounded-lg text-surface-500 hover:bg-surface-100 hover:text-surface-700 transition-colors"
-                aria-label="Open menu"
-                style="min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">
-                <i data-lucide="menu" class="w-5 h-5"></i>
+            <button onclick="toggleSidebar()" class="mobile-only" aria-label="Open menu" style="
+            min-width:44px;min-height:44px;padding:8px;border-radius:8px;border:none;
+            background:transparent;display:flex;align-items:center;justify-content:center;
+            color:#64748b;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f1f5f9'"
+                onmouseout="this.style.background='transparent'">
+                <i data-lucide="menu" style="width:20px;height:20px;"></i>
             </button>
+
             <!-- Collapse toggle — desktop only -->
-            <button onclick="toggleSidebarDesktop()"
-                class="p-2 rounded-lg text-surface-500 hover:bg-surface-100 hover:text-surface-700 transition-colors hidden lg:flex"
-                aria-label="Collapse sidebar"
-                style="min-width:44px;min-height:44px;align-items:center;justify-content:center;">
-                <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-5 h-5"></i>
+            <button onclick="toggleSidebarDesktop()" aria-label="Collapse sidebar" style="
+            min-width:44px;min-height:44px;padding:8px;border-radius:8px;border:none;
+            background:transparent;display:none;align-items:center;justify-content:center;
+            color:#64748b;cursor:pointer;transition:background .15s;" class="lg:flex hidden"
+                onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'"
+                id="sidebar-desktop-toggle">
+                <i data-lucide="panel-left-close" style="width:20px;height:20px;" id="sidebar-toggle-icon"></i>
             </button>
 
             <!-- Breadcrumb / page title -->
-            <div class="flex-1 min-w-0">
-                <span id="topbar-title" class="text-sm font-semibold text-surface-700 truncate"></span>
+            <div style="flex:1;min-width:0;">
+                <span id="topbar-title" style="font-size:14px;font-weight:600;color:#334155;"></span>
             </div>
 
             <!-- Right actions -->
-            <div class="flex items-center gap-3">
-                <!-- Month badge -->
-                <span
-                    class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-surface-500 bg-surface-100 px-3 py-1.5 rounded-full">
-                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <div style="display:flex;align-items:center;gap:10px;">
+
+                <!-- Group name badge -->
+                <?php if (session()->get('group_name')): ?>
+                    <span style="
+                    display:none;
+                    align-items:center;gap:6px;
+                    font-size:12px;font-weight:500;color:#64748b;
+                    background:#f1f5f9;padding:5px 12px;border-radius:999px;
+                    white-space:nowrap;" class="sm-show" id="group-badge">
+                        <i data-lucide="home" style="width:13px;height:13px;"></i>
+                        <?= esc(session()->get('group_name')) ?>
+                    </span>
+                <?php endif; ?>
+
+                <!-- Current month chip -->
+                <span style="
+                display:none;
+                align-items:center;gap:5px;
+                font-size:12px;font-weight:500;color:#64748b;
+                background:#f1f5f9;padding:5px 12px;border-radius:999px;
+                white-space:nowrap;" id="month-chip">
+                    <i data-lucide="calendar" style="width:13px;height:13px;"></i>
                     <?= date('F Y') ?>
                 </span>
 
-                <!-- User avatar dropdown -->
-                <div class="relative" id="user-menu-wrapper">
-                    <button onclick="toggleUserMenu()"
-                        class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-surface-100 transition-colors">
-                        <div
-                            class="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                            <?= strtoupper(substr(session()->get('name') ?? 'U', 0, 1)) ?>
+                <!-- User avatar + dropdown -->
+                <div style="position:relative;" id="user-menu-wrapper">
+                    <button onclick="toggleUserMenu()" style="
+                    display:flex;align-items:center;gap:8px;
+                    padding:6px 10px;border-radius:8px;border:none;
+                    background:transparent;cursor:pointer;
+                    transition:background .15s;min-height:44px;" onmouseover="this.style.background='#f1f5f9'"
+                        onmouseout="this.style.background='transparent'">
+                        <div style="
+                        width:28px;height:28px;border-radius:50%;
+                        background:#5c6af0;
+                        display:flex;align-items:center;justify-content:center;
+                        color:#fff;font-size:12px;font-weight:700;flex-shrink:0;">
+                            <?= strtoupper(substr((string) session()->get('name'), 0, 1)) ?>
                         </div>
-                        <span class="hidden sm:block text-sm font-medium text-surface-700 max-w-[120px] truncate">
-                            <?= esc(session()->get('name')) ?>
+                        <span id="topbar-username" style="
+                        display:none;font-size:14px;font-weight:500;
+                        color:#334155;max-width:120px;
+                        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                            <?= esc((string) session()->get('name')) ?>
                         </span>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-surface-400 hidden sm:block"></i>
+                        <i data-lucide="chevron-down" style="width:14px;height:14px;color:#94a3b8;" id="user-chevron"></i>
                     </button>
 
-                    <!-- Dropdown — right-anchored on desktop, left-anchored on very narrow screens -->
-                    <div id="user-dropdown"
-                        class="hidden absolute right-0 top-full mt-2 w-52 bg-white border border-surface-200 rounded-xl shadow-xl z-50 overflow-hidden py-1"
-                        style="max-width: calc(100vw - 16px);">
-                        <div class="px-4 py-3 border-b border-surface-100">
-                            <p class="text-sm font-semibold text-surface-800 truncate"><?= esc(session()->get('name')) ?>
-                            </p>
-                            <p class="text-xs text-surface-400 capitalize mt-0.5">
-                                <?= esc(session()->get('role') ?? 'user') ?>
-                            </p>
+                    <!-- Dropdown -->
+                    <div id="user-dropdown" style="
+                    display:none;position:absolute;right:0;top:100%;margin-top:8px;
+                    width:208px;background:#fff;
+                    border:1px solid #e2e8f0;border-radius:12px;
+                    box-shadow:0 8px 24px rgba(0,0,0,.10);
+                    z-index:50;overflow:hidden;padding:4px 0;
+                    max-width:calc(100vw - 16px);">
+                        <!-- User info -->
+                        <div style="padding:12px 16px 10px;border-bottom:1px solid #f1f5f9;">
+                            <div style="font-size:13px;font-weight:600;color:#0f172a;
+                            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                <?= esc((string) session()->get('name')) ?>
+                            </div>
+                            <div style="font-size:11px;color:#94a3b8;margin-top:2px;text-transform:capitalize;">
+                                <?= esc((string) (session()->get('role') ?? 'user')) ?>
+                                <?php if (session()->get('group_name')): ?>
+                                    · <?= esc((string) session()->get('group_name')) ?>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-surface-600 hover:bg-surface-50 hover:text-surface-900 transition-colors">
-                            <i data-lucide="user" class="w-4 h-4"></i> Profile
+                        <!-- Menu items -->
+                        <a href="<?= base_url('/profile') ?>"
+                            style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#475569;text-decoration:none;transition:background .1s;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                            <i data-lucide="user" style="width:15px;height:15px;"></i> Profile
                         </a>
                         <a href="#"
-                            class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-surface-600 hover:bg-surface-50 hover:text-surface-900 transition-colors">
-                            <i data-lucide="settings" class="w-4 h-4"></i> Settings
+                            style="display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:#475569;text-decoration:none;transition:background .1s;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                            <i data-lucide="settings" style="width:15px;height:15px;"></i> Settings
                         </a>
-                        <!-- Payment QR button -->
-                        <button onclick="openQRModal();document.getElementById('user-dropdown').classList.add('hidden');"
-                            class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-surface-600 hover:bg-surface-50 hover:text-surface-900 transition-colors"
-                            style="border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;">
-                            <i data-lucide="qr-code" class="w-4 h-4"></i> Pay via UPI
+                        <!-- Pay via UPI -->
+                        <button onclick="openQRModal();closeUserDropdown();" style="
+                        width:100%;display:flex;align-items:center;gap:10px;
+                        padding:10px 16px;font-size:13px;color:#475569;
+                        border:none;background:transparent;cursor:pointer;
+                        font-family:'DM Sans',sans-serif;text-align:left;
+                        transition:background .1s;" onmouseover="this.style.background='#f8fafc'"
+                            onmouseout="this.style.background=''">
+                            <i data-lucide="qr-code" style="width:15px;height:15px;"></i> Pay via UPI
                         </button>
-                        <div class="border-t border-surface-100 mt-1 pt-1">
-                            <a href="<?= base_url('/auth/logout') ?>"
-                                class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- ── UPI / QR Payment Modal ──────────────────────── -->
-                    <?php
-                    $payment = config('Payment');
-                    $upiId = esc($payment->upiId);
-                    $payeeName = esc($payment->payeeName);
-                    $payNote = esc($payment->paymentNote);
-                    // UPI deep-link used by all UPI apps to parse payment details
-                    $upiString = 'upi://pay?pa=' . rawurlencode($payment->upiId)
-                        . '&pn=' . rawurlencode($payment->payeeName)
-                        . '&tn=' . rawurlencode($payment->paymentNote)
-                        . '&cu=INR';
-                    // Google Charts QR API — no server dependency, works offline-first
-                    $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='
-                        . rawurlencode($upiString);
-                    ?>
-
-                    <!-- Backdrop -->
-                    <div id="qr-backdrop" onclick="closeQRModal()" style="
-                    display:none;position:fixed;inset:0;
-                    background:rgba(15,23,42,.45);z-index:200;
-                    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
-                "></div>
-
-                    <!-- Modal -->
-                    <div id="qr-modal" style="
-                    display:none;position:fixed;
-                    top:50%;left:50%;
-                    transform:translate(-50%,-50%) scale(0.97);
-                    width:calc(100% - 32px);max-width:340px;
-                    background:#fff;border-radius:20px;
-                    box-shadow:0 20px 60px rgba(0,0,0,.18);
-                    z-index:201;opacity:0;
-                    transition:transform .2s ease, opacity .2s ease;
-                    text-align:center;
-                ">
-                        <!-- Header -->
-                        <div
-                            style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid #f1f5f9;">
-                            <div style="display:flex;align-items:center;gap:9px;">
-                                <div
-                                    style="width:32px;height:32px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                    <i data-lucide="qr-code" style="width:15px;height:15px;color:#15803d;"></i>
-                                </div>
-                                <div style="text-align:left;">
-                                    <div style="font-size:14px;font-weight:700;color:#0f172a;">Pay via UPI</div>
-                                    <div style="font-size:11px;color:#94a3b8;">Scan or share with any UPI app</div>
-                                </div>
-                            </div>
-                            <button onclick="closeQRModal()" style="
-                            width:30px;height:30px;border-radius:8px;
-                            background:#f1f5f9;border:none;cursor:pointer;
-                            display:flex;align-items:center;justify-content:center;
-                            color:#64748b;transition:background .15s;flex-shrink:0;
-                        " onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                                <i data-lucide="x" style="width:15px;height:15px;"></i>
-                            </button>
-                        </div>
-
-                        <!-- QR + details -->
-                        <div style="padding:20px 24px 24px;">
-
-                            <!-- Payee name -->
-                            <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;"><?= $payeeName ?></p>
-                            <p style="font-size:12px;color:#64748b;margin:0 0 16px;">SmartSplit Household</p>
-
-                            <!-- QR code image -->
-                            <div style="
-                            display:inline-block;
-                            padding:10px;
-                            border:1px solid #e2e8f0;
-                            border-radius:12px;
-                            background:#fff;
-                            margin-bottom:16px;
-                        ">
-                                <img src="<?= $qrUrl ?>" alt="UPI QR Code" width="200" height="200"
-                                    style="display:block;border-radius:6px;"
-                                    onerror="this.parentElement.innerHTML='<div style=\'width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:6px;\'><span style=\'font-size:12px;color:#94a3b8;text-align:center;padding:16px;\'>QR unavailable.<br>Use UPI ID below.</span></div>'">
-                            </div>
-
-                            <!-- UPI ID chip -->
-                            <div style="
-                            display:flex;align-items:center;justify-content:space-between;
-                            gap:8px;padding:10px 14px;
-                            background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
-                            margin-bottom:16px;
-                        ">
-                                <div style="text-align:left;min-width:0;">
-                                    <div
-                                        style="font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;">
-                                        UPI ID</div>
-                                    <div id="upi-id-text"
-                                        style="font-size:14px;font-weight:600;color:#0f172a;font-family:'JetBrains Mono',monospace;word-break:break-all;">
-                                    
-                                        <?= $upiId ?></div>
-                                </div>
-                                    <button onclick="copyUpiId()" id="copy-btn" style="
-                                flex-shrink:0;padding:6px 12px;border-radius:7px;
-                                background:#e0e7ff;color:#4338ca;
-                                border:none;cursor:pointer;
-                                font-size:12px;font-weight:600;
-                                font-family:'DM Sans',sans-serif;
-                                display:flex;align-items:center;gap:4px;
-                                transition:background .15s;min-height:32px;
-                        " onmouseover="this.style.background='#c7d2fe'"
-                                    onmouseout="this.style.background='#e0e7ff'">
-                                    <i data-lucide="copy" style="width:12px;height:12px;" id="copy-icon"></i>
-                                    <span id="copy-text">Copy</span>
-                                </button>
-                                </div>
-                            <!-- Supported apps row -->
-                            <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
-                                <span style="font-size:11px;color:#94a3b8;">Works with</span>
-                                    <?php
-                                    $apps = ['GPay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'];
-                                    foreach ($apps as $app):
-                                        ?>
-                                            <span style="
-                                font-size:10px;font-weight:600;
-                                padding:2px 7px;border-radius:999px;
-                                background:#f1f5f9;color:#64748b;
-                        "><?= $app ?></span>
-                                <?php endforeach; ?>
-                                </div>
-                        </div>
+                        <div style="border-top:1px solid #f1f5f9;margin:4px 0;"></div>
+                        <a href="<?= base_url('/auth/logout') ?>" style="
+                        display:flex;align-items:center;gap:10px;
+                        padding:10px 16px;font-size:13px;color:#dc2626;
+                        text-decoration:none;transition:background .1s;" onmouseover="this.style.background='#fef2f2'"
+                            onmouseout="this.style.background=''">
+                            <i data-lucide="log-out" style="width:15px;height:15px;"></i> Logout
+                        </a>
                     </div>
                 </div>
             </div>
-            </header>
-            <!-- ═══════════════════════════════════════════════════════
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════
+         UPI / QR PAYMENT MODAL
+    ════════════════════════════════════════════════════════ -->
+        <?php
+        $payment = config('Payment');
+        $upiId = esc($payment->upiId);
+        $payeeName = esc($payment->payeeName);
+        $payNote = esc($payment->paymentNote);
+        $upiString = 'upi://pay?pa=' . rawurlencode($payment->upiId)
+            . '&pn=' . rawurlencode($payment->payeeName)
+            . '&tn=' . rawurlencode($payment->paymentNote)
+            . '&cu=INR';
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' . rawurlencode($upiString);
+        ?>
+
+        <!-- Backdrop -->
+        <div id="qr-backdrop" onclick="closeQRModal()" style="
+        display:none;position:fixed;inset:0;
+        background:rgba(15,23,42,.45);z-index:200;
+        backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+    "></div>
+
+        <!-- Modal -->
+        <div id="qr-modal" style="
+        display:none;position:fixed;
+        top:50%;left:50%;
+        transform:translate(-50%,-50%) scale(0.97);
+        width:calc(100% - 32px);max-width:340px;
+        background:#fff;border-radius:20px;
+        box-shadow:0 20px 60px rgba(0,0,0,.18);
+        z-index:201;opacity:0;
+        transition:transform .2s ease, opacity .2s ease;
+        text-align:center;">
+
+            <!-- Header -->
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid #f1f5f9;">
+                <div style="display:flex;align-items:center;gap:9px;">
+                    <div
+                        style="width:32px;height:32px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i data-lucide="qr-code" style="width:15px;height:15px;color:#15803d;"></i>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-size:14px;font-weight:700;color:#0f172a;">Pay via UPI</div>
+                        <div style="font-size:11px;color:#94a3b8;">Scan with any UPI app</div>
+                    </div>
+                </div>
+                <button onclick="closeQRModal()" style="
+                width:30px;height:30px;border-radius:8px;
+                background:#f1f5f9;border:none;cursor:pointer;
+                display:flex;align-items:center;justify-content:center;
+                color:#64748b;transition:background .15s;flex-shrink:0;" onmouseover="this.style.background='#e2e8f0'"
+                    onmouseout="this.style.background='#f1f5f9'">
+                    <i data-lucide="x" style="width:15px;height:15px;"></i>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div style="padding:20px 24px 24px;">
+                <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 4px;"><?= $payeeName ?></p>
+                <p style="font-size:12px;color:#64748b;margin:0 0 16px;">SmartSplit Household</p>
+
+                <!-- QR image -->
+                <div
+                    style="display:inline-block;padding:10px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;margin-bottom:16px;">
+                    <img src="<?= $qrUrl ?>" alt="UPI QR Code" width="200" height="200"
+                        style="display:block;border-radius:6px;"
+                        onerror="this.parentElement.innerHTML='<div style=\'width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:6px;\'><span style=\'font-size:12px;color:#94a3b8;text-align:center;padding:16px;\'>QR unavailable.<br>Use UPI ID below.</span></div>'">
+                </div>
+
+                <!-- UPI ID chip -->
+                <div
+                    style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:16px;">
+                    <div style="text-align:left;min-width:0;">
+                        <div
+                            style="font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;">
+                            UPI ID</div>
+                        <div id="upi-id-text"
+                            style="font-size:14px;font-weight:600;color:#0f172a;font-family:'JetBrains Mono',monospace;word-break:break-all;">
+                            <?= $upiId ?>
+                        </div>
+                    </div>
+                    <button onclick="copyUpiId()" id="copy-btn" style="
+                    flex-shrink:0;padding:6px 12px;border-radius:7px;
+                    background:#e0e7ff;color:#4338ca;
+                    border:none;cursor:pointer;
+                    font-size:12px;font-weight:600;
+                    font-family:'DM Sans',sans-serif;
+                    display:flex;align-items:center;gap:4px;
+                    transition:background .15s;min-height:32px;" onmouseover="this.style.background='#c7d2fe'"
+                        onmouseout="this.style.background='#e0e7ff'">
+                        <i data-lucide="copy" style="width:12px;height:12px;" id="copy-icon"></i>
+                        <span id="copy-text">Copy</span>
+                    </button>
+                </div>
+
+                <!-- Supported apps -->
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-size:11px;color:#94a3b8;">Works with</span>
+                    <?php foreach (['GPay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'] as $app): ?>
+                        <span
+                            style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:#f1f5f9;color:#64748b;"><?= $app ?></span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════
          MAIN CONTENT
-════════════════════════════════════════════════════════ -->
+    ════════════════════════════════════════════════════════ -->
         <main id="main-content">
             <div class="page-content">
                 <?= $this->renderSection('content') ?>
             </div>
             <?= $this->include('layout/footer') ?>
-            </main>
+        </main>
 
     <?php else: ?>
-        <!-- Not logged in — full-page layout -->
+        <!-- Not logged in — full-page centred layout -->
         <div class="min-h-screen flex items-center justify-center bg-surface-50">
             <?= $this->renderSection('content') ?>
-            </div>
-
+        </div>
     <?php endif; ?>
 
     <!-- Toast container -->
     <div id="ss-toast"></div>
 
-    <!-- Scripts -->
+    <!-- ── ssConfirm modal ──────────────────────────────────────────── -->
+    <div id="ssConfirmBackdrop"
+        style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:300;transition:opacity .18s;"
+        onclick="ssConfirmCancel()"></div>
+    <div id="ssConfirmModal"
+        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.97);z-index:301;width:100%;max-width:400px;padding:0 16px;transition:opacity .18s,transform .18s;opacity:0;">
+        <div style="background:#fff;border-radius:16px;padding:28px 24px 24px;">
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+                <div
+                    style="width:48px;height:48px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="triangle-alert" style="width:22px;height:22px;color:#dc2626;"></i>
+                </div>
+                <div>
+                    <div id="ssConfirmTitle" style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px;">
+                    </div>
+                    <div id="ssConfirmMessage" style="font-size:13px;color:#64748b;line-height:1.5;"></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:24px;">
+                <button onclick="ssConfirmCancel()" class="ss-btn ss-btn-ghost" style="flex:1;justify-content:center;">
+                    <span id="ssConfirmCancelText">Cancel</span>
+                </button>
+                <button onclick="ssConfirmProceed()" id="ssConfirmBtn" class="ss-btn"
+                    style="flex:1;justify-content:center;background:#dc2626;color:#fff;border:none;">
+                    <span id="ssConfirmBtnText">Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+     GLOBAL JAVASCRIPT
+════════════════════════════════════════════════════════ -->
     <script>
-        // ── Lucide icons ──────────────────────────────────────
+        // Run Lucide on initial paint
         lucide.createIcons();
 
-        // ── Sidebar toggle (mobile) ───────────────────────────
+        // Show topbar chips on wider screens — done in JS to avoid
+        // a flash of hidden content before CSS loads.
+        (function () {
+            var w = window.innerWidth;
+            var monthChip = document.getElementById('month-chip');
+            var groupBadge = document.getElementById('group-badge');
+            var username = document.getElementById('topbar-username');
+            var chevron = document.getElementById('user-chevron');
+            if (w >= 640) {
+                if (monthChip) { monthChip.style.display = 'inline-flex'; }
+                if (groupBadge) { groupBadge.style.display = 'inline-flex'; }
+                if (username) { username.style.display = 'block'; }
+            }
+            // Show desktop sidebar toggle button
+            var desktopToggle = document.getElementById('sidebar-desktop-toggle');
+            if (desktopToggle && w >= 1024) desktopToggle.style.display = 'flex';
+        })();
+
+        // Sync topbar title from active nav link text
+        (function () {
+            var active = document.querySelector('.nav-link.active');
+            var el = document.getElementById('topbar-title');
+            if (active && el) {
+                var navText = active.querySelector('.nav-text');
+                el.textContent = navText ? navText.textContent.trim() : '';
+            }
+        })();
+
+        // ── Sidebar — mobile ──────────────────────────────────
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const isOpen = sidebar.classList.contains('mobile-open');
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebar-overlay');
+            var isOpen = sidebar.classList.contains('mobile-open');
             sidebar.classList.toggle('mobile-open', !isOpen);
             overlay.style.display = isOpen ? 'none' : 'block';
-            document.body.style.overflow = isOpen ? '' : 'hidden'; // prevent bg scroll
+            document.body.style.overflow = isOpen ? '' : 'hidden';
         }
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('mobile-open');
@@ -936,78 +876,99 @@
             document.body.style.overflow = '';
         }
 
-        // Close sidebar when a nav link is tapped on mobile
+        // Close sidebar on nav-link tap (mobile)
         document.querySelectorAll('#sidebar .nav-link').forEach(function (link) {
             link.addEventListener('click', function () {
                 if (window.innerWidth < 1024) closeSidebar();
             });
         });
 
-        // ── Swipe right-to-left to close sidebar on mobile ───
+        // Close sidebar on Escape (mobile)
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (window.innerWidth < 1024) closeSidebar();
+                closeQRModal();
+            }
+        });
+
+        // Swipe left to close sidebar on mobile
         (function () {
-            let startX = 0;
-            const sidebar = document.getElementById('sidebar');
-            sidebar.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+            var startX = 0;
+            var sidebar = document.getElementById('sidebar');
+            sidebar.addEventListener('touchstart', function (e) {
+                startX = e.touches[0].clientX;
+            }, { passive: true });
             sidebar.addEventListener('touchend', function (e) {
-                const dx = e.changedTouches[0].clientX - startX;
+                var dx = e.changedTouches[0].clientX - startX;
                 if (dx < -60 && window.innerWidth < 1024) closeSidebar();
             }, { passive: true });
         })();
 
-        // ── Sidebar toggle (desktop collapse) ────────────────
-        let sidebarCollapsed = false;
+        // ── Sidebar — desktop collapse ────────────────────────
+        var sidebarCollapsed = false;
         function toggleSidebarDesktop() {
             sidebarCollapsed = !sidebarCollapsed;
-            const sidebar = document.getElementById('sidebar');
-            const topbar = document.getElementById('topbar');
-            const main = document.getElementById('main-content');
-            const icon = document.getElementById('sidebar-toggle-icon');
-            sidebar.classList.toggle('collapsed', sidebarCollapsed);
-            topbar.classList.toggle('sidebar-collapsed', sidebarCollapsed);
-            main.classList.toggle('sidebar-collapsed', sidebarCollapsed);
-            if (icon) icon.setAttribute('data-lucide', sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
-            lucide.createIcons();
+            document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+            document.getElementById('topbar').classList.toggle('sidebar-collapsed', sidebarCollapsed);
+            document.getElementById('main-content').classList.toggle('sidebar-collapsed', sidebarCollapsed);
+            window.setLucideIcon('sidebar-toggle-icon', sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
         }
 
         // ── User dropdown ─────────────────────────────────────
         function toggleUserMenu() {
-            document.getElementById('user-dropdown').classList.toggle('hidden');
+            var dd = document.getElementById('user-dropdown');
+            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
         }
+        function closeUserDropdown() {
+            document.getElementById('user-dropdown').style.display = 'none';
+        }
+        // Click outside closes dropdown
         document.addEventListener('click', function (e) {
-            const wrapper = document.getElementById('user-menu-wrapper');
+            var wrapper = document.getElementById('user-menu-wrapper');
             if (wrapper && !wrapper.contains(e.target)) {
-                document.getElementById('user-dropdown')?.classList.add('hidden');
+                closeUserDropdown();
             }
         });
 
-        // ── Topbar title sync from active nav link ─────────────
-        document.addEventListener('DOMContentLoaded', function () {
-            const active = document.querySelector('.nav-link.active');
-            const el = document.getElementById('topbar-title');
-            if (active && el) el.textContent = active.querySelector('.nav-text')?.textContent ?? '';
-        });
-
-        // ── Global toast helper (replaces alert()) ────────────
-        window.ssToast = function (message, type = 'success') {
-            const container = document.getElementById('ss-toast');
-            const icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
-            const toast = document.createElement('div');
-            toast.className = `toast-item toast-${type}`;
-            toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0"></i><span>${message}</span>`;
+        // ── Toast ─────────────────────────────────────────────
+        window.ssToast = function (message, type) {
+            type = type || 'success';
+            var container = document.getElementById('ss-toast');
+            var icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
+            var toast = document.createElement('div');
+            toast.className = 'toast-item toast-' + type;
+            toast.innerHTML = '<i data-lucide="' + (icons[type] || 'info') + '" style="width:18px;height:18px;flex-shrink:0;"></i>'
+                + '<span>' + message + '</span>';
             container.appendChild(toast);
             lucide.createIcons({ nodes: [toast] });
-            setTimeout(() => {
+            setTimeout(function () {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(20px)';
                 toast.style.transition = 'all .3s ease';
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(function () { toast.remove(); }, 300);
             }, 3500);
         };
 
-        // ── QR Payment modal ──────────────────────────────────────
+        // ── setLucideIcon — safe icon swap after SVG render ───
+        // Direct setAttribute() + createIcons() does NOT re-render once
+        // Lucide has already replaced <i> with <svg>. This helper replaces
+        // the element with a fresh <i> before calling createIcons on it.
+        window.setLucideIcon = function (id, iconName) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            var fresh = document.createElement('i');
+            var existingStyle = el.getAttribute('style') || '';
+            fresh.setAttribute('data-lucide', iconName);
+            fresh.setAttribute('id', id);
+            if (existingStyle) fresh.setAttribute('style', existingStyle);
+            el.parentNode.replaceChild(fresh, el);
+            lucide.createIcons({ nodes: [fresh] });
+        };
+
+        // ── QR Payment modal ──────────────────────────────────
         window.openQRModal = function () {
-            const backdrop = document.getElementById('qr-backdrop');
-            const modal = document.getElementById('qr-modal');
+            var backdrop = document.getElementById('qr-backdrop');
+            var modal = document.getElementById('qr-modal');
             if (!backdrop || !modal) return;
             backdrop.style.display = 'block';
             modal.style.display = 'block';
@@ -1017,8 +978,8 @@
             });
         };
         window.closeQRModal = function () {
-            const modal = document.getElementById('qr-modal');
-            const backdrop = document.getElementById('qr-backdrop');
+            var modal = document.getElementById('qr-modal');
+            var backdrop = document.getElementById('qr-backdrop');
             if (!modal || !backdrop) return;
             modal.style.opacity = '0';
             modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
@@ -1027,56 +988,103 @@
                 backdrop.style.display = 'none';
             }, 180);
         };
-        // ── setLucideIcon: safely swaps a lucide icon after SVG render ──
-        // After lucide renders <i> → <svg>, setAttribute alone won't re-render.
-        // This replaces the element with a fresh <i> then calls createIcons on it.
-        window.setLucideIcon = function (id, iconName) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const fresh = document.createElement('i');
-            // Copy over any inline style from the existing element (svg or i)
-            const existingStyle = el.getAttribute('style') || '';
-            fresh.setAttribute('data-lucide', iconName);
-            fresh.setAttribute('id', id);
-            if (existingStyle) fresh.setAttribute('style', existingStyle);
-            el.parentNode.replaceChild(fresh, el);
-            lucide.createIcons({ nodes: [fresh] });
-        };
 
+        // ── Copy UPI ID ───────────────────────────────────────
+        // Uses setLucideIcon() to safely swap the copy icon after SVG render.
         window.copyUpiId = function () {
-            const upiText = document.getElementById('upi-id-text')?.textContent?.trim();
+            var upiText = (document.getElementById('upi-id-text') || {}).textContent;
             if (!upiText) return;
-            navigator.clipboard.writeText(upiText).then(function () {
-                const btn = document.getElementById('copy-btn');
-                const text = document.getElementById('copy-text');
-                const icon = document.getElementById('copy-icon');
+            upiText = upiText.trim();
+
+            function onCopied() {
+                var btn = document.getElementById('copy-btn');
+                var text = document.getElementById('copy-text');
+                if (!btn || !text) return;
                 text.textContent = 'Copied!';
                 btn.style.background = '#dcfce7';
                 btn.style.color = '#15803d';
-                icon.setAttribute('data-lucide', 'check');
-                lucide.createIcons();
+                // FIX: use setLucideIcon — icon is already rendered as SVG
+                window.setLucideIcon('copy-icon', 'check');
                 setTimeout(function () {
                     text.textContent = 'Copy';
                     btn.style.background = '#e0e7ff';
                     btn.style.color = '#4338ca';
-                    icon.setAttribute('data-lucide', 'copy');
-                    lucide.createIcons();
+                    window.setLucideIcon('copy-icon', 'copy');
                 }, 2000);
-            }).catch(function () {
-                const el = document.createElement('textarea');
-                el.value = upiText;
-                el.style.cssText = 'position:fixed;opacity:0;';
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-                ssToast('UPI ID copied!', 'success');
-            });
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(upiText).then(onCopied).catch(function () {
+                    fallbackCopy(upiText);
+                });
+            } else {
+                fallbackCopy(upiText);
+            }
         };
-        // Escape closes QR modal too
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeQRModal();
-        });
+
+        function fallbackCopy(text) {
+            var el = document.createElement('textarea');
+            el.value = text;
+            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                ssToast('UPI ID copied!', 'success');
+            } catch (e) {
+                ssToast('Copy failed — please copy manually.', 'error');
+            }
+            document.body.removeChild(el);
+        }
+
+        var _ssConfirmCallback = null;
+
+        function ssConfirm(opts) {
+            document.getElementById('ssConfirmTitle').textContent = opts.title || 'Are you sure?';
+            document.getElementById('ssConfirmMessage').textContent = opts.message || 'This action cannot be undone.';
+            document.getElementById('ssConfirmBtnText').textContent = opts.confirmText || 'Delete';
+            document.getElementById('ssConfirmCancelText').textContent = opts.cancelText || 'Cancel';
+            _ssConfirmCallback = opts.onConfirm || null;
+
+            var backdrop = document.getElementById('ssConfirmBackdrop');
+            var modal = document.getElementById('ssConfirmModal');
+            backdrop.style.opacity = '0';
+            modal.style.opacity = '0';
+            backdrop.style.display = 'block';
+            modal.style.display = 'block';
+            lucide.createIcons();
+            requestAnimationFrame(function () {
+                backdrop.style.opacity = '1';
+                modal.style.opacity = '1';
+                modal.style.transform = 'translate(-50%,-50%) scale(1)';
+            });
+
+            document.addEventListener('keydown', _ssConfirmEsc);
+        }
+
+        function ssConfirmCancel() {
+            var backdrop = document.getElementById('ssConfirmBackdrop');
+            var modal = document.getElementById('ssConfirmModal');
+            backdrop.style.opacity = '0';
+            modal.style.opacity = '0';
+            modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
+            setTimeout(function () {
+                backdrop.style.display = 'none';
+                modal.style.display = 'none';
+            }, 180);
+            document.removeEventListener('keydown', _ssConfirmEsc);
+            _ssConfirmCallback = null;
+        }
+
+        function ssConfirmProceed() {
+            var cb = _ssConfirmCallback;  // ← grab reference before cancel nulls it
+            ssConfirmCancel();
+            if (typeof cb === 'function') cb();
+        }
+
+        function _ssConfirmEsc(e) {
+            if (e.key === 'Escape') ssConfirmCancel();
+        }
     </script>
 
     <?= $this->renderSection('scripts') ?>

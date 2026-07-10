@@ -10,19 +10,12 @@ class CreateExpenseInvolvementsTable extends Migration
     {
         $fields = [
             'expense_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
             ],
             'user_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
-            ],
-            'amount' => [
-                'type' => 'FLOAT',
-                'constraint' => '10,2',
-                'default' => 0.00,
             ],
             'created_at' => [
                 'type' => 'DATETIME',
@@ -37,8 +30,17 @@ class CreateExpenseInvolvementsTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
+
+        $this->forge->addKey('id', true);
 
         $this->forge->addKey('expense_id');
         $this->forge->addKey('user_id');
@@ -53,6 +55,6 @@ class CreateExpenseInvolvementsTable extends Migration
 
     public function down()
     {
-        $this->forge->dropTable('expense_involvements');
+        $this->forge->dropTable('expense_involvements', true);
     }
 }

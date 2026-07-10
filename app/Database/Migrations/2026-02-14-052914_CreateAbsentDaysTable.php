@@ -10,13 +10,11 @@ class CreateAbsentDaysTable extends Migration
     {
         $fields = [
             'user_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
             ],
             'expense_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
             ],
             'days_absent' => [
@@ -37,12 +35,20 @@ class CreateAbsentDaysTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
+
+        $this->forge->addKey('id', true);
 
         $this->forge->addKey('user_id');
         $this->forge->addKey('expense_id');
-        $this->forge->addKey('created_at');
 
         $this->forge->addUniqueKey(['user_id', 'expense_id']);
 
@@ -54,6 +60,6 @@ class CreateAbsentDaysTable extends Migration
 
     public function down()
     {
-        $this->forge->dropTable('absent_days');
+        $this->forge->dropTable('absent_days', true);
     }
 }

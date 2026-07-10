@@ -100,8 +100,7 @@ class ExpenseCalculatorService
         |----------------------------------------------------------------------
         */
         $expenses = $expenseModel
-            ->where('from_date >=', $startDate)
-            ->where('from_date <=', $endDate)
+            ->where('billing_month', $month)
             ->findAll();
 
         // Lazy-load cache: absent_days per expense, loaded on first daysPresent

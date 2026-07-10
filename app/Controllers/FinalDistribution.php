@@ -42,6 +42,7 @@ class FinalDistribution extends BaseController
                 'advance_amount' => $record->advance_amount,
                 'due_amount' => $record->due_amount,
                 'final_amount' => $record->final_amount,
+                'generated_at'    => $record->generated_at ? (string) $record->generated_at : null,
             ];
         }
 

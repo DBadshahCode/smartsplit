@@ -6,13 +6,13 @@ use CodeIgniter\Model;
 
 class FinalDistribution extends Model
 {
-    protected $table            = 'final_distributions';
-    protected $primaryKey       = 'id';
+    protected $table = 'final_distributions';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = \App\Entities\FinalDistribution::class;
-    protected $useSoftDeletes   = false;
-    protected $protectFields    = true;
-    protected $allowedFields    = ['month','user_id','chapati_amount','other_expenses_amount','due_amount','advance_amount','final_amount','generated_at'];
+    protected $returnType = \App\Entities\FinalDistribution::class;
+    protected $useSoftDeletes = false;
+    protected $protectFields = true;
+    protected $allowedFields = ['month', 'user_id', 'chapati_amount', 'other_expenses_amount', 'due_amount', 'advance_amount', 'final_amount', 'generated_at'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -21,26 +21,33 @@ class FinalDistribution extends Model
     protected array $castHandlers = [];
 
     // Dates
-    protected $useTimestamps = false;
-    protected $dateFormat    = 'datetime';
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
-    protected $deletedField  = 'deleted_at';
+    protected $useTimestamps = true;
+    protected $dateFormat = 'datetime';
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
 
     // Validation
-    protected $validationRules      = [];
-    protected $validationMessages   = [];
-    protected $skipValidation       = false;
+    protected $validationRules = [
+        'expense_id' => 'required|is_natural_no_zero',
+        'user_id' => 'required|is_natural_no_zero',
+        'expense_share' => 'required|decimal',
+        'chapati_share' => 'required|decimal',
+        'extra_expense' => 'required|decimal',
+        'final_amount' => 'required|decimal',
+    ];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
     protected $cleanValidationRules = true;
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
-    protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
-    protected $afterUpdate    = [];
-    protected $beforeFind     = [];
-    protected $afterFind      = [];
-    protected $beforeDelete   = [];
-    protected $afterDelete    = [];
+    protected $beforeInsert = [];
+    protected $afterInsert = [];
+    protected $beforeUpdate = [];
+    protected $afterUpdate = [];
+    protected $beforeFind = [];
+    protected $afterFind = [];
+    protected $beforeDelete = [];
+    protected $afterDelete = [];
 }

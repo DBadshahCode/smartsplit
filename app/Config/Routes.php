@@ -63,6 +63,12 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('/finaldistribution', 'FinalDistribution::index');
     $routes->get('/finaldistribution/getDistribution/(:segment)', 'FinalDistribution::getDistribution/$1');
 
+    $routes->get('profile', 'Profile::index');
+    $routes->post('profile/updateInfo', 'Profile::updateInfo');
+    $routes->post('profile/updatePassword', 'Profile::updatePassword');
+    $routes->get('profile/getLatestDistributionMonth', 'Profile::getLatestDistributionMonth');
+    $routes->get('profile/getDistributionByMonth/(:segment)', 'Profile::getDistributionByMonth/$1');
+
 });
 
 // ── Admin-only routes ────────────────────────────────────────────

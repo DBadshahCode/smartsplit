@@ -10,8 +10,7 @@ class CreateExpensesTable extends Migration
     {
         $fields = [
             'expense_type_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
             ],
             'description' => [
@@ -20,9 +19,9 @@ class CreateExpensesTable extends Migration
                 'null' => true,
             ],
             'amount' => [
-                'type' => 'FLOAT',
+                'type' => 'DECIMAL',
                 'constraint' => '10,2',
-                'default' => 0.00,
+                'default' => '0.00',
             ],
             'from_date' => [
                 'type' => 'DATE',
@@ -33,8 +32,7 @@ class CreateExpensesTable extends Migration
                 'null' => false,
             ],
             'paid_by' => [
-                'type' => 'INT',
-                'constraint' => 11,
+                'type' => 'BIGINT',
                 'unsigned' => true,
                 'null' => true,
             ],
@@ -51,12 +49,24 @@ class CreateExpensesTable extends Migration
                 'null' => true,
             ],
         ];
-        $this->forge->addField('id');
+        $this->forge->addField([
+            'id' => [
+                'type' => 'BIGINT',
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+        ]);
+
         $this->forge->addField($fields);
 
+        $this->forge->addKey('id', true);
+
         $this->forge->addKey('expense_type_id');
-        $this->forge->addKey('from_date');
-        $this->forge->addKey('to_date');
+        $this->forge->addKey([
+            'from_date',
+            'to_date',
+        ]);
+        $this->forge->addKey('paid_by');
 
         $this->forge->addForeignKey('expense_type_id', 'expense_types', 'id', 'RESTRICT', 'RESTRICT');
         $this->forge->addForeignKey('paid_by', 'users', 'id', 'SET NULL', 'RESTRICT');
@@ -66,6 +76,6 @@ class CreateExpensesTable extends Migration
 
     public function down()
     {
-        $this->forge->dropTable('expenses');
+        $this->forge->dropTable('expenses', true);
     }
 }
