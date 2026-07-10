@@ -27,7 +27,8 @@
     <div class="ss-card" style="padding:20px 22px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">Total Expenses</span>
-            <div style="width:36px;height:36px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;">
+            <div
+                style="width:36px;height:36px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;">
                 <i data-lucide="receipt" style="width:16px;height:16px;color:#be185d;"></i>
             </div>
         </div>
@@ -39,19 +40,22 @@
     <div class="ss-card" style="padding:20px 22px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">This Month's Expenses</span>
-            <div style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;">
+            <div
+                style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;">
                 <i data-lucide="calendar-range" style="width:16px;height:16px;color:#4338ca;"></i>
             </div>
         </div>
         <div style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-month-count">—</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Billing month: <?= date('M Y') ?></div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Billing month: <span
+                id="stat-month-label"><?= date('M Y') ?></span></div>
     </div>
 
     <?php if (session()->get('role') === 'admin'): ?>
         <div class="ss-card" style="padding:20px 22px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                 <span style="font-size:13px;font-weight:600;color:#64748b;">Total Users</span>
-                <div style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;">
+                <div
+                    style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;">
                     <i data-lucide="users" style="width:16px;height:16px;color:#7c3aed;"></i>
                 </div>
             </div>
@@ -63,7 +67,8 @@
     <div class="ss-card" style="padding:20px 22px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">Current Month</span>
-            <div style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
+            <div
+                style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
                 <i data-lucide="calendar" style="width:16px;height:16px;color:#15803d;"></i>
             </div>
         </div>
@@ -92,16 +97,25 @@
             <table style="width:100%;border-collapse:collapse;min-width:400px;">
                 <thead>
                     <tr style="background:#f8fafc;">
-                        <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">Type</th>
-                        <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">Amount</th>
-                        <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">Paid By</th>
-                        <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">Billing Month</th>
+                        <th
+                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
+                            Type</th>
+                        <th
+                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
+                            Amount</th>
+                        <th
+                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
+                            Paid By</th>
+                        <th
+                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
+                            Billing Month</th>
                     </tr>
                 </thead>
                 <tbody id="recent-expenses-body">
                     <tr>
                         <td colspan="4" style="padding:32px 16px;text-align:center;color:#cbd5e1;font-size:14px;">
-                            <i data-lucide="loader" style="width:18px;height:18px;display:inline-block;margin-bottom:6px;"></i>
+                            <i data-lucide="loader"
+                                style="width:18px;height:18px;display:inline-block;margin-bottom:6px;"></i>
                             <div>Loading…</div>
                         </td>
                     </tr>
@@ -124,7 +138,8 @@
                     <a href="<?= base_url('/user') ?>"
                         style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                         onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                        <div style="width:34px;height:34px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div
+                            style="width:34px;height:34px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <i data-lucide="users" style="width:16px;height:16px;color:#7c3aed;"></i>
                         </div>
                         <div>
@@ -138,7 +153,8 @@
                 <a href="<?= base_url('/expense') ?>"
                     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div style="width:34px;height:34px;border-radius:8px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div
+                        style="width:34px;height:34px;border-radius:8px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i data-lucide="plus-circle" style="width:16px;height:16px;color:#be185d;"></i>
                     </div>
                     <div>
@@ -151,7 +167,8 @@
                 <a href="<?= base_url('/absentday') ?>"
                     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div
+                        style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i data-lucide="calendar-x" style="width:16px;height:16px;color:#4338ca;"></i>
                     </div>
                     <div>
@@ -164,7 +181,8 @@
                 <a href="<?= base_url('/finaldistribution') ?>"
                     style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div style="width:34px;height:34px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <div
+                        style="width:34px;height:34px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         <i data-lucide="bar-chart-2" style="width:16px;height:16px;color:#15803d;"></i>
                     </div>
                     <div>
@@ -186,10 +204,11 @@
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
                 <i data-lucide="zap" style="width:16px;height:16px;color:#a5bbfb;"></i>
                 <span style="font-size:13px;font-weight:600;color:#a5bbfb;">
-                    Billing Month: <?= date('M Y') ?>
+                    Billing Month: <span id="stat-month-billing-label"><?= date('M Y') ?></span>
                 </span>
             </div>
-            <div style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;" id="stat-month-total">—</div>
+            <div style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;"
+                id="stat-month-total">—</div>
             <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">Total billed this month</div>
             <!-- Breakdown bar: filled proportionally by billing_month expenses vs all -->
             <div style="margin-top:14px;">
@@ -198,7 +217,9 @@
                     <span style="font-size:11px;font-weight:600;color:#a5bbfb;" id="stat-month-pct">—</span>
                 </div>
                 <div style="height:4px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;">
-                    <div id="stat-month-bar" style="height:100%;width:0%;background:#818cf8;border-radius:99px;transition:width .6s ease;"></div>
+                    <div id="stat-month-bar"
+                        style="height:100%;width:0%;background:#818cf8;border-radius:99px;transition:width .6s ease;">
+                    </div>
                 </div>
             </div>
             <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);">
@@ -242,12 +263,30 @@
         if (!bm) return '—';
         var parts = String(bm).split('-');
         if (parts.length < 2) return bm;
-        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         var mo = parseInt(parts[1], 10);
         return (months[mo - 1] || parts[1]) + ' ' + parts[0];
     }
 
+    // Fallback to calendar month until the latest-generated lookup resolves
     var currentMonth = '<?= date('Y-m') ?>';
+
+    // ── Resolve the actual "billing month" to use for dashboard stats ────────
+    // Mirrors finaldistribution/index.php — always reflects the most recently
+    // generated distribution month, not just today's calendar month.
+    $.get('/finaldistribution/getLatestMonth', function (res) {
+        if (res && res.month) {
+            currentMonth = res.month;
+            var label = fmtBillingMonth(currentMonth);
+            var el1 = document.getElementById('stat-month-label');
+            var el2 = document.getElementById('stat-month-billing-label');
+            if (el1) el1.textContent = label;
+            if (el2) el2.textContent = label;
+        }
+    }).always(function () {
+        // Only fetch expenses once we know which billing month to filter by
+        loadDashboardExpenses();
+    });
 
     <?php if (session()->get('role') === 'admin'): ?>
         $.get('/user/getUsers', function (res) {
@@ -256,81 +295,83 @@
         });
     <?php endif; ?>
 
-    $.get('/expense/getExpenses', function (res) {
-        var all = res.data || [];
+    function loadDashboardExpenses() {
+        $.get('/expense/getExpenses', function (res) {
+            var all = res.data || [];
 
-        // ── Stat: total expense count (all time) ────────────────────────────
-        document.getElementById('stat-expenses').textContent = all.length;
+            // ── Stat: total expense count (all time) ────────────────────────────
+            document.getElementById('stat-expenses').textContent = all.length;
 
-        // ── Filter by billing_month for this-month stats ─────────────────────
-        // billing_month is the canonical field — do NOT use from_date for this.
-        var thisMonth = all.filter(function (e) {
-            return (e.billing_month || '') === currentMonth;
+            // ── Filter by billing_month for this-month stats ─────────────────────
+            // billing_month is the canonical field — do NOT use from_date for this.
+            var thisMonth = all.filter(function (e) {
+                return (e.billing_month || '') === currentMonth;
+            });
+
+            // ── Stat: count of expenses in current billing_month ────────────────
+            document.getElementById('stat-month-count').textContent = thisMonth.length;
+
+            // ── Stat: total amount billed this month ─────────────────────────────
+            var monthTotal = thisMonth.reduce(function (sum, e) {
+                return sum + parseFloat(e.amount || 0);
+            }, 0);
+            document.getElementById('stat-month-total').textContent = fmt(monthTotal);
+
+            // ── Progress bar: this month's total vs all-time total ───────────────
+            var allTotal = all.reduce(function (sum, e) {
+                return sum + parseFloat(e.amount || 0);
+            }, 0);
+            var pct = allTotal > 0 ? Math.min(100, (monthTotal / allTotal) * 100) : 0;
+            document.getElementById('stat-month-pct').textContent = pct.toFixed(1) + '%';
+            // Defer so CSS transition fires after paint
+            setTimeout(function () {
+                document.getElementById('stat-month-bar').style.width = pct.toFixed(1) + '%';
+            }, 100);
+
+            // ── Recent expenses table (5 most recent, already DESC from API) ─────
+            var recent = all.slice(0, 5);
+            var tbody = document.getElementById('recent-expenses-body');
+
+            if (recent.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#cbd5e1;font-size:14px;">No expenses recorded yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = recent.map(function (e) {
+                var paidBy = e.paid_by_name
+                    ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#334155;">'
+                    + e.paid_by_name + '</span>'
+                    : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">Pending</span>';
+
+                // Billing month pill — highlight if it matches the current billing month
+                var bm = e.billing_month || '';
+                var bmLabel = fmtBillingMonth(bm);
+                var bmIsCurrentMonth = bm === currentMonth;
+                var bmPill = '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
+                    + 'font-size:11px;font-weight:600;font-family:\'JetBrains Mono\',monospace;'
+                    + (bmIsCurrentMonth
+                        ? 'background:#e0e7ff;color:#4338ca;">'
+                        : 'background:#f1f5f9;color:#64748b;">')
+                    + bmLabel + '</span>';
+
+                return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
+                    + '<td style="padding:12px 16px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;font-weight:500;">'
+                    + '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
+                    + (e.expense_type || '—') + '</span>'
+                    + '</td>'
+                    + '<td style="padding:12px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9;font-weight:700;font-family:\'JetBrains Mono\',monospace;white-space:nowrap;">'
+                    + fmt(e.amount)
+                    + '</td>'
+                    + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + paidBy + '</td>'
+                    + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + bmPill + '</td>'
+                    + '</tr>';
+            }).join('');
+
+            lucide.createIcons();
+        }).fail(function () {
+            document.getElementById('recent-expenses-body').innerHTML =
+                '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#ef4444;font-size:13px;">Failed to load expenses.</td></tr>';
         });
-
-        // ── Stat: count of expenses in current billing_month ────────────────
-        document.getElementById('stat-month-count').textContent = thisMonth.length;
-
-        // ── Stat: total amount billed this month ─────────────────────────────
-        var monthTotal = thisMonth.reduce(function (sum, e) {
-            return sum + parseFloat(e.amount || 0);
-        }, 0);
-        document.getElementById('stat-month-total').textContent = fmt(monthTotal);
-
-        // ── Progress bar: this month's total vs all-time total ───────────────
-        var allTotal = all.reduce(function (sum, e) {
-            return sum + parseFloat(e.amount || 0);
-        }, 0);
-        var pct = allTotal > 0 ? Math.min(100, (monthTotal / allTotal) * 100) : 0;
-        document.getElementById('stat-month-pct').textContent = pct.toFixed(1) + '%';
-        // Defer so CSS transition fires after paint
-        setTimeout(function () {
-            document.getElementById('stat-month-bar').style.width = pct.toFixed(1) + '%';
-        }, 100);
-
-        // ── Recent expenses table (5 most recent, already DESC from API) ─────
-        var recent = all.slice(0, 5);
-        var tbody = document.getElementById('recent-expenses-body');
-
-        if (recent.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#cbd5e1;font-size:14px;">No expenses recorded yet</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = recent.map(function (e) {
-            var paidBy = e.paid_by_name
-                ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#334155;">'
-                  + e.paid_by_name + '</span>'
-                : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">Pending</span>';
-
-            // Billing month pill — highlight if it matches the current billing month
-            var bm = e.billing_month || '';
-            var bmLabel = fmtBillingMonth(bm);
-            var bmIsCurrentMonth = bm === currentMonth;
-            var bmPill = '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
-                + 'font-size:11px;font-weight:600;font-family:\'JetBrains Mono\',monospace;'
-                + (bmIsCurrentMonth
-                    ? 'background:#e0e7ff;color:#4338ca;">'
-                    : 'background:#f1f5f9;color:#64748b;">')
-                + bmLabel + '</span>';
-
-            return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
-                + '<td style="padding:12px 16px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;font-weight:500;">'
-                +   '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
-                +   (e.expense_type || '—') + '</span>'
-                + '</td>'
-                + '<td style="padding:12px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9;font-weight:700;font-family:\'JetBrains Mono\',monospace;white-space:nowrap;">'
-                +   fmt(e.amount)
-                + '</td>'
-                + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + paidBy + '</td>'
-                + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + bmPill + '</td>'
-                + '</tr>';
-        }).join('');
-
-        lucide.createIcons();
-    }).fail(function () {
-        document.getElementById('recent-expenses-body').innerHTML =
-            '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#ef4444;font-size:13px;">Failed to load expenses.</td></tr>';
-    });
+    }
 </script>
 <?= $this->endSection() ?>

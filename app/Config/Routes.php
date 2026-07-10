@@ -68,6 +68,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('profile/updatePassword', 'Profile::updatePassword');
     $routes->get('profile/getLatestDistributionMonth', 'Profile::getLatestDistributionMonth');
     $routes->get('profile/getDistributionByMonth/(:segment)', 'Profile::getDistributionByMonth/$1');
+    $routes->get('finaldistribution/getLatestMonth', 'FinalDistribution::getLatestMonth');
 
 });
 

@@ -472,7 +472,14 @@
     }
     <?php endif; ?>
 
-    // ── Auto-load current month on page load ─────────────────────────
-    loadDistribution(document.getElementById('month-input').value);
+    // ── Auto-load the most recently generated month on page load ─────
+    $.get('/finaldistribution/getLatestMonth', function (res) {
+        var month = (res && res.month) ? res.month : document.getElementById('month-input').value;
+        document.getElementById('month-input').value = month;
+        loadDistribution(month);
+    }).fail(function () {
+        // Fallback to current calendar month if the lookup fails
+        loadDistribution(document.getElementById('month-input').value);
+    });
 </script>
 <?= $this->endSection() ?>

@@ -23,6 +23,32 @@ class FinalDistribution extends BaseController
         return view('finaldistribution/index', compact('page_title'));
     }
 
+    /**
+     * GET /finaldistribution/getLatestMonth
+     * No role restriction — any authenticated user can call this.
+     *
+     * Returns the month whose distribution was generated most recently
+     * (by generated_at timestamp), not just the highest month string.
+     * Falls back to null if no distributions exist yet.
+     */
+    public function getLatestMonth()
+    {
+        $finalDistributionModel = new FinalDistributionModel();
+
+        $latest = $finalDistributionModel
+            ->orderBy('generated_at', 'DESC')
+            ->first();
+
+        $month = null;
+        if ($latest instanceof \App\Entities\FinalDistribution) {
+            $month = $latest->month;
+        } elseif (is_array($latest) && isset($latest['month'])) {
+            $month = $latest['month'];
+        }
+
+        return $this->response->setJSON(['month' => $month]);
+    }
+
     public function getDistribution($month)
     {
         $finalDistributionModel = new FinalDistributionModel();

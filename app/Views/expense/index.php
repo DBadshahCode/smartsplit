@@ -162,7 +162,7 @@
                 <div style="position:relative;">
                     <i data-lucide="edit-3"
                         style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent" class="ss-input"
+                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026" class="ss-input"
                         style="padding-left:38px;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
                         onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
