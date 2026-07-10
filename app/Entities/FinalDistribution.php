@@ -12,11 +12,11 @@ class FinalDistribution extends Entity
         'id'                   => 'integer',
         'user_id'              => 'integer',
         'month'                => 'string',
-        'chapati_amount'       => 'decimal:2',
-        'other_expenses_amount'=> 'decimal:2',
-        'due_amount'          => 'decimal:2',
-        'advance_amount'      => 'decimal:2',
-        'final_amount'         => 'decimal:2',
+        'chapati_amount'       => 'float',
+        'other_expenses_amount'=> 'float',
+        'due_amount'          => 'float',
+        'advance_amount'      => 'float',
+        'final_amount'         => 'float',
         'generated_at'         => 'datetime',
     ];
     protected $attributes = [

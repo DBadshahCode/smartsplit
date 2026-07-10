@@ -12,7 +12,7 @@ class ChapatiExtraExpense extends Entity
         'id' => 'integer',
         'chapati_expense_id' => 'integer',
         'item' => 'string',
-        'amount' => 'decimal:2',
+        'amount' => 'float',
     ];
     protected $attributes = [
         'id' => null,

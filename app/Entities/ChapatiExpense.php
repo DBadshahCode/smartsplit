@@ -13,7 +13,7 @@ class ChapatiExpense extends Entity
         'expense_type_id' => 'integer',
         'from_date' => 'datetime',
         'to_date' => 'datetime',
-        'total_amount' => 'decimal:2',
+        'total_amount' => 'float',
     ];
     protected $attributes = [
         'id' => null,

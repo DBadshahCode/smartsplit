@@ -12,7 +12,7 @@ class Expense extends Entity
         'id' => 'integer',
         'expense_type_id' => 'integer',
         'description' => 'string',
-        'amount' => 'decimal:2',
+        'amount' => 'float',
         'billing_month' => 'string',
         'from_date' => 'datetime',
         'to_date' => 'datetime',
