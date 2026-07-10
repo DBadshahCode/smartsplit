@@ -65,6 +65,13 @@ class ExpenseTypeSeeder extends Seeder
                 'is_active' => true,
                 'created_at' => date('Y-m-d H:i:s'),
             ],
+            [
+                'name' => 'Lunch / Dinner',
+                'description' => 'Lunch and dinner expenses for the month',
+                'split_method' => 'equal',
+                'is_active' => true,
+                'created_at' => date('Y-m-d H:i:s'),
+            ],
         ];
 
         // Insert the admin user into your users table
