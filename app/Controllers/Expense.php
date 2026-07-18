@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Models\AbsentDay as AbsentDayModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
 use App\Models\ExpenseType as ExpenseTypeModel;
@@ -14,13 +15,14 @@ class Expense extends BaseController
     protected ExpenseInvolvementModel $expenseInvolvementModel;
     protected ExpenseTypeModel $expenseTypeModel;
     protected UserModel $userModel;
-
+    protected AbsentDayModel $absentDayModel;
     public function __construct()
     {
         $this->expenseModel = new ExpenseModel();
         $this->expenseInvolvementModel = new ExpenseInvolvementModel();
         $this->expenseTypeModel = new ExpenseTypeModel();
         $this->userModel = new UserModel();
+        $this->absentDayModel = new AbsentDayModel();
     }
     public function index()
     {
@@ -101,6 +103,8 @@ class Expense extends BaseController
 
     public function deleteExpense($id)
     {
+        //if absentdays exist, delete them first
+        $this->absentDayModel->where('expense_id', $id)->delete();
         $this->expenseInvolvementModel->where('expense_id', $id)->delete();
         $this->expenseModel->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
@@ -130,6 +134,7 @@ class Expense extends BaseController
         $db = \Config\Database::connect();
         $db->transStart();
 
+        $this->absentDayModel->whereIn('expense_id', $ids)->delete();
         $this->expenseInvolvementModel->whereIn('expense_id', $ids)->delete();
         $this->expenseModel->whereIn('id', $ids)->delete();
 
