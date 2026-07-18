@@ -805,58 +805,9 @@
         }
     }
 
-    // ── Grid card dropdown — one shared instance ─────────────────────
-    var _activeDropdown = null;
-
-    function openCardMenu(btn, id) {
-        // Close any open dropdown first
-        closeCardMenu();
-
-        var drop = document.createElement('div');
-        drop.id = 'card-dropdown-' + id;
-        drop.style.cssText = [
-            'position:absolute', 'top:100%', 'right:0', 'margin-top:4px',
-            'background:#fff', 'border:1px solid #e2e8f0', 'border-radius:10px',
-            'box-shadow:0 8px 24px rgba(0,0,0,.10)', 'z-index:200',
-            'min-width:140px', 'padding:4px 0', 'overflow:hidden',
-        ].join(';');
-
-        drop.innerHTML = ''
-            + '<button onclick="openEditModal(\'' + id + '\');closeCardMenu();" style="'
-            + 'width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;'
-            + 'font-size:13px;font-weight:500;color:#4338ca;border:none;background:transparent;'
-            + 'cursor:pointer;font-family:\'DM Sans\',sans-serif;text-align:left;transition:background .1s;"'
-            + ' onmouseover="this.style.background=\'#f5f7ff\'" onmouseout="this.style.background=\'transparent\'">'
-            + '<i data-lucide="pencil" style="width:13px;height:13px;flex-shrink:0;"></i>Edit'
-            + '</button>'
-            + '<button onclick="deleteFromCard(\'' + id + '\');closeCardMenu();" style="'
-            + 'width:100%;display:flex;align-items:center;gap:8px;padding:10px 14px;'
-            + 'font-size:13px;font-weight:500;color:#dc2626;border:none;background:transparent;'
-            + 'cursor:pointer;font-family:\'DM Sans\',sans-serif;text-align:left;transition:background .1s;"'
-            + ' onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'transparent\'">'
-            + '<i data-lucide="trash-2" style="width:13px;height:13px;flex-shrink:0;"></i>Delete'
-            + '</button>';
-
-        btn.parentNode.style.position = 'relative';
-        btn.parentNode.appendChild(drop);
-        lucide.createIcons({ nodes: [drop] });
-        _activeDropdown = drop;
-    }
-
-    function closeCardMenu() {
-        if (_activeDropdown) {
-            _activeDropdown.remove();
-            _activeDropdown = null;
-        }
-    }
-
-    // Close dropdown on outside click
-    document.addEventListener('click', function (e) {
-        if (_activeDropdown && !_activeDropdown.contains(e.target) && !e.target.closest('.card-menu-btn')) {
-            closeCardMenu();
-        }
-    });
-
+    // ── Grid card actions ──────────────────────────────────────────
+    // Cards use direct Edit/Delete icon buttons (see renderGrid) instead
+    // of a dropdown menu, so mobile users can act in a single tap.
     function deleteFromCard(id) {
         ssConfirm({
             title: 'Delete Expense',
@@ -936,20 +887,27 @@
                 + 'transition:border-color .15s;"'
                 + ' onmouseover="this.style.borderColor=\'#c7d2fe\'" onmouseout="this.style.borderColor=\'#e2e8f0\'">'
 
-                // Top row: type badge + three-dot menu
+                // Top row: type badge + direct action buttons (one tap, no dropdown)
                 + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
                 + '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;'
-                + 'font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
+                + 'font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;margin-top:3px;">'
                 + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
                 + (e.expense_type || '—')
                 + '</span>'
-                + '<div style="position:relative;flex-shrink:0;">'
-                + '<button class="card-menu-btn" onclick="openCardMenu(this,\'' + e.id + '\')" style="'
-                + 'width:30px;height:30px;border-radius:7px;border:1px solid #e2e8f0;'
-                + 'background:#f8fafc;cursor:pointer;display:flex;align-items:center;'
-                + 'justify-content:center;color:#64748b;transition:background .15s;flex-shrink:0;"'
-                + ' onmouseover="this.style.background=\'#e2e8f0\'" onmouseout="this.style.background=\'#f8fafc\'">'
-                + '<i data-lucide="more-horizontal" style="width:14px;height:14px;"></i>'
+                + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
+                + '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" style="'
+                + 'width:38px;height:38px;border-radius:8px;border:none;'
+                + 'background:#e0e7ff;color:#4338ca;cursor:pointer;display:flex;align-items:center;'
+                + 'justify-content:center;transition:background .15s;flex-shrink:0;"'
+                + ' onmouseover="this.style.background=\'#c7d2fe\'" onmouseout="this.style.background=\'#e0e7ff\'">'
+                + '<i data-lucide="pencil" style="width:15px;height:15px;"></i>'
+                + '</button>'
+                + '<button onclick="deleteFromCard(\'' + e.id + '\')" title="Delete" style="'
+                + 'width:38px;height:38px;border-radius:8px;border:none;'
+                + 'background:#fee2e2;color:#dc2626;cursor:pointer;display:flex;align-items:center;'
+                + 'justify-content:center;transition:background .15s;flex-shrink:0;"'
+                + ' onmouseover="this.style.background=\'#fecaca\'" onmouseout="this.style.background=\'#fee2e2\'">'
+                + '<i data-lucide="trash-2" style="width:15px;height:15px;"></i>'
                 + '</button>'
                 + '</div>'
                 + '</div>'
