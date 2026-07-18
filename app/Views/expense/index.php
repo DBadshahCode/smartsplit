@@ -52,36 +52,36 @@
 
     <!-- ── Bulk actions bar (admin only) ── -->
     <?php if ($currentUser['role'] === 'admin'): ?>
-    <div id="bulk-actions-bar" style="
+        <div id="bulk-actions-bar" style="
         display:none;align-items:center;justify-content:space-between;gap:12px;
         padding:10px 20px;background:#eef2ff;border-bottom:1px solid #e0e7ff;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
-            <span style="font-size:13px;font-weight:600;color:#4338ca;">
-                <span id="bulk-selected-count">0</span> selected
-            </span>
-            <button onclick="clearSelection()" style="
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
+                <span style="font-size:13px;font-weight:600;color:#4338ca;">
+                    <span id="bulk-selected-count">0</span> selected
+                </span>
+                <button onclick="clearSelection()" style="
                 background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
                 cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                Clear
-            </button>
-            <span id="select-all-matching-link" style="display:none;">
-                <button onclick="selectAllMatching()" style="
+                    Clear
+                </button>
+                <span id="select-all-matching-link" style="display:none;">
+                    <button onclick="selectAllMatching()" style="
                     background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
                     cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                    Select all <span id="select-all-matching-count">0</span> expenses
-                </button>
-            </span>
-        </div>
-        <button onclick="bulkDeleteExpenses()" style="
+                        Select all <span id="select-all-matching-count">0</span> expenses
+                    </button>
+                </span>
+            </div>
+            <button onclick="bulkDeleteExpenses()" style="
             display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
             background:#fee2e2;color:#dc2626;border:none;cursor:pointer;
             font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s;"
-            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-            Delete Selected
-        </button>
-    </div>
+                onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                Delete Selected
+            </button>
+        </div>
     <?php endif; ?>
 
     <!-- ── List view ── -->
@@ -90,10 +90,10 @@
             <thead>
                 <tr>
                     <?php if ($currentUser['role'] === 'admin'): ?>
-                    <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
-                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
-                            style="width:16px;height:16px;cursor:pointer;">
-                    </th>
+                        <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
+                            <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
+                                style="width:16px;height:16px;cursor:pointer;">
+                        </th>
                     <?php endif; ?>
                     <th></th>
                     <th></th>
@@ -202,8 +202,8 @@
                 <div style="position:relative;">
                     <i data-lucide="edit-3"
                         style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026" class="ss-input"
-                        style="padding-left:38px;"
+                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026"
+                        class="ss-input" style="padding-left:38px;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
                         onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
                 </div>
@@ -626,13 +626,24 @@
 <script>
     lucide.createIcons();
 
+    // ── Disable scroll-to-change on number inputs (Amount fields) ─────
+    // Browsers change a focused <input type="number">'s value when the
+    // mouse wheel scrolls over it. Blurring on wheel stops that while
+    // still letting the page scroll normally underneath the cursor.
+    document.addEventListener('wheel', function (e) {
+        var el = document.activeElement;
+        if (el && el.tagName === 'INPUT' && el.type === 'number' && el === e.target) {
+            el.blur();
+        }
+    }, { passive: true });
+
     // ── Role flag — bulk delete is admin-only ─────────────────────────
     var IS_ADMIN = <?= $currentUser['role'] === 'admin' ? 'true' : 'false' ?>;
 
     // ── Expense type → split_method map ─────────────────────────────
     var SPLIT_METHOD_MAP = {
         <?php foreach ($expenseTypes as $type): ?>
-                '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
+                    '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
         <?php endforeach; ?>
     };
 
