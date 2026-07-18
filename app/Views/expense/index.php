@@ -110,10 +110,10 @@
     </div>
 
     <!-- ── Grid view ── -->
-    <div id="expenses-grid-wrap" style="display:none;padding:16px;">
+    <div id="expenses-grid-wrap" style="display:none;padding:12px;">
         <div id="expenses-grid" style="
             display:grid;
-            grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
             gap:12px;">
         </div>
         <div id="expenses-grid-empty" style="display:none;padding:40px 16px;text-align:center;">
@@ -880,7 +880,10 @@
         });
     }
 
-    // ── Render grid cards ────────────────────────────────────────────
+    // ── Render grid cards ─────────────────
+    // Mobile-first card — surfaces every list-view column (type,
+    // description, amount, billing month, period, paid by, involved)
+    // so a phone user never has to switch to list view to see a detail.
     function renderGrid(data) {
         var grid = document.getElementById('expenses-grid');
         var emptyEl = document.getElementById('expenses-grid-empty');
@@ -892,16 +895,40 @@
         }
         emptyEl.style.display = 'none';
 
+        // Small helper: one label/value row inside the card details block
+        function detailRow(label, valueHtml) {
+            return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">'
+                + '<span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;'
+                + 'letter-spacing:.04em;padding-top:2px;flex-shrink:0;">' + label + '</span>'
+                + '<span style="font-size:13px;font-weight:600;color:#334155;text-align:right;">' + valueHtml + '</span>'
+                + '</div>';
+        }
+
         grid.innerHTML = data.map(function (e) {
             var billingMonth = e.billing_month || '—';
 
+            var fromDate = fmtDate(e.from_date);
+            var toDate = fmtDate(e.to_date);
+            var period = (!e.from_date && !e.to_date)
+                ? '<span style="color:#cbd5e1;font-style:italic;font-weight:500;">Not set</span>'
+                : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
+
             var paidByHtml = e.paid_by_name
-                ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#334155;">'
+                ? '<span style="display:inline-flex;align-items:center;gap:4px;">'
                 + '<i data-lucide="user" style="width:11px;height:11px;color:#94a3b8;"></i>'
                 + e.paid_by_name + '</span>'
                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
                 + 'font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">'
                 + '<i data-lucide="clock" style="width:10px;height:10px;"></i>Pending</span>';
+
+            var involvedNames = (e.involved_names || '').trim();
+            var involvedNamesHtml = involvedNames
+                ? '<div style="margin-top:2px;font-size:12px;line-height:1.5;color:#64748b;">' + involvedNames + '</div>'
+                : '';
+
+            var descriptionHtml = e.description
+                ? '<div style="font-size:13px;color:#64748b;line-height:1.5;word-break:break-word;">' + e.description + '</div>'
+                : '<div style="font-size:13px;color:#cbd5e1;font-style:italic;">No description</div>';
 
             return '<div style="'
                 + 'background:#fff;border:1px solid #e2e8f0;border-radius:12px;'
@@ -916,7 +943,7 @@
                 + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
                 + (e.expense_type || '—')
                 + '</span>'
-                + '<div style="position:relative;">'
+                + '<div style="position:relative;flex-shrink:0;">'
                 + '<button class="card-menu-btn" onclick="openCardMenu(this,\'' + e.id + '\')" style="'
                 + 'width:30px;height:30px;border-radius:7px;border:1px solid #e2e8f0;'
                 + 'background:#f8fafc;cursor:pointer;display:flex;align-items:center;'
@@ -928,20 +955,35 @@
                 + '</div>'
 
                 // Amount
-                + '<div style="font-size:22px;font-weight:700;color:#0f172a;'
+                + '<div style="font-size:24px;font-weight:700;color:#0f172a;'
                 + 'font-family:\'JetBrains Mono\',monospace;letter-spacing:-0.02em;">'
                 + fmt(e.amount)
                 + '</div>'
 
-                // Meta row: billing month + paid by
-                + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
-                + '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;'
-                + 'font-size:11px;font-weight:600;background:#e0e7ff;color:#4338ca;'
-                + 'font-family:\'JetBrains Mono\',monospace;">'
-                + '<i data-lucide="calendar-range" style="width:10px;height:10px;"></i>'
-                + billingMonth
-                + '</span>'
-                + paidByHtml
+                // Description
+                + descriptionHtml
+
+                // Detail rows — every remaining column, clearly labelled
+                + '<div style="display:flex;flex-direction:column;gap:9px;padding-top:12px;'
+                + 'border-top:1px solid #f1f5f9;">'
+
+                + detailRow('Billing Month', '<span style="display:inline-flex;align-items:center;gap:4px;'
+                    + 'padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;'
+                    + 'background:#e0e7ff;color:#4338ca;font-family:\'JetBrains Mono\',monospace;">'
+                    + '<i data-lucide="calendar-range" style="width:10px;height:10px;"></i>'
+                    + billingMonth + '</span>')
+
+                + detailRow('Period', period)
+
+                + detailRow('Paid By', paidByHtml)
+
+                + detailRow('Involved', '<span style="display:inline-flex;align-items:center;gap:4px;'
+                    + 'padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;'
+                    + 'background:#dbeafe;color:#1d4ed8;">'
+                    + '<i data-lucide="users" style="width:10px;height:10px;"></i>'
+                    + (e.total_involved || 0) + '</span>')
+                + involvedNamesHtml
+
                 + '</div>'
 
                 + '</div>';
