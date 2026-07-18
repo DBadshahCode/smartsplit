@@ -4,8 +4,9 @@ namespace App\Libraries;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill, Font, NumberFormat};
-use PhpOffice\PhpSpreadsheet\Style\Border as B;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
@@ -14,41 +15,38 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Generates a detailed Excel workbook for a SmartSplit monthly final distribution.
  *
  * Sheets produced:
- *   1. Summary          — one row per user: chapati + other + advance → final
+ *   1. Summary          — one row per user: other expenses + advance → final
  *   2. Other Expenses   — PIVOT layout: rows = members, columns grouped by expense type.
  *                         Row 4 = type name header. Row 5 = billing_month sub-header.
  *                         Each type group: member's sum across all entries of that type.
  *                         Only types with ≥1 entry that month appear. Grand Total rightmost col.
- *   3. Chapati Details  — each chapati record with period, users' present days, base share,
- *                         extra expenses, extra share, total
- *   4. Raw Data         — machine-readable version of summary (for future import/reference)
+ *   3. Raw Data         — machine-readable version of summary (for future import/reference)
  *                         Includes billing_month column (= the distribution month, repeated per row).
  *
  * Usage:
  *   $svc = new ExcelExportService();
- *   $path = $svc->generate($month, $data);   // $data from ExpenseCalculatorService
+ *   $path = $svc->generate($month, $data);   // $data from FinalDistribution controller
  *   // stream $path to browser, then unlink
  */
 class ExcelExportService
 {
     // ── Brand palette ──────────────────────────────────────────────────────────
-    private const NAVY        = '1A1B4B';
-    private const INDIGO      = '5C6AF0';
-    private const VIOLET      = '818CF8';
-    private const PERIWINKLE  = 'A5BBFB';
-    private const LIGHT_BG    = 'F0F4FF';
-    private const WHITE       = 'FFFFFF';
-    private const DARK_TEXT   = '1E2040';
-    private const MID_TEXT    = '4B5280';
-    private const GREEN_BG    = 'D1FAE5';
-    private const GREEN_FG    = '065F46';
-    private const RED_BG      = 'FEE2E2';
-    private const RED_FG      = '991B1B';
-    private const YELLOW_BG   = 'FEF3C7';
-    private const YELLOW_FG   = '92400E';
+    private const NAVY = '1A1B4B';
+    private const INDIGO = '5C6AF0';
+    private const PERIWINKLE = 'A5BBFB';
+    private const LIGHT_BG = 'F0F4FF';
+    private const WHITE = 'FFFFFF';
+    private const DARK_TEXT = '1E2040';
+    private const MID_TEXT = '4B5280';
+    private const GREEN_BG = 'D1FAE5';
+    private const GREEN_FG = '065F46';
+    private const RED_BG = 'FEE2E2';
+    private const RED_FG = '991B1B';
+    private const YELLOW_BG = 'FEF3C7';
+    private const YELLOW_FG = '92400E';
 
-    // Lighter tint used for billing_month sub-header row in Sheet 2
-    private const INDIGO_SOFT = 'C7D2FE';   // indigo-200 equivalent
+    // Lighter tint used for billing_month sub-header row in Sheet 2.
+    private const INDIGO_SOFT = 'C7D2FE'; // indigo-200 equivalent
 
     private Spreadsheet $wb;
 
@@ -57,25 +55,19 @@ class ExcelExportService
     /**
      * Generate the Excel file and return the temp file path.
      *
-     * @param  string $month  Format: YYYY-MM
-     * @param  array  $data   Full payload from ExpenseCalculatorService / controller
-     *                        Keys expected:
-     *                          users            array of user rows (id, name)
-     *                          distributions    array keyed by user_id with
-     *                                           chapati_amount, other_expenses_amount,
-     *                                           advance_amount, final_amount
-     *                          expenses         array from getExpenses() — each has
-     *                                           id, expense_type, amount, from_date,
-     *                                           to_date, paid_by_name, split_method,
-     *                                           billing_month,
-     *                                           user_shares (user_id => share_amount)
-     *                          chapati_expenses array — each has
-     *                                           id, expense_type, from_date, to_date,
-     *                                           total_amount, user_days (user_id => days_present),
-     *                                           total_days, base_shares (user_id => amount),
-     *                                           extras (array of {description, amount,
-     *                                                    involved_names, user_shares})
-     * @return string  Absolute path to the temp .xlsx file
+     * @param  string $month Format: YYYY-MM
+     * @param  array  $data  Full payload from the FinalDistribution controller.
+     *                       Keys expected:
+     *                         users         array of user rows (id, name)
+     *                         distributions array keyed by user_id with
+     *                                       other_expenses_amount, advance_amount,
+     *                                       final_amount
+     *                         expenses      array from buildExpenseDetail() — each has
+     *                                       id, expense_type, amount, from_date,
+     *                                       to_date, paid_by_name, split_method,
+     *                                       billing_month,
+     *                                       user_shares (user_id => share_amount)
+     * @return string Absolute path to the temp .xlsx file
      */
     public function generate(string $month, array $data): string
     {
@@ -84,24 +76,22 @@ class ExcelExportService
             ->setCreator('SmartSplit')
             ->setTitle("SmartSplit — {$month}")
             ->setSubject("Final Distribution {$month}")
-            ->setDescription("Generated by SmartSplit expense splitting system");
+            ->setDescription('Generated by SmartSplit expense splitting system');
 
         $this->wb->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
 
-        $users         = $data['users']            ?? [];
-        $distributions = $data['distributions']    ?? [];
-        $expenses      = $data['expenses']         ?? [];
-        $chapatiExp    = $data['chapati_expenses'] ?? [];
+        $users = $data['users'] ?? [];
+        $distributions = $data['distributions'] ?? [];
+        $expenses = $data['expenses'] ?? [];
 
-        // Remove the default blank sheet; we'll add our own
+        // Remove the default blank sheet; we'll add our own.
         $this->wb->removeSheetByIndex(0);
 
         $this->buildSummarySheet($month, $users, $distributions);
         $this->buildOtherExpensesSheet($month, $users, $expenses);
-        $this->buildChapatiSheet($month, $users, $chapatiExp);
         $this->buildRawDataSheet($month, $users, $distributions);
 
-        // Activate first sheet
+        // Activate first sheet.
         $this->wb->setActiveSheetIndex(0);
 
         $tmpPath = WRITEPATH . '/smartsplit_' . $month . '_' . time() . '.xlsx';
@@ -111,7 +101,9 @@ class ExcelExportService
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // SHEET 1 — SUMMARY  (unchanged)
+    // SHEET 1 — SUMMARY
+    //
+    // Columns: # | Member | Other Expenses (₹) | Advance Paid (₹) | Final Amount (₹) | Status
     // ══════════════════════════════════════════════════════════════════════════
 
     private function buildSummarySheet(string $month, array $users, array $distributions): void
@@ -123,29 +115,29 @@ class ExcelExportService
         $monthLabel = date('F Y', mktime(0, 0, 0, (int) $mo, 1, (int) $yr));
 
         // ── Cover header block ────────────────────────────────────────────────
-        $ws->mergeCells('A1:G1');
+        $ws->mergeCells('A1:F1');
         $ws->setCellValue('A1', 'SmartSplit — Monthly Distribution Report');
         $this->styleCell($ws, 'A1', [
-            'font'      => ['bold' => true, 'size' => 16, 'color' => self::WHITE],
-            'fill'      => self::NAVY,
+            'font' => ['bold' => true, 'size' => 16, 'color' => self::WHITE],
+            'fill' => self::NAVY,
             'alignment' => 'center',
         ]);
         $ws->getRowDimension(1)->setRowHeight(36);
 
-        $ws->mergeCells('A2:G2');
+        $ws->mergeCells('A2:F2');
         $ws->setCellValue('A2', $monthLabel);
         $this->styleCell($ws, 'A2', [
-            'font'      => ['bold' => true, 'size' => 13, 'color' => self::PERIWINKLE],
-            'fill'      => self::NAVY,
+            'font' => ['bold' => true, 'size' => 13, 'color' => self::PERIWINKLE],
+            'fill' => self::NAVY,
             'alignment' => 'center',
         ]);
         $ws->getRowDimension(2)->setRowHeight(24);
 
-        $ws->mergeCells('A3:G3');
+        $ws->mergeCells('A3:F3');
         $ws->setCellValue('A3', 'Generated on: ' . date('d M Y, H:i'));
         $this->styleCell($ws, 'A3', [
-            'font'      => ['size' => 9, 'color' => self::PERIWINKLE, 'italic' => true],
-            'fill'      => self::NAVY,
+            'font' => ['size' => 9, 'color' => self::PERIWINKLE, 'italic' => true],
+            'fill' => self::NAVY,
             'alignment' => 'center',
         ]);
         $ws->getRowDimension(3)->setRowHeight(18);
@@ -153,76 +145,73 @@ class ExcelExportService
         $ws->getRowDimension(4)->setRowHeight(10);
 
         // ── Table header ──────────────────────────────────────────────────────
-        $headers = ['#', 'Member', 'Chapati Amount (₹)', 'Other Expenses (₹)', 'Advance Paid (₹)', 'Final Amount (₹)', 'Status'];
-        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+        $headers = ['#', 'Member', 'Other Expenses (₹)', 'Advance Paid (₹)', 'Final Amount (₹)', 'Status'];
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F'];
 
         foreach ($headers as $i => $h) {
             $cell = $cols[$i] . '5';
             $ws->setCellValue($cell, $h);
             $this->styleCell($ws, $cell, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
-                'fill'      => self::INDIGO,
+                'font' => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
+                'fill' => self::INDIGO,
                 'alignment' => $i === 1 ? 'left' : 'center',
-                'border'    => 'all_thin',
+                'border' => 'all_thin',
             ]);
         }
         $ws->getRowDimension(5)->setRowHeight(22);
 
         // ── Data rows ─────────────────────────────────────────────────────────
         $row = 6;
-        $totalChapati = $totalOther = $totalAdvance = $totalFinal = 0;
+        $totalOther = $totalAdvance = $totalFinal = 0.0;
 
         foreach ($users as $idx => $user) {
-            $uid  = $user['id'];
+            $uid = $user['id'];
             $dist = $distributions[$uid] ?? [];
 
-            $chapati = (float) ($dist['chapati_amount']        ?? 0);
-            $other   = (float) ($dist['other_expenses_amount'] ?? 0);
-            $advance = (float) ($dist['advance_amount']        ?? 0);
-            $final   = (float) ($dist['final_amount']          ?? 0);
+            $other = (float) ($dist['other_expenses_amount'] ?? 0);
+            $advance = (float) ($dist['advance_amount'] ?? 0);
+            $final = (float) ($dist['final_amount'] ?? 0);
 
-            $totalChapati += $chapati;
-            $totalOther   += $other;
+            $totalOther += $other;
             $totalAdvance += $advance;
-            $totalFinal   += $final;
+            $totalFinal += $final;
 
             $bgFill = ($idx % 2 === 0) ? self::WHITE : self::LIGHT_BG;
 
             $ws->setCellValue("A{$row}", $idx + 1);
             $ws->setCellValue("B{$row}", $user['name']);
-            $ws->setCellValue("C{$row}", $chapati);
-            $ws->setCellValue("D{$row}", $other);
-            $ws->setCellValue("E{$row}", $advance);
-            $ws->setCellValue("F{$row}", $final);
+            $ws->setCellValue("C{$row}", $other);
+            $ws->setCellValue("D{$row}", $advance);
+            $ws->setCellValue("E{$row}", $final);
 
             if ($final > 0.009) {
-                $status      = 'OWES ₹' . number_format($final, 2);
-                $statusFill  = self::RED_BG;
+                $status = 'OWES ₹' . number_format($final, 2);
+                $statusFill = self::RED_BG;
                 $statusColor = self::RED_FG;
             } elseif ($final < -0.009) {
-                $status      = 'CREDIT ₹' . number_format(abs($final), 2);
-                $statusFill  = self::GREEN_BG;
+                $status = 'CREDIT ₹' . number_format(abs($final), 2);
+                $statusFill = self::GREEN_BG;
                 $statusColor = self::GREEN_FG;
             } else {
-                $status      = 'SETTLED';
-                $statusFill  = self::YELLOW_BG;
+                $status = 'SETTLED';
+                $statusFill = self::YELLOW_BG;
                 $statusColor = self::YELLOW_FG;
             }
-            $ws->setCellValue("G{$row}", $status);
+            $ws->setCellValue("F{$row}", $status);
 
             foreach ($cols as $ci => $col) {
-                $cell  = "{$col}{$row}";
+                $cell = "{$col}{$row}";
                 $style = ['fill' => $bgFill, 'border' => 'all_thin', 'color' => self::DARK_TEXT];
                 if ($ci === 1) {
                     $style['alignment'] = 'left';
-                } elseif ($ci === 6) {
-                    $style['fill']      = $statusFill;
-                    $style['color']     = $statusColor;
+                } elseif ($ci === 5) {
+                    $style['fill'] = $statusFill;
+                    $style['color'] = $statusColor;
                     $style['alignment'] = 'center';
-                    $style['font']      = ['bold' => true, 'size' => 9];
+                    $style['font'] = ['bold' => true, 'size' => 9];
                 } else {
                     $style['alignment'] = 'right';
-                    $style['format']    = '#,##0.00';
+                    $style['format'] = '#,##0.00';
                 }
                 $this->styleCell($ws, $cell, $style);
             }
@@ -233,18 +222,17 @@ class ExcelExportService
         // ── Totals row ────────────────────────────────────────────────────────
         $ws->setCellValue("A{$row}", '');
         $ws->setCellValue("B{$row}", 'TOTAL');
-        $ws->setCellValue("C{$row}", $totalChapati);
-        $ws->setCellValue("D{$row}", $totalOther);
-        $ws->setCellValue("E{$row}", $totalAdvance);
-        $ws->setCellValue("F{$row}", $totalFinal);
-        $ws->setCellValue("G{$row}", '');
+        $ws->setCellValue("C{$row}", $totalOther);
+        $ws->setCellValue("D{$row}", $totalAdvance);
+        $ws->setCellValue("E{$row}", $totalFinal);
+        $ws->setCellValue("F{$row}", '');
 
         foreach ($cols as $ci => $col) {
-            $cell  = "{$col}{$row}";
+            $cell = "{$col}{$row}";
             $style = ['fill' => self::NAVY, 'color' => self::WHITE, 'border' => 'all_thin', 'font' => ['bold' => true]];
-            if ($ci > 1 && $ci < 6) {
+            if ($ci > 1 && $ci < 5) {
                 $style['alignment'] = 'right';
-                $style['format']    = '#,##0.00';
+                $style['format'] = '#,##0.00';
             } elseif ($ci === 1) {
                 $style['alignment'] = 'left';
             }
@@ -259,11 +247,10 @@ class ExcelExportService
         $ws->getColumnDimension('D')->setWidth(22);
         $ws->getColumnDimension('E')->setWidth(22);
         $ws->getColumnDimension('F')->setWidth(22);
-        $ws->getColumnDimension('G')->setWidth(22);
 
         // ── Legend block ──────────────────────────────────────────────────────
         $legendRow = $row + 2;
-        $ws->mergeCells("A{$legendRow}:G{$legendRow}");
+        $ws->mergeCells("A{$legendRow}:F{$legendRow}");
         $ws->setCellValue("A{$legendRow}", 'Legend');
         $this->styleCell($ws, "A{$legendRow}", [
             'font' => ['bold' => true, 'size' => 10, 'color' => self::DARK_TEXT],
@@ -271,9 +258,9 @@ class ExcelExportService
         ]);
 
         $legends = [
-            ['OWES',    'User\'s total share exceeds their advance — they owe this amount to the house.', self::RED_BG,    self::RED_FG],
-            ['CREDIT',  'User paid more than their share — the house owes them this amount.',             self::GREEN_BG,  self::GREEN_FG],
-            ['SETTLED', 'User\'s share and advance are equal — nothing to pay or receive.',               self::YELLOW_BG, self::YELLOW_FG],
+            ['OWES', 'User\'s total share exceeds their advance — they owe this amount to the house.', self::RED_BG, self::RED_FG],
+            ['CREDIT', 'User paid more than their share — the house owes them this amount.', self::GREEN_BG, self::GREEN_FG],
+            ['SETTLED', 'User\'s share and advance are equal — nothing to pay or receive.', self::YELLOW_BG, self::YELLOW_FG],
         ];
 
         foreach ($legends as $leg) {
@@ -281,17 +268,17 @@ class ExcelExportService
             $ws->mergeCells("A{$legendRow}:B{$legendRow}");
             $ws->setCellValue("A{$legendRow}", $leg[0]);
             $this->styleCell($ws, "A{$legendRow}", [
-                'fill'   => $leg[2],
-                'color'  => $leg[3],
-                'font'   => ['bold' => true],
+                'fill' => $leg[2],
+                'color' => $leg[3],
+                'font' => ['bold' => true],
                 'border' => 'all_thin',
             ]);
-            $ws->mergeCells("C{$legendRow}:G{$legendRow}");
+            $ws->mergeCells("C{$legendRow}:F{$legendRow}");
             $ws->setCellValue("C{$legendRow}", $leg[1]);
             $this->styleCell($ws, "C{$legendRow}", [
-                'fill'   => self::WHITE,
-                'color'  => self::MID_TEXT,
-                'font'   => ['italic' => true, 'size' => 9],
+                'fill' => self::WHITE,
+                'color' => self::MID_TEXT,
+                'font' => ['italic' => true, 'size' => 9],
                 'border' => 'all_thin',
             ]);
             $ws->getRowDimension($legendRow)->setRowHeight(18);
@@ -300,17 +287,16 @@ class ExcelExportService
         // ── Notes block ───────────────────────────────────────────────────────
         $noteRow = $legendRow + 2;
         $notes = [
-            '• Chapati Amount = Your share of chapati (roti) expenses, based on days present minus chapati absences.',
             '• Other Expenses = Your share of household expenses (groceries, bills, etc.), split equally or by days present.',
             '• Advance Paid = Total amount you paid upfront (recorded as paid_by on expense records).',
-            '• Final Amount = (Chapati + Other) − Advance. Positive means you owe; negative means you are in credit.',
+            '• Final Amount = Other Expenses − Advance. Positive means you owe; negative means you are in credit.',
         ];
         foreach ($notes as $note) {
-            $ws->mergeCells("A{$noteRow}:G{$noteRow}");
+            $ws->mergeCells("A{$noteRow}:F{$noteRow}");
             $ws->setCellValue("A{$noteRow}", $note);
             $this->styleCell($ws, "A{$noteRow}", [
                 'color' => self::MID_TEXT,
-                'font'  => ['size' => 9, 'italic' => true],
+                'font' => ['size' => 9, 'italic' => true],
             ]);
             $ws->getRowDimension($noteRow)->setRowHeight(16);
             $noteRow++;
@@ -320,7 +306,7 @@ class ExcelExportService
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // SHEET 2 — OTHER EXPENSES BREAKDOWN  (modified: billing_month sub-header)
+    // SHEET 2 — OTHER EXPENSES BREAKDOWN
     //
     // Layout:
     //   Row 1 : Sheet title
@@ -351,19 +337,19 @@ class ExcelExportService
         //                                   (deduplicated; in practice should always be one value
         //                                   since the calculator groups by billing_month)
 
-        $memberShare      = [];   // typeName => [ uid => float ]
-        $typeBillingMonths = [];  // typeName => [ billing_month => true ]  (set semantics)
+        $memberShare = []; // typeName => [ uid => float ]
+        $typeBillingMonths = []; // typeName => [ billing_month => true ]  (set semantics)
 
         foreach ($expenses as $exp) {
-            $typeName     = $exp['expense_type']  ?? 'Unknown';
+            $typeName = $exp['expense_type'] ?? 'Unknown';
             $billingMonth = $exp['billing_month'] ?? $month;
 
             if (!isset($memberShare[$typeName])) {
-                $memberShare[$typeName]       = array_fill_keys($userIds, 0.0);
+                $memberShare[$typeName] = array_fill_keys($userIds, 0.0);
                 $typeBillingMonths[$typeName] = [];
             }
 
-            // Collect distinct billing months per type
+            // Collect distinct billing months per type.
             $typeBillingMonths[$typeName][$billingMonth] = true;
 
             foreach ($userIds as $uid) {
@@ -371,7 +357,7 @@ class ExcelExportService
             }
         }
 
-        $types     = array_keys($memberShare);
+        $types = array_keys($memberShare);
         $typeCount = count($types);
 
         // ── Step 2: Column index map ──────────────────────────────────────────
@@ -384,14 +370,14 @@ class ExcelExportService
             $typeCol[$typeName] = 2 + $ti;
         }
         $grandTotalCol = 2 + $typeCount;
-        $lastCol       = $this->colLetter($grandTotalCol);
+        $lastCol = $this->colLetter($grandTotalCol);
 
         // ── Step 3: Title rows ────────────────────────────────────────────────
         $ws->mergeCells("A1:{$lastCol}1");
         $ws->setCellValue('A1', "Other Expenses Breakdown — {$monthLabel}");
         $this->styleCell($ws, 'A1', [
-            'font'      => ['bold' => true, 'size' => 14, 'color' => self::WHITE],
-            'fill'      => self::INDIGO,
+            'font' => ['bold' => true, 'size' => 14, 'color' => self::WHITE],
+            'fill' => self::INDIGO,
             'alignment' => 'center',
         ]);
         $ws->getRowDimension(1)->setRowHeight(30);
@@ -399,13 +385,13 @@ class ExcelExportService
         $ws->mergeCells("A2:{$lastCol}2");
         $ws->setCellValue('A2', 'One row per member. Each column = member\'s total share for that expense type. Row 5 shows the billing month for each type.');
         $this->styleCell($ws, 'A2', [
-            'font'      => ['size' => 9, 'italic' => true, 'color' => self::MID_TEXT],
-            'fill'      => self::LIGHT_BG,
+            'font' => ['size' => 9, 'italic' => true, 'color' => self::MID_TEXT],
+            'fill' => self::LIGHT_BG,
             'alignment' => 'center',
         ]);
         $ws->getRowDimension(2)->setRowHeight(16);
 
-        // Spacer row 3
+        // Spacer row 3.
         $ws->getRowDimension(3)->setRowHeight(6);
 
         // ── Step 4: Type name header row (row 4) ──────────────────────────────
@@ -413,31 +399,31 @@ class ExcelExportService
 
         $ws->setCellValue('A' . $typeHdrRow, 'Name');
         $this->styleCell($ws, 'A' . $typeHdrRow, [
-            'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
-            'fill'      => self::NAVY,
+            'font' => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
+            'fill' => self::NAVY,
             'alignment' => 'left',
-            'border'    => 'all_thin',
+            'border' => 'all_thin',
         ]);
 
         foreach ($types as $typeName) {
-            $col  = $this->colLetter($typeCol[$typeName]);
+            $col = $this->colLetter($typeCol[$typeName]);
             $cell = $col . $typeHdrRow;
             $ws->setCellValue($cell, $typeName);
             $this->styleCell($ws, $cell, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
-                'fill'      => self::INDIGO,
+                'font' => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
+                'fill' => self::INDIGO,
                 'alignment' => 'center',
-                'border'    => 'all_thin',
+                'border' => 'all_thin',
             ]);
         }
 
         $gtHdrCell = $lastCol . $typeHdrRow;
         $ws->setCellValue($gtHdrCell, 'Grand Total');
         $this->styleCell($ws, $gtHdrCell, [
-            'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
-            'fill'      => self::NAVY,
+            'font' => ['bold' => true, 'color' => self::WHITE, 'size' => 10],
+            'fill' => self::NAVY,
             'alignment' => 'center',
-            'border'    => 'all_thin',
+            'border' => 'all_thin',
         ]);
         $ws->getRowDimension($typeHdrRow)->setRowHeight(22);
 
@@ -447,35 +433,35 @@ class ExcelExportService
 
         $billingHdrRow = 5;
 
-        // Name cell — blank, navy
+        // Name cell — blank, navy.
         $ws->setCellValue('A' . $billingHdrRow, '');
         $this->styleCell($ws, 'A' . $billingHdrRow, [
-            'fill'   => self::NAVY,
+            'fill' => self::NAVY,
             'border' => 'all_thin',
         ]);
 
         foreach ($types as $typeName) {
-            $col  = $this->colLetter($typeCol[$typeName]);
+            $col = $this->colLetter($typeCol[$typeName]);
             $cell = $col . $billingHdrRow;
 
-            // Collapse set keys to a sorted, comma-separated string
+            // Collapse set keys to a sorted, comma-separated string.
             $months = array_keys($typeBillingMonths[$typeName] ?? []);
             sort($months);
             $billingLabel = implode(', ', $months) ?: $month;
 
             $ws->setCellValue($cell, $billingLabel);
             $this->styleCell($ws, $cell, [
-                'font'      => ['bold' => false, 'size' => 9, 'color' => self::DARK_TEXT, 'italic' => true],
-                'fill'      => self::INDIGO_SOFT,
+                'font' => ['bold' => false, 'size' => 9, 'color' => self::DARK_TEXT, 'italic' => true],
+                'fill' => self::INDIGO_SOFT,
                 'alignment' => 'center',
-                'border'    => 'all_thin',
+                'border' => 'all_thin',
             ]);
         }
 
-        // Grand Total cell — blank, navy
+        // Grand Total cell — blank, navy.
         $ws->setCellValue($lastCol . $billingHdrRow, '');
         $this->styleCell($ws, $lastCol . $billingHdrRow, [
-            'fill'   => self::NAVY,
+            'fill' => self::NAVY,
             'border' => 'all_thin',
         ]);
 
@@ -484,60 +470,60 @@ class ExcelExportService
         // ── Step 6: Data rows — one per member (start row 6) ─────────────────
         $dataRow = $billingHdrRow + 1;
 
-        $footerType  = array_fill_keys($types, 0.0);
+        $footerType = array_fill_keys($types, 0.0);
         $footerTotal = 0.0;
 
         if (empty($expenses)) {
             $ws->mergeCells("A{$dataRow}:{$lastCol}{$dataRow}");
             $ws->setCellValue("A{$dataRow}", 'No other expenses recorded for this month.');
             $this->styleCell($ws, "A{$dataRow}", [
-                'color'     => self::MID_TEXT,
+                'color' => self::MID_TEXT,
                 'alignment' => 'center',
-                'font'      => ['italic' => true],
+                'font' => ['italic' => true],
             ]);
             $dataRow++;
         } else {
             foreach ($users as $idx => $user) {
-                $uid    = $user['id'];
+                $uid = $user['id'];
                 $bgFill = ($idx % 2 === 0) ? self::WHITE : self::LIGHT_BG;
 
                 $ws->setCellValue('A' . $dataRow, $user['name']);
                 $this->styleCell($ws, 'A' . $dataRow, [
-                    'fill'      => $bgFill,
-                    'color'     => self::DARK_TEXT,
-                    'border'    => 'all_thin',
+                    'fill' => $bgFill,
+                    'color' => self::DARK_TEXT,
+                    'border' => 'all_thin',
                     'alignment' => 'left',
                 ]);
 
                 $memberTotal = 0.0;
 
                 foreach ($types as $typeName) {
-                    $col    = $this->colLetter($typeCol[$typeName]);
-                    $cell   = $col . $dataRow;
+                    $col = $this->colLetter($typeCol[$typeName]);
+                    $cell = $col . $dataRow;
                     $amount = $memberShare[$typeName][$uid];
 
                     $ws->setCellValue($cell, $amount);
                     $this->styleCell($ws, $cell, [
-                        'fill'      => $bgFill,
-                        'color'     => self::DARK_TEXT,
-                        'border'    => 'all_thin',
+                        'fill' => $bgFill,
+                        'color' => self::DARK_TEXT,
+                        'border' => 'all_thin',
                         'alignment' => 'right',
-                        'format'    => '#,##0.00',
+                        'format' => '#,##0.00',
                     ]);
 
-                    $memberTotal             += $amount;
-                    $footerType[$typeName]   += $amount;
+                    $memberTotal += $amount;
+                    $footerType[$typeName] += $amount;
                 }
 
                 $gtCell = $lastCol . $dataRow;
                 $ws->setCellValue($gtCell, $memberTotal);
                 $this->styleCell($ws, $gtCell, [
-                    'fill'      => $bgFill,
-                    'color'     => self::DARK_TEXT,
-                    'border'    => 'all_thin',
+                    'fill' => $bgFill,
+                    'color' => self::DARK_TEXT,
+                    'border' => 'all_thin',
                     'alignment' => 'right',
-                    'format'    => '#,##0.00',
-                    'font'      => ['bold' => true],
+                    'format' => '#,##0.00',
+                    'font' => ['bold' => true],
                 ]);
 
                 $footerTotal += $memberTotal;
@@ -549,36 +535,36 @@ class ExcelExportService
         // ── Step 7: TOTAL footer row ──────────────────────────────────────────
         $ws->setCellValue('A' . $dataRow, 'Total');
         $this->styleCell($ws, 'A' . $dataRow, [
-            'fill'      => self::NAVY,
-            'color'     => self::WHITE,
-            'border'    => 'all_thin',
+            'fill' => self::NAVY,
+            'color' => self::WHITE,
+            'border' => 'all_thin',
             'alignment' => 'left',
-            'font'      => ['bold' => true],
+            'font' => ['bold' => true],
         ]);
 
         foreach ($types as $typeName) {
-            $col  = $this->colLetter($typeCol[$typeName]);
+            $col = $this->colLetter($typeCol[$typeName]);
             $cell = $col . $dataRow;
             $ws->setCellValue($cell, $footerType[$typeName]);
             $this->styleCell($ws, $cell, [
-                'fill'      => self::NAVY,
-                'color'     => self::WHITE,
-                'border'    => 'all_thin',
+                'fill' => self::NAVY,
+                'color' => self::WHITE,
+                'border' => 'all_thin',
                 'alignment' => 'right',
-                'format'    => '#,##0.00',
-                'font'      => ['bold' => true],
+                'format' => '#,##0.00',
+                'font' => ['bold' => true],
             ]);
         }
 
         $gtFooter = $lastCol . $dataRow;
         $ws->setCellValue($gtFooter, $footerTotal);
         $this->styleCell($ws, $gtFooter, [
-            'fill'      => self::INDIGO,
-            'color'     => self::WHITE,
-            'border'    => 'all_thin',
+            'fill' => self::INDIGO,
+            'color' => self::WHITE,
+            'border' => 'all_thin',
             'alignment' => 'right',
-            'format'    => '#,##0.00',
-            'font'      => ['bold' => true],
+            'format' => '#,##0.00',
+            'font' => ['bold' => true],
         ]);
         $ws->getRowDimension($dataRow)->setRowHeight(22);
 
@@ -589,338 +575,19 @@ class ExcelExportService
         }
         $ws->getColumnDimension($lastCol)->setWidth(16);
 
-        // Freeze Name column + both header rows while scrolling
+        // Freeze Name column + both header rows while scrolling.
         $ws->freezePane('B' . ($billingHdrRow + 1));
 
         $ws->setSelectedCell('A1');
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // SHEET 3 — CHAPATI DETAILS  (unchanged)
-    // ══════════════════════════════════════════════════════════════════════════
-
-    private function buildChapatiSheet(string $month, array $users, array $chapatiExp): void
-    {
-        $ws = $this->wb->createSheet();
-        $ws->setTitle('Chapati Details');
-
-        [$yr, $mo] = explode('-', $month);
-        $monthLabel = date('F Y', mktime(0, 0, 0, (int) $mo, 1, (int) $yr));
-
-        $userCount = count($users);
-
-        $daysStartCol  = 5;
-        $shareStartCol = $daysStartCol + $userCount;
-        $extraDescCol  = $shareStartCol + $userCount;
-        $extraAmtCol   = $extraDescCol + 1;
-        $extraInvCol   = $extraAmtCol + 1;
-        $extraShareCol = $extraInvCol + 1;
-        $lastColIdx    = $extraShareCol + $userCount - 1;
-        $lastCol       = $this->colLetter($lastColIdx);
-
-        // ── Header ────────────────────────────────────────────────────────────
-        $ws->mergeCells("A1:{$lastCol}1");
-        $ws->setCellValue('A1', "Chapati Expense Details — {$monthLabel}");
-        $this->styleCell($ws, 'A1', [
-            'font'      => ['bold' => true, 'size' => 14, 'color' => self::WHITE],
-            'fill'      => self::INDIGO,
-            'alignment' => 'center',
-        ]);
-        $ws->getRowDimension(1)->setRowHeight(30);
-
-        $ws->mergeCells("A2:{$lastCol}2");
-        $ws->setCellValue('A2', 'Base share is proportional to days present. Extra expenses are split equally among involved members.');
-        $this->styleCell($ws, 'A2', [
-            'font'      => ['size' => 9, 'italic' => true, 'color' => self::MID_TEXT],
-            'fill'      => self::LIGHT_BG,
-            'alignment' => 'center',
-        ]);
-        $ws->getRowDimension(2)->setRowHeight(16);
-
-        // ── Group headers row 4 ───────────────────────────────────────────────
-        $row = 4;
-        foreach ([1 => '#', 2 => 'Period', 3 => 'Total Days', 4 => 'Total Amount (₹)'] as $ci => $h) {
-            $cell = $this->colLetter($ci) . $row;
-            $ws->setCellValue($cell, $h);
-            $this->styleCell($ws, $cell, [
-                'font'   => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'   => self::INDIGO,
-                'border' => 'all_thin',
-            ]);
-        }
-
-        if ($userCount > 0) {
-            $daysEnd = $this->colLetter($daysStartCol + $userCount - 1);
-            if ($daysStartCol === $daysStartCol + $userCount - 1) {
-                $ws->setCellValue($this->colLetter($daysStartCol) . $row, 'Days Present');
-            } else {
-                $ws->mergeCells($this->colLetter($daysStartCol) . $row . ':' . $daysEnd . $row);
-                $ws->setCellValue($this->colLetter($daysStartCol) . $row, 'Days Present (per member)');
-            }
-            $this->styleCell($ws, $this->colLetter($daysStartCol) . $row, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'      => self::VIOLET,
-                'border'    => 'all_thin',
-                'alignment' => 'center',
-            ]);
-
-            $shareEnd = $this->colLetter($shareStartCol + $userCount - 1);
-            if ($shareStartCol === $shareStartCol + $userCount - 1) {
-                $ws->setCellValue($this->colLetter($shareStartCol) . $row, 'Base Share (₹)');
-            } else {
-                $ws->mergeCells($this->colLetter($shareStartCol) . $row . ':' . $shareEnd . $row);
-                $ws->setCellValue($this->colLetter($shareStartCol) . $row, 'Base Chapati Share (₹ per member)');
-            }
-            $this->styleCell($ws, $this->colLetter($shareStartCol) . $row, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'      => self::VIOLET,
-                'border'    => 'all_thin',
-                'alignment' => 'center',
-            ]);
-        }
-
-        foreach ([$extraDescCol => 'Extra Expense', $extraAmtCol => 'Extra Amount (₹)', $extraInvCol => 'Involved'] as $ci => $h) {
-            $cell = $this->colLetter($ci) . $row;
-            $ws->setCellValue($cell, $h);
-            $this->styleCell($ws, $cell, [
-                'font'   => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'   => self::NAVY,
-                'border' => 'all_thin',
-            ]);
-        }
-
-        $extraShareEnd = $this->colLetter($extraShareCol + $userCount - 1);
-        if ($extraShareCol === $extraShareCol + $userCount - 1) {
-            $ws->setCellValue($this->colLetter($extraShareCol) . $row, 'Extra Share (₹)');
-        } else {
-            $ws->mergeCells($this->colLetter($extraShareCol) . $row . ':' . $extraShareEnd . $row);
-            $ws->setCellValue($this->colLetter($extraShareCol) . $row, 'Extra Share (₹ per member)');
-        }
-        $this->styleCell($ws, $this->colLetter($extraShareCol) . $row, [
-            'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-            'fill'      => self::NAVY,
-            'border'    => 'all_thin',
-            'alignment' => 'center',
-        ]);
-        $ws->getRowDimension($row)->setRowHeight(24);
-
-        // ── Sub-headers (member names) ────────────────────────────────────────
-        $row++;
-        foreach ([1 => '#', 2 => 'From → To', 3 => 'In Period', 4 => 'Amount'] as $ci => $h) {
-            $cell = $this->colLetter($ci) . $row;
-            $ws->setCellValue($cell, $h);
-            $this->styleCell($ws, $cell, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'      => self::INDIGO,
-                'border'    => 'all_thin',
-                'alignment' => $ci === 2 ? 'center' : 'right',
-            ]);
-        }
-        foreach ($users as $ui => $user) {
-            foreach ([$daysStartCol + $ui, $shareStartCol + $ui] as $ci) {
-                $cell = $this->colLetter($ci) . $row;
-                $ws->setCellValue($cell, $user['name']);
-                $this->styleCell($ws, $cell, [
-                    'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                    'fill'      => self::VIOLET,
-                    'border'    => 'all_thin',
-                    'alignment' => 'center',
-                ]);
-            }
-        }
-        foreach ([$extraDescCol => '(description)', $extraAmtCol => '(₹)', $extraInvCol => '(members)'] as $ci => $h) {
-            $cell = $this->colLetter($ci) . $row;
-            $ws->setCellValue($cell, $h);
-            $this->styleCell($ws, $cell, [
-                'font'      => ['italic' => true, 'color' => self::WHITE, 'size' => 8],
-                'fill'      => self::NAVY,
-                'border'    => 'all_thin',
-                'alignment' => 'center',
-            ]);
-        }
-        foreach ($users as $ui => $user) {
-            $cell = $this->colLetter($extraShareCol + $ui) . $row;
-            $ws->setCellValue($cell, $user['name']);
-            $this->styleCell($ws, $cell, [
-                'font'      => ['bold' => true, 'color' => self::WHITE, 'size' => 9],
-                'fill'      => self::NAVY,
-                'border'    => 'all_thin',
-                'alignment' => 'center',
-            ]);
-        }
-        $ws->getRowDimension($row)->setRowHeight(22);
-
-        // ── Data rows ─────────────────────────────────────────────────────────
-        $row++;
-        $grandTotal    = 0;
-        $userBaseTotal  = array_fill_keys(array_column($users, 'id'), 0);
-        $userExtraTotal = array_fill_keys(array_column($users, 'id'), 0);
-
-        if (empty($chapatiExp)) {
-            $ws->mergeCells("A{$row}:{$lastCol}{$row}");
-            $ws->setCellValue("A{$row}", 'No chapati expenses recorded for this month.');
-            $this->styleCell($ws, "A{$row}", ['color' => self::MID_TEXT, 'alignment' => 'center', 'font' => ['italic' => true]]);
-            $row++;
-        } else {
-            foreach ($chapatiExp as $idx => $cexp) {
-                $bgFill = ($idx % 2 === 0) ? self::WHITE : self::LIGHT_BG;
-
-                $fromDate = is_object($cexp['from_date']) ? (string) $cexp['from_date'] : ($cexp['from_date'] ?? '');
-                $toDate   = is_object($cexp['to_date'])   ? (string) $cexp['to_date']   : ($cexp['to_date']   ?? '');
-                $fromDate = substr($fromDate, 0, 10);
-                $toDate   = substr($toDate,   0, 10);
-
-                $totalDays   = (int)   ($cexp['total_days']   ?? 0);
-                $totalAmount = (float) ($cexp['total_amount'] ?? 0);
-                $grandTotal += $totalAmount;
-
-                $extras    = $cexp['extras'] ?? [];
-                $numExtra  = max(1, count($extras));
-                $mergeEndRow = $row + $numExtra - 1;
-
-                if ($numExtra > 1) {
-                    foreach ([1, 2, 3, 4] as $ci) {
-                        $ws->mergeCells($this->colLetter($ci) . $row . ':' . $this->colLetter($ci) . $mergeEndRow);
-                    }
-                    foreach ($users as $ui => $user) {
-                        foreach ([$daysStartCol + $ui, $shareStartCol + $ui] as $ci) {
-                            $ws->mergeCells($this->colLetter($ci) . $row . ':' . $this->colLetter($ci) . $mergeEndRow);
-                        }
-                    }
-                }
-
-                $ws->setCellValue("A{$row}", $idx + 1);
-                $ws->setCellValue("B{$row}", $fromDate . ' → ' . $toDate);
-                $ws->setCellValue("C{$row}", $totalDays);
-                $ws->setCellValue("D{$row}", $totalAmount);
-
-                $fixedCellStyle = ['fill' => $bgFill, 'border' => 'all_thin', 'color' => self::DARK_TEXT];
-                $this->styleCell($ws, "A{$row}", array_merge($fixedCellStyle, ['alignment' => 'center']));
-                $this->styleCell($ws, "B{$row}", array_merge($fixedCellStyle, ['alignment' => 'center']));
-                $this->styleCell($ws, "C{$row}", array_merge($fixedCellStyle, ['alignment' => 'center']));
-                $this->styleCell($ws, "D{$row}", array_merge($fixedCellStyle, ['alignment' => 'right', 'format' => '#,##0.00']));
-
-                foreach ($users as $ui => $user) {
-                    $uid         = $user['id'];
-                    $daysPresent = (int)   ($cexp['user_days'][$uid]    ?? 0);
-                    $baseShare   = (float) ($cexp['base_shares'][$uid]  ?? 0);
-                    $userBaseTotal[$uid] += $baseShare;
-
-                    $dCell = $this->colLetter($daysStartCol + $ui) . $row;
-                    $ws->setCellValue($dCell, $daysPresent);
-                    $this->styleCell($ws, $dCell, array_merge($fixedCellStyle, ['alignment' => 'center']));
-
-                    $sCell = $this->colLetter($shareStartCol + $ui) . $row;
-                    $ws->setCellValue($sCell, $baseShare);
-                    $this->styleCell($ws, $sCell, array_merge($fixedCellStyle, ['alignment' => 'right', 'format' => '#,##0.00']));
-                }
-
-                if (empty($extras)) {
-                    $ws->setCellValue($this->colLetter($extraDescCol) . $row, '—');
-                    $ws->setCellValue($this->colLetter($extraAmtCol)  . $row, '—');
-                    $ws->setCellValue($this->colLetter($extraInvCol)  . $row, '—');
-                    foreach ([[$extraDescCol, 'center'], [$extraAmtCol, 'center'], [$extraInvCol, 'center']] as [$ci, $align]) {
-                        $this->styleCell($ws, $this->colLetter($ci) . $row, array_merge($fixedCellStyle, ['alignment' => $align, 'color' => self::MID_TEXT]));
-                    }
-                    foreach ($users as $ui => $user) {
-                        $cell = $this->colLetter($extraShareCol + $ui) . $row;
-                        $ws->setCellValue($cell, '—');
-                        $this->styleCell($ws, $cell, array_merge($fixedCellStyle, ['alignment' => 'center', 'color' => self::MID_TEXT]));
-                    }
-                    $ws->getRowDimension($row)->setRowHeight(20);
-                    $row++;
-                } else {
-                    foreach ($extras as $ei => $extra) {
-                        $extraStyle = ['fill' => $bgFill, 'border' => 'all_thin', 'color' => self::DARK_TEXT];
-                        if ($numExtra > 1 && $ei > 0) {
-                            $this->styleCell($ws, "A{$row}", $extraStyle);
-                        }
-
-                        $ws->setCellValue($this->colLetter($extraDescCol) . $row, $extra['description'] ?? ('Extra #' . ($ei + 1)));
-                        $ws->setCellValue($this->colLetter($extraAmtCol)  . $row, (float) ($extra['amount'] ?? 0));
-                        $ws->setCellValue($this->colLetter($extraInvCol)  . $row, $extra['involved_names'] ?? '');
-
-                        $this->styleCell($ws, $this->colLetter($extraDescCol) . $row, array_merge($extraStyle, ['alignment' => 'left']));
-                        $this->styleCell($ws, $this->colLetter($extraAmtCol)  . $row, array_merge($extraStyle, [
-                            'alignment' => 'right', 'format' => '#,##0.00',
-                            'fill' => self::YELLOW_BG, 'color' => self::YELLOW_FG,
-                            'font' => ['bold' => true, 'size' => 9],
-                        ]));
-                        $this->styleCell($ws, $this->colLetter($extraInvCol) . $row, array_merge($extraStyle, [
-                            'alignment' => 'left', 'font' => ['size' => 9, 'italic' => true],
-                        ]));
-
-                        foreach ($users as $ui => $user) {
-                            $uid        = $user['id'];
-                            $extraShare = (float) ($extra['user_shares'][$uid] ?? 0);
-                            $userExtraTotal[$uid] += $extraShare;
-                            $cell = $this->colLetter($extraShareCol + $ui) . $row;
-                            $ws->setCellValue($cell, $extraShare > 0 ? $extraShare : '—');
-                            $this->styleCell($ws, $cell, array_merge($extraStyle, [
-                                'alignment' => 'right',
-                                'format'    => $extraShare > 0 ? '#,##0.00' : '@',
-                            ]));
-                        }
-
-                        $ws->getRowDimension($row)->setRowHeight(20);
-                        $row++;
-                    }
-                }
-            }
-        }
-
-        // ── Totals row ────────────────────────────────────────────────────────
-        $ws->setCellValue("A{$row}", '');
-        $ws->setCellValue("B{$row}", 'TOTAL');
-        $ws->setCellValue("C{$row}", '');
-        $ws->setCellValue("D{$row}", $grandTotal);
-        for ($ci = 1; $ci <= 4; $ci++) {
-            $cell  = $this->colLetter($ci) . $row;
-            $style = ['fill' => self::NAVY, 'color' => self::WHITE, 'border' => 'all_thin', 'font' => ['bold' => true]];
-            if ($ci === 2) $style['alignment'] = 'left';
-            if ($ci === 4) { $style['alignment'] = 'right'; $style['format'] = '#,##0.00'; }
-            $this->styleCell($ws, $cell, $style);
-        }
-        foreach ($users as $ui => $user) {
-            $uid = $user['id'];
-            foreach ([[$daysStartCol + $ui, ''], [$shareStartCol + $ui, $userBaseTotal[$uid]], [$extraShareCol + $ui, $userExtraTotal[$uid]]] as [$ci, $val]) {
-                $cell  = $this->colLetter($ci) . $row;
-                $style = ['fill' => self::NAVY, 'color' => self::WHITE, 'border' => 'all_thin', 'font' => ['bold' => true]];
-                if ($val !== '') { $style['alignment'] = 'right'; $style['format'] = '#,##0.00'; $ws->setCellValue($cell, $val); }
-                $this->styleCell($ws, $cell, $style);
-            }
-        }
-        foreach ([$extraDescCol, $extraAmtCol, $extraInvCol] as $ci) {
-            $this->styleCell($ws, $this->colLetter($ci) . $row, ['fill' => self::NAVY, 'color' => self::WHITE, 'border' => 'all_thin']);
-        }
-        $ws->getRowDimension($row)->setRowHeight(22);
-
-        // ── Column widths ─────────────────────────────────────────────────────
-        $ws->getColumnDimension('A')->setWidth(5);
-        $ws->getColumnDimension('B')->setWidth(26);
-        $ws->getColumnDimension('C')->setWidth(12);
-        $ws->getColumnDimension('D')->setWidth(18);
-        for ($ui = 0; $ui < $userCount; $ui++) {
-            $ws->getColumnDimension($this->colLetter($daysStartCol  + $ui))->setWidth(14);
-            $ws->getColumnDimension($this->colLetter($shareStartCol + $ui))->setWidth(16);
-        }
-        $ws->getColumnDimension($this->colLetter($extraDescCol))->setWidth(22);
-        $ws->getColumnDimension($this->colLetter($extraAmtCol)) ->setWidth(18);
-        $ws->getColumnDimension($this->colLetter($extraInvCol)) ->setWidth(22);
-        for ($ui = 0; $ui < $userCount; $ui++) {
-            $ws->getColumnDimension($this->colLetter($extraShareCol + $ui))->setWidth(16);
-        }
-
-        $ws->setSelectedCell('A1');
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // SHEET 4 — RAW DATA  (modified: billing_month column added as C)
+    // SHEET 3 — RAW DATA
     //
     // Column layout (1-based):
     //   A: month   B: user_id   C: billing_month   D: user_name
-    //   E: chapati_amount   F: other_expenses_amount
-    //   G: advance_amount   H: final_amount   I: generated_at
+    //   E: other_expenses_amount   F: advance_amount
+    //   G: final_amount   H: generated_at
     //
     // billing_month repeats $month for every user row — the distribution is
     // always generated for a single billing month, so every row is the same.
@@ -935,20 +602,19 @@ class ExcelExportService
         $headers = [
             'A' => 'month',
             'B' => 'user_id',
-            'C' => 'billing_month',        // NEW
+            'C' => 'billing_month',
             'D' => 'user_name',
-            'E' => 'chapati_amount',
-            'F' => 'other_expenses_amount',
-            'G' => 'advance_amount',
-            'H' => 'final_amount',
-            'I' => 'generated_at',
+            'E' => 'other_expenses_amount',
+            'F' => 'advance_amount',
+            'G' => 'final_amount',
+            'H' => 'generated_at',
         ];
 
         foreach ($headers as $col => $label) {
             $ws->setCellValue("{$col}1", $label);
             $this->styleCell($ws, "{$col}1", [
-                'font'   => ['bold' => true, 'color' => self::WHITE],
-                'fill'   => self::NAVY,
+                'font' => ['bold' => true, 'color' => self::WHITE],
+                'fill' => self::NAVY,
                 'border' => 'all_thin',
             ]);
         }
@@ -959,25 +625,24 @@ class ExcelExportService
         $now = date('Y-m-d H:i:s');
 
         foreach ($users as $user) {
-            $uid  = $user['id'];
+            $uid = $user['id'];
             $dist = $distributions[$uid] ?? [];
 
             $ws->setCellValue("A{$row}", $month);
             $ws->setCellValue("B{$row}", $uid);
-            $ws->setCellValue("C{$row}", $month);   // billing_month = same as distribution month
+            $ws->setCellValue("C{$row}", $month); // billing_month = same as distribution month
             $ws->setCellValue("D{$row}", $user['name']);
-            $ws->setCellValue("E{$row}", (float) ($dist['chapati_amount']        ?? 0));
-            $ws->setCellValue("F{$row}", (float) ($dist['other_expenses_amount'] ?? 0));
-            $ws->setCellValue("G{$row}", (float) ($dist['advance_amount']        ?? 0));
-            $ws->setCellValue("H{$row}", (float) ($dist['final_amount']          ?? 0));
-            $ws->setCellValue("I{$row}", $now);
+            $ws->setCellValue("E{$row}", (float) ($dist['other_expenses_amount'] ?? 0));
+            $ws->setCellValue("F{$row}", (float) ($dist['advance_amount'] ?? 0));
+            $ws->setCellValue("G{$row}", (float) ($dist['final_amount'] ?? 0));
+            $ws->setCellValue("H{$row}", $now);
 
             foreach ($headers as $ci => $col) {
                 $style = ['border' => 'all_thin', 'color' => self::DARK_TEXT];
-                // Columns E–H are numeric amounts → right-align with number format
-                if (in_array($ci, ['E', 'F', 'G', 'H'], true)) {
+                // Columns E–G are numeric amounts → right-align with number format.
+                if (in_array($ci, ['E', 'F', 'G'], true)) {
                     $style['alignment'] = 'right';
-                    $style['format']    = '#,##0.00';
+                    $style['format'] = '#,##0.00';
                 }
                 $this->styleCell($ws, "{$ci}{$row}", $style);
             }
@@ -988,15 +653,14 @@ class ExcelExportService
 
         // ── Column widths ─────────────────────────────────────────────────────
         $widths = [
-            'A' => 12,   // month
-            'B' => 10,   // user_id
-            'C' => 14,   // billing_month
-            'D' => 22,   // user_name
-            'E' => 20,   // chapati_amount
-            'F' => 22,   // other_expenses_amount
-            'G' => 18,   // advance_amount
-            'H' => 16,   // final_amount
-            'I' => 20,   // generated_at
+            'A' => 12, // month
+            'B' => 10, // user_id
+            'C' => 14, // billing_month
+            'D' => 22, // user_name
+            'E' => 22, // other_expenses_amount
+            'F' => 18, // advance_amount
+            'G' => 16, // final_amount
+            'H' => 20, // generated_at
         ];
         foreach ($widths as $col => $w) {
             $ws->getColumnDimension($col)->setWidth($w);
@@ -1006,7 +670,7 @@ class ExcelExportService
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // HELPERS  (unchanged)
+    // HELPERS
     // ══════════════════════════════════════════════════════════════════════════
 
     /**
@@ -1020,11 +684,19 @@ class ExcelExportService
 
         if (!empty($opts['font'])) {
             $fo = $opts['font'];
-            $f  = $style->getFont();
-            if (!empty($fo['bold']))   $f->setBold(true);
-            if (!empty($fo['italic'])) $f->setItalic(true);
-            if (!empty($fo['size']))   $f->setSize($fo['size']);
-            if (!empty($fo['color']))  $f->getColor()->setRGB($fo['color']);
+            $f = $style->getFont();
+            if (!empty($fo['bold'])) {
+                $f->setBold(true);
+            }
+            if (!empty($fo['italic'])) {
+                $f->setItalic(true);
+            }
+            if (!empty($fo['size'])) {
+                $f->setSize($fo['size']);
+            }
+            if (!empty($fo['color'])) {
+                $f->getColor()->setRGB($fo['color']);
+            }
         }
         if (!empty($opts['color'])) {
             $style->getFont()->getColor()->setRGB($opts['color']);
@@ -1040,8 +712,8 @@ class ExcelExportService
         if (!empty($opts['alignment'])) {
             $h = match ($opts['alignment']) {
                 'center' => Alignment::HORIZONTAL_CENTER,
-                'right'  => Alignment::HORIZONTAL_RIGHT,
-                default  => Alignment::HORIZONTAL_LEFT,
+                'right' => Alignment::HORIZONTAL_RIGHT,
+                default => Alignment::HORIZONTAL_LEFT,
             };
             $style->getAlignment()->setHorizontal($h)->setVertical(Alignment::VERTICAL_CENTER);
         }
@@ -1060,8 +732,9 @@ class ExcelExportService
         while ($n > 0) {
             $n--;
             $letters = chr(65 + ($n % 26)) . $letters;
-            $n       = (int) ($n / 26);
+            $n = (int) ($n / 26);
         }
+
         return $letters;
     }
 }

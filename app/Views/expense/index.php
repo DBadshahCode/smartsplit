@@ -50,11 +50,51 @@
         </div>
     </div>
 
+    <!-- ── Bulk actions bar (admin only) ── -->
+    <?php if ($currentUser['role'] === 'admin'): ?>
+    <div id="bulk-actions-bar" style="
+        display:none;align-items:center;justify-content:space-between;gap:12px;
+        padding:10px 20px;background:#eef2ff;border-bottom:1px solid #e0e7ff;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
+            <span style="font-size:13px;font-weight:600;color:#4338ca;">
+                <span id="bulk-selected-count">0</span> selected
+            </span>
+            <button onclick="clearSelection()" style="
+                background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
+                cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
+                Clear
+            </button>
+            <span id="select-all-matching-link" style="display:none;">
+                <button onclick="selectAllMatching()" style="
+                    background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
+                    cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
+                    Select all <span id="select-all-matching-count">0</span> expenses
+                </button>
+            </span>
+        </div>
+        <button onclick="bulkDeleteExpenses()" style="
+            display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
+            background:#fee2e2;color:#dc2626;border:none;cursor:pointer;
+            font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s;"
+            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+            Delete Selected
+        </button>
+    </div>
+    <?php endif; ?>
+
     <!-- ── List view ── -->
     <div id="expenses-list-wrap" class="ss-table-wrap" style="border:none;border-radius:0;">
         <table style="width:100%;border-collapse:collapse;min-width:680px;">
             <thead>
                 <tr>
+                    <?php if ($currentUser['role'] === 'admin'): ?>
+                    <th style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
+                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
+                            style="width:16px;height:16px;cursor:pointer;">
+                    </th>
+                    <?php endif; ?>
                     <th></th>
                     <th></th>
                     <th></th>
@@ -247,7 +287,7 @@
                     <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional — can be set
                         later</span>
                 </label>
-                <?php if ($role === 'admin'): ?>
+                <?php if ($currentUser['role'] === 'admin'): ?>
                     <div style="position:relative;">
                         <i data-lucide="user"
                             style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
@@ -499,7 +539,7 @@
                     Paid By
                     <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional</span>
                 </label>
-                <?php if ($role === 'admin'): ?>
+                <?php if ($currentUser['role'] === 'admin'): ?>
                     <div style="position:relative;">
                         <i data-lucide="user"
                             style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
@@ -586,6 +626,9 @@
 <script>
     lucide.createIcons();
 
+    // ── Role flag — bulk delete is admin-only ─────────────────────────
+    var IS_ADMIN = <?= $currentUser['role'] === 'admin' ? 'true' : 'false' ?>;
+
     // ── Expense type → split_method map ─────────────────────────────
     var SPLIT_METHOD_MAP = {
         <?php foreach ($expenseTypes as $type): ?>
@@ -603,6 +646,134 @@
         if (!d) return '—';
         var raw = (typeof d === 'object' && d.date) ? d.date : String(d);
         return raw.substring(0, 10) || '—';
+    }
+
+    // ── Bulk selection (admin only) ───────────────────────────────────
+    // Selection persists across search/sort/page changes within this
+    // page load (cleared on full page reload, like any client state).
+    var _selectedIds = new Set();
+
+    function toggleRowSelect(cb) {
+        if (!IS_ADMIN) return;
+        var id = cb.dataset.id;
+        if (cb.checked) {
+            _selectedIds.add(id);
+        } else {
+            _selectedIds.delete(id);
+        }
+        updateBulkBar();
+        syncSelectAllCheckbox();
+    }
+
+    function toggleSelectAll(cb) {
+        if (!IS_ADMIN) return;
+        // Selects/deselects only the rows on the currently rendered page.
+        // Use "Select all N expenses" to grab everything loaded.
+        document.querySelectorAll('.row-checkbox').forEach(function (rowCb) {
+            rowCb.checked = cb.checked;
+            var id = rowCb.dataset.id;
+            if (cb.checked) {
+                _selectedIds.add(id);
+            } else {
+                _selectedIds.delete(id);
+            }
+        });
+        updateBulkBar();
+    }
+
+    function syncSelectAllCheckbox() {
+        var boxes = document.querySelectorAll('.row-checkbox');
+        var selectAll = document.getElementById('select-all-checkbox');
+        if (!selectAll) return;
+        if (!boxes.length) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+            return;
+        }
+        var checkedCount = 0;
+        boxes.forEach(function (b) { if (b.checked) checkedCount++; });
+        selectAll.checked = checkedCount === boxes.length;
+        selectAll.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+    }
+
+    // "Select all N expenses" — expands selection beyond the current
+    // page to every expense currently loaded in the table (_lastData).
+    // Note: _lastData is the full unfiltered set from the last load, so
+    // this selects everything loaded, not just rows matching an active
+    // search term.
+    function selectAllMatching() {
+        if (!IS_ADMIN) return;
+        _lastData.forEach(function (e) {
+            _selectedIds.add(String(e.id));
+        });
+        document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+            cb.checked = _selectedIds.has(cb.dataset.id);
+        });
+        syncSelectAllCheckbox();
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        if (!IS_ADMIN) return;
+        var bar = document.getElementById('bulk-actions-bar');
+        var countEl = document.getElementById('bulk-selected-count');
+        if (!bar || !countEl) return;
+        countEl.textContent = _selectedIds.size;
+        bar.style.display = _selectedIds.size > 0 ? 'flex' : 'none';
+
+        var linkWrap = document.getElementById('select-all-matching-link');
+        var linkCount = document.getElementById('select-all-matching-count');
+        if (linkWrap && linkCount) {
+            if (_lastData.length > 0 && _selectedIds.size > 0 && _selectedIds.size < _lastData.length) {
+                linkCount.textContent = _lastData.length;
+                linkWrap.style.display = 'inline-block';
+            } else {
+                linkWrap.style.display = 'none';
+            }
+        }
+    }
+
+    function clearSelection() {
+        _selectedIds.clear();
+        document.querySelectorAll('.row-checkbox').forEach(function (cb) { cb.checked = false; });
+        var selectAll = document.getElementById('select-all-checkbox');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+        updateBulkBar();
+    }
+
+    function bulkDeleteExpenses() {
+        if (!IS_ADMIN) return;
+        var ids = Array.from(_selectedIds);
+        if (!ids.length) return;
+
+        ssConfirm({
+            title: 'Delete Expenses',
+            message: 'Delete ' + ids.length + ' selected expense' + (ids.length > 1 ? 's' : '') + '? This cannot be undone.',
+            confirmText: 'Delete',
+            onConfirm: function () {
+                $.ajax({
+                    url: '/expense/bulkDeleteExpenses',
+                    type: 'POST',
+                    data: { 'ids[]': ids },
+                    success: function (res) {
+                        var count = (res && res.deleted) ? res.deleted : ids.length;
+                        ssToast(count + ' expense' + (count > 1 ? 's' : '') + ' deleted.', 'success');
+                        _selectedIds.clear();
+                        updateBulkBar();
+                        _expenseTable.reload();
+                    },
+                    error: function (xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.error)
+                            ? xhr.responseJSON.error
+                            : 'Failed to delete selected expenses.';
+                        ssToast(msg, 'error');
+                    }
+                });
+            }
+        });
     }
 
     // ── View toggle ──────────────────────────────────────────────────
@@ -697,6 +868,8 @@
                     type: 'DELETE',
                     success: function () {
                         ssToast('Expense deleted.', 'success');
+                        _selectedIds.delete(String(id));
+                        updateBulkBar();
                         _expenseTable.reload();
                     },
                     error: function () {
@@ -845,7 +1018,7 @@
         countId: 'expense-count',
         searchPlaceholder: 'Search by type, description, paid by\u2026',
         pageSize: 15,
-        colSpan: 8,
+        colSpan: <?= $currentUser['role'] === 'admin' ? 9 : 8 ?>,
 
         cols: [
             { label: 'Type', key: 'expense_type' },
@@ -878,6 +1051,12 @@
             var billingMonth = e.billing_month || '—';
 
             return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
+
+                + (IS_ADMIN
+                    ? '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;">'
+                    + '<input type="checkbox" class="row-checkbox" data-id="' + e.id + '" style="width:16px;height:16px;cursor:pointer;">'
+                    + '</td>'
+                    : '')
 
                 + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
                 + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
@@ -952,6 +1131,8 @@
                                 type: 'DELETE',
                                 success: function () {
                                     ssToast('Expense deleted.', 'success');
+                                    _selectedIds.delete(id);
+                                    updateBulkBar();
                                     _expenseTable.reload();
                                 },
                                 error: function () {
@@ -969,6 +1150,19 @@
                 });
             });
 
+            // Wire row checkboxes — restore checked state from _selectedIds
+            // (selection persists across search/sort/page changes)
+            if (IS_ADMIN) {
+                document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+                    cb.checked = _selectedIds.has(cb.dataset.id);
+                    cb.addEventListener('change', function () {
+                        toggleRowSelect(this);
+                    });
+                });
+                syncSelectAllCheckbox();
+                updateBulkBar();
+            }
+
             // Keep grid in sync if currently in grid view
             if (_currentView === 'grid') renderGrid(data);
         },
@@ -985,7 +1179,7 @@
             .forEach(function (cb) { cb.checked = false; });
     }
 
-    var currentUserId = '<?= (int) $userId ?>';
+    var currentUserId = '<?= (int) $currentUser['id'] ?>';
     function togglePaidBy(val) {
         var input = document.getElementById('paid-by-value');
         if (input) input.value = val === 'me' ? currentUserId : '';
@@ -1112,7 +1306,7 @@
             var method = SPLIT_METHOD_MAP[String(d.expense_type_id)] || '';
             updateDateRangeUI('edit', d.expense_type_id ? method : '');
 
-            var isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
+            var isAdmin = <?= $currentUser['role'] === 'admin' ? 'true' : 'false' ?>;
             if (isAdmin) {
                 var sel = document.getElementById('edit-paid-by');
                 if (sel) sel.value = d.paid_by || '';
@@ -1120,7 +1314,7 @@
                 var meRadio = document.getElementById('edit-pbo-me');
                 var noneRadio = document.getElementById('edit-pbo-none');
                 var hiddenPb = document.getElementById('edit-paid-by-value');
-                var myId = '<?= (int) $userId ?>';
+                var myId = '<?= (int) $currentUser['id'] ?>';
                 if (d.paid_by && String(d.paid_by) === myId) {
                     if (meRadio) meRadio.checked = true;
                     if (hiddenPb) hiddenPb.value = myId;
@@ -1168,7 +1362,7 @@
     }
     function toggleEditPaidBy(val) {
         var input = document.getElementById('edit-paid-by-value');
-        if (input) input.value = val === 'me' ? '<?= (int) $userId ?>' : '';
+        if (input) input.value = val === 'me' ? '<?= (int) $currentUser['id'] ?>' : '';
     }
 
     function setEditBtnLoading() {

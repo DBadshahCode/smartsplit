@@ -3,26 +3,288 @@
 namespace App\Libraries;
 
 use App\Models\AbsentDay as AbsentDayModel;
-use App\Models\ChapatiAbsence as ChapatiAbsenceModel;
-use App\Models\ChapatiExpense as ChapatiExpenseModel;
-use App\Models\ChapatiExtraExpense as ChapatiExtraExpenseModel;
-use App\Models\ChapatiExtraInvolvement as ChapatiExtraInvolvementModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
 use App\Models\ExpenseType as ExpenseTypeModel;
 use App\Models\FinalDistribution as FinalDistributionModel;
-use App\Models\User as UserModel;
 
+/**
+ * Calculates and persists each user's final monthly distribution based on
+ * expenses recorded against a given billing month.
+ *
+ * Chapati-related logic has been removed — this project no longer has a
+ * chapati module. Only the "other expenses" (equal | daysPresent) flow
+ * remains.
+ */
 class ExpenseCalculatorService
 {
+    private ExpenseModel $expenseModel;
+    private ExpenseTypeModel $expenseTypeModel;
+    private ExpenseInvolvementModel $expenseInvolvementModel;
+    private AbsentDayModel $absentDayModel;
+    private FinalDistributionModel $finalDistributionModel;
+
+    public function __construct()
+    {
+        $this->expenseModel = new ExpenseModel();
+        $this->expenseTypeModel = new ExpenseTypeModel();
+        $this->expenseInvolvementModel = new ExpenseInvolvementModel();
+        $this->absentDayModel = new AbsentDayModel();
+        $this->finalDistributionModel = new FinalDistributionModel();
+    }
+
+    /**
+     * Calculate and persist the final distribution for every user in a given
+     * billing month.
+     *
+     * @param  string $month Format: YYYY-MM (e.g. "2026-02")
+     * @return array<int, array{other_expenses_amount: float, advance: float}>
+     *                       Raw per-user accumulator keyed by user_id.
+     */
+    public function calculateFinalDistribution(string $month): array
+    {
+        // Wipe any previously generated rows for this month so re-running
+        // generation is idempotent.
+        $this->finalDistributionModel->where('month', $month)->delete();
+
+        // $dist[user_id] = ['other_expenses_amount' => float, 'advance' => float]
+        $dist = [];
+
+        $this->applyOtherExpenses($month, $dist);
+        $this->persistDistribution($month, $dist);
+
+        return $dist;
+    }
+
+    /**
+     * SECTION 1 — Other expenses (split_method: equal | daysPresent).
+     *
+     * Every expense whose billing_month matches the requested month is
+     * processed:
+     *   - equal       → each involved user pays an equal share.
+     *   - daysPresent → share is proportional to days present in the
+     *                   expense's date range; absences come from the
+     *                   `absent_days` table, keyed by expense_id + user_id.
+     *   - custom      → logged as a warning; not implemented.
+     *
+     * The payer (paid_by) always gets the full expense amount credited as
+     * advance, regardless of split method.
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     */
+    private function applyOtherExpenses(string $month, array &$dist): void
+    {
+        $expenses = $this->expenseModel
+            ->where('billing_month', $month)
+            ->findAll();
+
+        // Lazy-load cache: absent_days per expense, loaded on first
+        // daysPresent encounter for that expense. Avoids N+1 while not
+        // loading data that is never needed (e.g. months where every
+        // expense is split equally).
+        // Structure: $absentByExpense[expense_id][user_id] = days_absent
+        $absentByExpense = [];
+
+        foreach ($expenses as $expense) {
+            /** @var \App\Entities\ExpenseType|null $type */
+            $type = $this->expenseTypeModel->find($expense->expense_type_id);
+
+            if ($type === null) {
+                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has unknown type, skipped.");
+                continue;
+            }
+
+            $userIds = $this->getInvolvedUserIds($expense->id);
+
+            if (empty($userIds)) {
+                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has no involvement records, skipped.");
+                continue;
+            }
+
+            $this->creditPayerAdvance($dist, $expense);
+
+            switch ($type->split_method) {
+                case 'equal':
+                    $this->splitEqual($dist, $expense, $userIds);
+                    break;
+
+                case 'daysPresent':
+                    $this->splitByDaysPresent($dist, $expense, $userIds, $absentByExpense);
+                    break;
+
+                case 'custom':
+                    log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} uses split_method='custom' which is not yet implemented.");
+                    break;
+
+                default:
+                    log_message('error', "ExpenseCalculatorService: expense #{$expense->id} has unknown split_method '{$type->split_method}', skipped.");
+                    break;
+            }
+        }
+    }
+
+    /**
+     * @return int[] User IDs involved in the given expense.
+     */
+    private function getInvolvedUserIds(int $expenseId): array
+    {
+        $involved = $this->expenseInvolvementModel
+            ->where('expense_id', $expenseId)
+            ->findAll();
+
+        return array_map(static fn ($i) => (int) $i->user_id, $involved);
+    }
+
+    /**
+     * Credit the expense's payer with the full amount as an advance.
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     */
+    private function creditPayerAdvance(array &$dist, object $expense): void
+    {
+        if (empty($expense->paid_by)) {
+            return;
+        }
+
+        $payerId = (int) $expense->paid_by;
+        $this->initUser($dist, $payerId);
+        $dist[$payerId]['advance'] += (float) $expense->amount;
+    }
+
+    /**
+     * Split an expense amount equally among involved users.
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param int[] $userIds
+     */
+    private function splitEqual(array &$dist, object $expense, array $userIds): void
+    {
+        $share = (float) $expense->amount / count($userIds);
+
+        foreach ($userIds as $uid) {
+            $this->initUser($dist, $uid);
+            $dist[$uid]['other_expenses_amount'] += $share;
+        }
+    }
+
+    /**
+     * Split an expense amount proportionally to each user's days present
+     * within the expense's date range.
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param int[] $userIds
+     * @param array<int, array<int, int>> $absentByExpense Lazy cache, passed
+     *                                                      by reference.
+     */
+    private function splitByDaysPresent(array &$dist, object $expense, array $userIds, array &$absentByExpense): void
+    {
+        $from = $this->toTimestamp($expense->from_date);
+        $to = $this->toTimestamp($expense->to_date);
+        $totalDays = (int) floor(($to - $from) / 86400) + 1;
+
+        if ($totalDays <= 0) {
+            log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has zero/negative day range, skipped.");
+            return;
+        }
+
+        if (!isset($absentByExpense[$expense->id])) {
+            $absentByExpense[$expense->id] = $this->loadAbsentDays($expense->id);
+        }
+
+        $absentMap = $absentByExpense[$expense->id];
+
+        $presentDays = [];
+        $sumPresentDays = 0;
+
+        foreach ($userIds as $uid) {
+            $daysAbsent = $absentMap[$uid] ?? 0;
+            $days = max(0, $totalDays - $daysAbsent);
+            $presentDays[$uid] = $days;
+            $sumPresentDays += $days;
+        }
+
+        if ($sumPresentDays <= 0) {
+            log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} — all involved users have 0 present days, share not distributed.");
+            return;
+        }
+
+        foreach ($presentDays as $uid => $days) {
+            $share = ($days / $sumPresentDays) * (float) $expense->amount;
+            $this->initUser($dist, $uid);
+            $dist[$uid]['other_expenses_amount'] += $share;
+        }
+    }
+
+    /**
+     * Load days_absent per user for a given expense.
+     *
+     * @return array<int, int> [user_id => days_absent]
+     */
+    private function loadAbsentDays(int $expenseId): array
+    {
+        $rows = $this->absentDayModel
+            ->where('expense_id', $expenseId)
+            ->findAll();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int) $row->user_id] = (int) $row->days_absent;
+        }
+
+        return $map;
+    }
+
+    /**
+     * SECTION 2 — Persist final distribution.
+     *
+     * For each user in the accumulator:
+     *   total_share    = other_expenses_amount
+     *   advance_amount = total amount this user actually paid out
+     *   balance        = total_share − advance_amount
+     *
+     *   balance > 0  → user still owes money    → due_amount = balance
+     *   balance <= 0 → user overpaid / in credit → due_amount = 0
+     *
+     * final_amount stores the signed balance:
+     *   positive = user owes this much
+     *   negative = user is in credit by this much
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     */
+    private function persistDistribution(string $month, array $dist): void
+    {
+        foreach ($dist as $uid => $row) {
+            $other = (float) $row['other_expenses_amount'];
+            $advancePaid = (float) $row['advance'];
+
+            $balance = $other - $advancePaid;
+            $dueAmount = $balance > 0 ? $balance : 0.0;
+
+            $insertData = [
+                'user_id' => $uid,
+                'month' => $month,
+                'other_expenses_amount' => round($other, 0),
+                'advance_amount' => round($advancePaid, 0),
+                'due_amount' => round($dueAmount, 0),
+                'final_amount' => round($balance, 0),
+                'generated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            if (!$this->finalDistributionModel->insert($insertData)) {
+                log_message('error', "ExpenseCalculatorService: failed to insert final_distribution for user #{$uid}: " . json_encode($this->finalDistributionModel->errors()));
+            }
+        }
+    }
+
     /**
      * Initialise an empty per-user accumulator if it does not exist yet.
+     *
+     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
      */
     private function initUser(array &$dist, int $uid): void
     {
         if (!isset($dist[$uid])) {
             $dist[$uid] = [
-                'chapati_amount' => 0.0,
                 'other_expenses_amount' => 0.0,
                 'advance' => 0.0,
             ];
@@ -35,320 +297,25 @@ class ExpenseCalculatorService
      *
      * WHY THIS HELPER EXISTS:
      * CodeIgniter 4 Entity fields cast as 'datetime' return a Time object
-     * (which extends PHP's DateTime). PHP's strtotime() only accepts strings —
-     * passing a DateTime/Time object causes strtotime() to silently return false,
-     * which then casts to 0 in integer arithmetic. This makes every date-range
-     * calculation produce totalDays = floor((0 - 0) / 86400) + 1 = 1, regardless
-     * of the actual date range. All daysPresent and chapati pro-rata calculations
-     * were therefore wrong.
+     * (which extends PHP's DateTime). PHP's strtotime() only accepts
+     * strings — passing a DateTime/Time object causes strtotime() to
+     * silently return false, which then casts to 0 in integer arithmetic.
+     * This makes every date-range calculation produce
+     * totalDays = floor((0 - 0) / 86400) + 1 = 1, regardless of the actual
+     * date range.
      *
-     * Casting to string first calls Time::__toString() which returns the ISO
-     * datetime string (e.g. "2026-03-01 00:00:00") that strtotime() can parse.
+     * Casting to string first calls Time::__toString(), which returns the
+     * ISO datetime string (e.g. "2026-03-01 00:00:00") that strtotime()
+     * can parse.
      */
     private function toTimestamp($date): int
     {
         if ($date === null) {
             return 0;
         }
+
         $ts = strtotime((string) $date);
+
         return $ts !== false ? $ts : 0;
-    }
-
-    /**
-     * Calculate and persist the final distribution for every user in a given month.
-     *
-     * @param  string $month  Format: YYYY-MM  (e.g. "2026-02")
-     * @return array          Raw per-user accumulator keyed by user_id
-     */
-    public function calculateFinalDistribution(string $month): array
-    {
-        // ── Model instances ──────────────────────────────────────────────────
-        $expenseModel = new ExpenseModel();
-        $expenseTypeModel = new ExpenseTypeModel();
-        $expenseInvolvementModel = new ExpenseInvolvementModel();
-        $chapatiExpenseModel = new ChapatiExpenseModel();
-        $chapatiAbsenceModel = new ChapatiAbsenceModel();
-        $chapatiExtraExpenseModel = new ChapatiExtraExpenseModel();
-        $chapatiExtraInvolvementModel = new ChapatiExtraInvolvementModel();
-        $absentDayModel = new AbsentDayModel();
-        $userModel = new UserModel();
-        $finalDistributionModel = new FinalDistributionModel();
-
-        // ── Date range for the requested month ───────────────────────────────
-        $startDate = $month . '-01';
-        $endDate = date('Y-m-t', strtotime($startDate));
-
-        // ── Wipe any previously generated rows for this month ────────────────
-        $finalDistributionModel->where('month', $month)->delete();
-
-        // ── Accumulator: $dist[user_id] = [chapati, other, advance] ─────────
-        $dist = [];
-
-        /*
-        |----------------------------------------------------------------------
-        | SECTION 1 — OTHER EXPENSES  (split_method: equal | daysPresent)
-        |----------------------------------------------------------------------
-        | Every expense whose from_date falls within the month is processed.
-        | For each expense:
-        |   • equal      → each involved user pays an equal share.
-        |   • daysPresent→ share is proportional to days present in the period;
-        |                   absences come from the `absent_days` table, keyed by
-        |                   expense_id + user_id (mirrors chapati_absences).
-        |   • custom     → logged as a warning; no silent skipping.
-        | The payer (paid_by) always gets the full expense amount credited
-        | as advance, regardless of split method.
-        |----------------------------------------------------------------------
-        */
-        $expenses = $expenseModel
-            ->where('billing_month', $month)
-            ->findAll();
-
-        // Lazy-load cache: absent_days per expense, loaded on first daysPresent
-        // encounter for that expense. Avoids N+1 while not loading data that is
-        // never needed (e.g. months where all expenses are split equally).
-        // Structure: $absentByExpense[expense_id][user_id] = days_absent (int)
-        $absentByExpense = [];
-
-        foreach ($expenses as $expense) {
-
-            /** @var \App\Entities\ExpenseType|null $type */
-            $type = $expenseTypeModel->find($expense->expense_type_id);
-            if (!$type) {
-                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has unknown type, skipped.");
-                continue;
-            }
-
-            $involved = $expenseInvolvementModel
-                ->where('expense_id', $expense->id)
-                ->findAll();
-
-            if (empty($involved)) {
-                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has no involvement records, skipped.");
-                continue;
-            }
-
-            $userIds = array_map(fn($i) => (int) $i->user_id, $involved);
-
-            // ── Credit advance to the payer ───────────────────────────────
-            if (!empty($expense->paid_by)) {
-                $payerId = (int) $expense->paid_by;
-                $this->initUser($dist, $payerId);
-                $dist[$payerId]['advance'] += (float) $expense->amount;
-            }
-
-            // ── Distribute share by split method ─────────────────────────
-            switch ($type->split_method) {
-
-                case 'equal':
-                    $share = (float) $expense->amount / count($userIds);
-                    foreach ($userIds as $uid) {
-                        $this->initUser($dist, $uid);
-                        $dist[$uid]['other_expenses_amount'] += $share;
-                    }
-                    break;
-
-                case 'daysPresent':
-                    // FIX: use toTimestamp() — $expense->from_date is a CI4 Time
-                    // object; plain strtotime() on it returns false → 0.
-                    $from = $this->toTimestamp($expense->from_date);
-                    $to = $this->toTimestamp($expense->to_date);
-                    $totalDays = (int) floor(($to - $from) / 86400) + 1;
-
-                    if ($totalDays <= 0) {
-                        log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has zero/negative day range, skipped.");
-                        break;
-                    }
-
-                    // Lazy-load absent_days for this expense if not yet cached.
-                    // absent_days is keyed by expense_id + user_id, exactly like
-                    // chapati_absences is keyed by chapati_expense_id + user_id.
-                    if (!isset($absentByExpense[$expense->id])) {
-                        $absentRows = $absentDayModel
-                            ->where('expense_id', $expense->id)
-                            ->findAll();
-
-                        $map = [];
-                        foreach ($absentRows as $row) {
-                            $map[(int) $row->user_id] = (int) $row->days_absent;
-                        }
-                        $absentByExpense[$expense->id] = $map;
-                    }
-
-                    $presentDays = [];
-                    $sumPresentDays = 0;
-
-                    foreach ($userIds as $uid) {
-                        $daysAbsent = $absentByExpense[$expense->id][$uid] ?? 0;
-                        $days = max(0, $totalDays - $daysAbsent);
-                        $presentDays[$uid] = $days;
-                        $sumPresentDays += $days;
-                    }
-
-                    if ($sumPresentDays > 0) {
-                        foreach ($presentDays as $uid => $days) {
-                            $share = ($days / $sumPresentDays) * (float) $expense->amount;
-                            $this->initUser($dist, $uid);
-                            $dist[$uid]['other_expenses_amount'] += $share;
-                        }
-                    } else {
-                        log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} — all involved users have 0 present days, share not distributed.");
-                    }
-                    break;
-
-                case 'custom':
-                    log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} uses split_method='custom' which is not yet implemented.");
-                    break;
-
-                default:
-                    log_message('error', "ExpenseCalculatorService: expense #{$expense->id} has unknown split_method '{$type->split_method}', skipped.");
-                    break;
-            }
-        }
-
-        /*
-        |----------------------------------------------------------------------
-        | SECTION 2 — CHAPATI EXPENSES
-        |----------------------------------------------------------------------
-        | Each chapati_expense record covers a date range. All registered users
-        | are participants. A user's share is proportional to their days present.
-        |
-        | Days absent per user are stored in `chapati_absences`, keyed by
-        | chapati_expense_id + user_id. A user with NO absence record is treated
-        | as fully present (0 absent days).
-        |
-        | Extra chapati expenses are split equally among their involved users.
-        | Neither table has a paid_by column, so no advance is recorded.
-        |----------------------------------------------------------------------
-        */
-        $allUsers = $userModel->findAll();
-        $allUserIds = array_map(fn($u) => (int) $u->id, $allUsers);
-
-        $chapatiExpenses = $chapatiExpenseModel
-            ->where('from_date >=', $startDate)
-            ->where('from_date <=', $endDate)
-            ->findAll();
-
-        foreach ($chapatiExpenses as $chapati) {
-
-            // FIX: same strtotime issue — use toTimestamp() here too.
-            $from = $this->toTimestamp($chapati->from_date);
-            $to = $this->toTimestamp($chapati->to_date);
-            $totalDays = (int) floor(($to - $from) / 86400) + 1;
-
-            if ($totalDays <= 0) {
-                log_message('warning', "ExpenseCalculatorService: chapati_expense #{$chapati->id} has zero/negative day range, skipped.");
-                continue;
-            }
-
-            $absenceRows = $chapatiAbsenceModel
-                ->where('chapati_expense_id', $chapati->id)
-                ->findAll();
-
-            $absenceByUser = [];
-            foreach ($absenceRows as $row) {
-                $absenceByUser[(int) $row->user_id] = (int) $row->days_absent;
-            }
-
-            // ── Base chapati split across ALL users ───────────────────────
-            $presentDays = [];
-            $sumPresentDays = 0;
-
-            foreach ($allUserIds as $uid) {
-                $daysAbsent = $absenceByUser[$uid] ?? 0;
-                $days = max(0, $totalDays - $daysAbsent);
-                $presentDays[$uid] = $days;
-                $sumPresentDays += $days;
-            }
-
-            if ($sumPresentDays > 0) {
-                foreach ($presentDays as $uid => $days) {
-                    $share = ($days / $sumPresentDays) * (float) $chapati->total_amount;
-                    $this->initUser($dist, $uid);
-                    $dist[$uid]['chapati_amount'] += $share;
-                }
-            } else {
-                log_message('warning', "ExpenseCalculatorService: chapati_expense #{$chapati->id} — all users have 0 present days, amount not distributed.");
-            }
-
-            // ── Extra chapati expenses (equal split among involved users) ─
-            $extras = $chapatiExtraExpenseModel
-                ->where('chapati_expense_id', $chapati->id)
-                ->findAll();
-
-            foreach ($extras as $extra) {
-
-                $involved = $chapatiExtraInvolvementModel
-                    ->where('extra_expense_id', $extra->id)
-                    ->findAll();
-
-                if (empty($involved)) {
-                    log_message('warning', "ExpenseCalculatorService: chapati extra_expense #{$extra->id} has no involvement records, skipped.");
-                    continue;
-                }
-
-                $extraUserIds = array_map(fn($i) => (int) $i->user_id, $involved);
-                $share = (float) $extra->amount / count($extraUserIds);
-
-                foreach ($extraUserIds as $uid) {
-                    $this->initUser($dist, $uid);
-                    $dist[$uid]['chapati_amount'] += $share;
-                }
-
-                // Note: chapati_extra_expenses has no paid_by column in the
-                // current schema, so no advance is recorded here.
-                // Uncomment if paid_by is added to the table later:
-                //
-                // if (!empty($extra->paid_by)) {
-                //     $payerId = (int) $extra->paid_by;
-                //     $this->initUser($dist, $payerId);
-                //     $dist[$payerId]['advance'] += (float) $extra->amount;
-                // }
-            }
-        }
-
-        /*
-        |----------------------------------------------------------------------
-        | SECTION 3 — PERSIST FINAL DISTRIBUTION
-        |----------------------------------------------------------------------
-        | For each user in the accumulator:
-        |   total_share    = chapati_amount + other_expenses_amount
-        |   advance_amount = total amount this user actually paid out
-        |   balance        = total_share − advance_amount
-        |
-        |   balance > 0  → user still owes money    → due_amount = balance
-        |   balance <= 0 → user overpaid / in credit → due_amount = 0
-        |
-        | final_amount stores the signed balance:
-        |   positive = user owes this much
-        |   negative = user is in credit by this much
-        |----------------------------------------------------------------------
-        */
-        foreach ($dist as $uid => $row) {
-
-            $chapati = (float) $row['chapati_amount'];
-            $other = (float) $row['other_expenses_amount'];
-            $advancePaid = (float) $row['advance'];
-
-            $totalShare = $chapati + $other;
-            $balance = $totalShare - $advancePaid;
-            $dueAmount = $balance > 0 ? $balance : 0.0;
-
-            $insertData = [
-                'user_id' => $uid,
-                'month' => $month,
-                'chapati_amount' => round($chapati, 0),
-                'other_expenses_amount' => round($other, 0),
-                'advance_amount' => round($advancePaid, 0),
-                'due_amount' => round($dueAmount, 0),
-                'final_amount' => round($balance, 0),
-                'generated_at' => date('Y-m-d H:i:s'),
-            ];
-
-            if (!$finalDistributionModel->insert($insertData)) {
-                log_message('error', "ExpenseCalculatorService: failed to insert final_distribution for user #{$uid}: " . json_encode($finalDistributionModel->errors()));
-            }
-        }
-
-        return $dist;
     }
 }

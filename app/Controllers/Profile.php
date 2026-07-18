@@ -7,12 +7,17 @@ use App\Models\User as UserModel;
 
 class Profile extends BaseController
 {
+    protected UserModel $userModel;
+
+    public function __construct()
+    {
+        $this->userModel = new UserModel();
+    }
+
     public function index()
     {
-        $userModel = new UserModel();
-
         /** @var \App\Entities\User|null $user */
-        $user = $userModel->find((int) session()->get('user_id'));
+        $user = $this->userModel->find((int) session()->get('user_id'));
 
         if (!($user instanceof \App\Entities\User)) {
             return redirect()->to('/')->with('error', 'User not found.');
@@ -28,11 +33,10 @@ class Profile extends BaseController
      */
     public function updateInfo()
     {
-        $userModel = new UserModel();
         $userId = (int) session()->get('user_id');
 
         /** @var \App\Entities\User|null $user */
-        $user = $userModel->find($userId);
+        $user = $this->userModel->find($userId);
 
         if (!($user instanceof \App\Entities\User)) {
             return $this->response->setJSON([
@@ -59,7 +63,7 @@ class Profile extends BaseController
         }
 
         // Check email uniqueness (exclude current user)
-        $existing = $userModel->where('email', $email)
+        $existing = $this->userModel->where('email', $email)
             ->where('id !=', $userId)
             ->first();
 
@@ -70,7 +74,7 @@ class Profile extends BaseController
             ])->setStatusCode(409);
         }
 
-        $userModel->update($userId, [
+        $this->userModel->update($userId, [
             'name' => $name,
             'email' => $email,
         ]);
@@ -92,11 +96,10 @@ class Profile extends BaseController
      */
     public function updatePassword()
     {
-        $userModel = new UserModel();
         $userId = (int) session()->get('user_id');
 
         /** @var \App\Entities\User|null $user */
-        $user = $userModel->find($userId);
+        $user = $this->userModel->find($userId);
 
         if (!($user instanceof \App\Entities\User)) {
             return $this->response->setJSON([
@@ -130,7 +133,7 @@ class Profile extends BaseController
             ])->setStatusCode(400);
         }
 
-        $userModel->update($userId, [
+        $this->userModel->update($userId, [
             'password' => password_hash($newPassword, PASSWORD_DEFAULT),
         ]);
 

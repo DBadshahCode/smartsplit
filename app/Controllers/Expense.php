@@ -10,33 +10,45 @@ use App\Models\User as UserModel;
 
 class Expense extends BaseController
 {
+    protected ExpenseModel $expenseModel;
+    protected ExpenseInvolvementModel $expenseInvolvementModel;
+    protected ExpenseTypeModel $expenseTypeModel;
+    protected UserModel $userModel;
+
+    public function __construct()
+    {
+        $this->expenseModel = new ExpenseModel();
+        $this->expenseInvolvementModel = new ExpenseInvolvementModel();
+        $this->expenseTypeModel = new ExpenseTypeModel();
+        $this->userModel = new UserModel();
+    }
     public function index()
     {
         $page_title = 'Expense Management';
 
-        $expenseTypes = (new ExpenseTypeModel())
+        $expenseTypes = $this->expenseTypeModel
             ->where('is_active', 1)
             ->findAll();
 
         $session = session();
-        $role = $session->get('role');
-        $userId = $session->get('user_id');
-        $users = (new UserModel())->findAll();
+        $currentUser = [
+            'id' => (int) $session->get('user_id'),
+            'name' => $session->get('name'),
+            'role' => $session->get('role'),
+        ];
+        $users = $this->userModel->findAll();
 
         return view('expense/index', compact(
             'page_title',
             'expenseTypes',
             'users',
-            'role',
-            'userId'
+            'currentUser'
         ));
     }
 
     public function getExpenses()
     {
-        $expenseModel = new ExpenseModel();
-
-        $expenses = $expenseModel
+        $expenses = $this->expenseModel
             ->select('
                 expenses.id,
                 expenses.description,
@@ -64,12 +76,10 @@ class Expense extends BaseController
 
     public function addExpense()
     {
-        $expenseModel = new ExpenseModel();
-        $involvementModel = new ExpenseInvolvementModel();
         $data = $this->request->getPost();
         $paidBy = $this->request->getPost('paid_by') ?: null;
 
-        $expenseId = $expenseModel->insert([
+        $expenseId = $this->expenseModel->insert([
             'expense_type_id' => $data['expense_type_id'],
             'description' => $data['description'],
             'amount' => $data['amount'],
@@ -80,7 +90,7 @@ class Expense extends BaseController
         ]);
 
         foreach ($data['involved_users'] as $uid) {
-            $involvementModel->insert([
+            $this->expenseInvolvementModel->insert([
                 'expense_id' => $expenseId,
                 'user_id' => $uid,
             ]);
@@ -91,31 +101,69 @@ class Expense extends BaseController
 
     public function deleteExpense($id)
     {
-        (new ExpenseInvolvementModel())->where('expense_id', $id)->delete();
-        (new ExpenseModel())->delete($id);
+        $this->expenseInvolvementModel->where('expense_id', $id)->delete();
+        $this->expenseModel->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
+    }
+
+    public function bulkDeleteExpenses()
+    {
+        if ((string) session()->get('role') !== 'admin') {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Admin access required']);
+        }
+
+        $ids = $this->request->getPost('ids') ?: [];
+
+        if (!is_array($ids) || empty($ids)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'No expenses selected']);
+        }
+
+        // Sanitize: keep only positive integer IDs
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), function ($id) {
+            return $id > 0;
+        })));
+
+        if (empty($ids)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid expense IDs']);
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $this->expenseInvolvementModel->whereIn('expense_id', $ids)->delete();
+        $this->expenseModel->whereIn('id', $ids)->delete();
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return $this->response->setStatusCode(500)->setJSON(['error' => 'Failed to delete selected expenses']);
+        }
+
+        return $this->response->setJSON([
+            'status' => 'deleted',
+            'deleted' => count($ids),
+        ]);
     }
 
     public function getExpense($id)
     {
-        $expenseModel = new ExpenseModel();
-        $involvementModel = new ExpenseInvolvementModel();
-
         /** @var \App\Entities\Expense|null $expense */
-        $expense = $expenseModel->find($id);
+        $expense = $this->expenseModel->find($id);
         if (!($expense instanceof \App\Entities\Expense)) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
         }
 
         // Collect involved user IDs for this expense
-        $rows = $involvementModel->where('expense_id', $id)->findAll();
+        $rows = $this->expenseInvolvementModel->where('expense_id', $id)->findAll();
         $involvedIds = array_map(fn($r) => (int) $r->user_id, $rows);
 
         // Determine if current user can edit this expense
-        $session = session();
-        $role = $session->get('role');
-        $currentUserId = (int) $session->get('user_id');
-        $canEdit = $this->canEditExpense($expense, $role, $currentUserId);
+        $currentUser = [
+            'id' => (int) session()->get('user_id'),
+            'name' => session()->get('name'),
+            'role' => session()->get('role'),
+        ];
+        $canEdit = $this->canEditExpense($expense, $currentUser['role'], $currentUser['id']);
 
         return $this->response->setJSON([
             'data' => [
@@ -135,20 +183,19 @@ class Expense extends BaseController
 
     public function updateExpense($id)
     {
-        $expenseModel = new ExpenseModel();
-        $involvementModel = new ExpenseInvolvementModel();
-
         /** @var \App\Entities\Expense|null $expense */
-        $expense = $expenseModel->find($id);
+        $expense = $this->expenseModel->find($id);
         if (!($expense instanceof \App\Entities\Expense)) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
         }
 
         // Check if user has permission to edit this expense
-        $session = session();
-        $role = $session->get('role');
-        $currentUserId = (int) $session->get('user_id');
-        if (!$this->canEditExpense($expense, $role, $currentUserId)) {
+        $currentUser = [
+            'id' => (int) session()->get('user_id'),
+            'name' => session()->get('name'),
+            'role' => session()->get('role'),
+        ];
+        if (!$this->canEditExpense($expense, $currentUser['role'], $currentUser['id'])) {
             return $this->response->setStatusCode(403)->setJSON([
                 'error' => 'You do not have permission to edit this expense'
             ]);
@@ -157,7 +204,7 @@ class Expense extends BaseController
         $data = $this->request->getPost();
         $paidBy = $this->request->getPost('paid_by') ?: null;
 
-        $expenseModel->update($id, [
+        $this->expenseModel->update($id, [
             'expense_type_id' => $data['expense_type_id'],
             'description' => $data['description'],
             'amount' => $data['amount'],
@@ -168,9 +215,9 @@ class Expense extends BaseController
         ]);
 
         // Replace involvements: delete old, insert new
-        $involvementModel->where('expense_id', $id)->delete();
+        $this->expenseInvolvementModel->where('expense_id', $id)->delete();
         foreach ($data['involved_users'] as $uid) {
-            $involvementModel->insert([
+            $this->expenseInvolvementModel->insert([
                 'expense_id' => $id,
                 'user_id' => $uid,
             ]);

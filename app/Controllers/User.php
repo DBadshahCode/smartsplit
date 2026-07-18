@@ -7,6 +7,11 @@ use App\Models\User as UserModel;
 
 class User extends BaseController
 {
+    protected UserModel $userModel;
+    public function __construct() 
+    {
+        $this->userModel = new UserModel();
+    }
     public function index()
     {
         $page_title = 'User Management';
@@ -15,14 +20,12 @@ class User extends BaseController
 
     public function getUsers()
     {
-        $userModel = new UserModel();
-        $users = $userModel->findAll();
+        $users = $this->userModel->findAll();
         return $this->response->setJSON(['data' => $users]);
     }
 
     public function addUser()
     {
-        $userModel = new UserModel();
         $data = $this->request->getPost();
 
         // Hash password before storing
@@ -30,14 +33,13 @@ class User extends BaseController
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        $userModel->insert($data);
+        $this->userModel->save($data);
         return $this->response->setJSON(['status' => 'success']);
     }
 
     public function deleteUser($id)
     {
-        $userModel = new UserModel();
-        $userModel->delete($id);
+        $this->userModel->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
     }
 
@@ -51,10 +53,8 @@ class User extends BaseController
      */
     public function updateRole(int $id)
     {
-        $userModel = new UserModel();
-
         /** @var \App\Entities\User|null $currentUser */
-        $currentUser = $userModel->find((int) $id);
+        $currentUser = $this->userModel->find((int) $id);
 
         if (!($currentUser instanceof \App\Entities\User)) {
             return $this->response->setJSON([
@@ -75,7 +75,7 @@ class User extends BaseController
 
         // Demote guard — cannot demote the last remaining admin
         if ($newRole === 'user' && $currentUser->role === 'admin') {
-            $adminCount = $userModel->where('role', 'admin')->countAllResults();
+            $adminCount = $this->userModel->where('role', 'admin')->countAllResults();
             if ($adminCount <= 1) {
                 return $this->response->setJSON([
                     'status' => 'error',
@@ -84,7 +84,7 @@ class User extends BaseController
             }
         }
 
-        $userModel->update($id, ['role' => $newRole]);
+        $this->userModel->update($id, ['role' => $newRole]);
 
         return $this->response->setJSON([
             'status' => 'success',
@@ -104,10 +104,8 @@ class User extends BaseController
      */
     public function resetPassword(int $id)
     {
-        $userModel = new UserModel();
-
         /** @var \App\Entities\User|null $user */
-        $user = $userModel->find((int) $id);
+        $user = $this->userModel->find((int) $id);
 
         if (!($user instanceof \App\Entities\User)) {
             return $this->response->setJSON([
@@ -125,7 +123,7 @@ class User extends BaseController
             ])->setStatusCode(400);
         }
 
-        $userModel->update($id, [
+        $this->userModel->update($id, [
             'password' => password_hash($newPassword, PASSWORD_DEFAULT),
         ]);
 
@@ -137,9 +135,7 @@ class User extends BaseController
 
     public function search()
     {
-        $userModel = new UserModel();
-
-        $users = $userModel
+        $users = $this->userModel
             ->select('id, name')
             ->findAll();
 

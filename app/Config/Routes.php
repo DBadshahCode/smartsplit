@@ -75,6 +75,9 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 // ── Admin-only routes ────────────────────────────────────────────
 $routes->group('', ['filter' => 'admin'], function ($routes) {
 
+    // Expennses
+    $routes->post('expense/bulkDeleteExpenses', 'Expense::bulkDeleteExpenses');
+
     // Users management — full CRUD
     $routes->get('/user', 'User::index');
     $routes->get('/user/getUsers', 'User::getUsers');

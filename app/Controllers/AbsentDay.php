@@ -9,6 +9,17 @@ use App\Models\Expense as ExpenseModel;
 
 class AbsentDay extends BaseController
 {
+    protected AbsentDayModel $absentDayModel;
+    protected UserModel $userModel;
+    protected ExpenseModel $expenseModel;
+    
+    public function __construct()
+    {
+        $this->absentDayModel = new AbsentDayModel();
+        $this->userModel = new UserModel();
+        $this->expenseModel = new ExpenseModel();
+    }
+
     public function index()
     {
         $page_title = 'Absent Days';
@@ -52,9 +63,9 @@ class AbsentDay extends BaseController
      */
     public function getAbsentDays(int $expenseId)
     {
-        $userModel = new UserModel();
-        $absentModel = new AbsentDayModel();
-        $expenseModel = new ExpenseModel();
+        $userModel = $this->userModel;
+        $absentModel = $this->absentDayModel;
+        $expenseModel = $this->expenseModel;
 
         $expense = $expenseModel->find($expenseId);
         if (!$expense) {
@@ -126,8 +137,7 @@ class AbsentDay extends BaseController
         }
 
         // Validate upper bound against actual expense period length
-        $expenseModel = new ExpenseModel();
-        $expense = $expenseModel->find($expenseId);
+        $expense = $this->expenseModel->find($expenseId);
         if (!$expense) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Expense not found.']);
         }
@@ -142,7 +152,7 @@ class AbsentDay extends BaseController
             ]);
         }
 
-        $absentModel = new AbsentDayModel();
+        $absentModel = $this->absentDayModel;
         $existing = $absentModel
             ->where('expense_id', $expenseId)
             ->where('user_id', $userId)
@@ -165,7 +175,7 @@ class AbsentDay extends BaseController
             return $this->response->setJSON(['status' => 'noop']);
         }
 
-        $newId = $absentModel->insert([
+        $newId = $absentModel->save([
             'expense_id' => $expenseId,
             'user_id' => $userId,
             'days_absent' => $daysAbsent,
@@ -179,7 +189,7 @@ class AbsentDay extends BaseController
      */
     public function delete(int $id)
     {
-        $absentModel = new AbsentDayModel();
+        $absentModel = $this->absentDayModel;
         $record = $absentModel->find($id);
 
         if (!$record) {
