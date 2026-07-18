@@ -52,36 +52,36 @@
 
     <!-- ── Bulk actions bar (admin only) ── -->
     <?php if ($currentUser['role'] === 'admin'): ?>
-        <div id="bulk-actions-bar" style="
+    <div id="bulk-actions-bar" style="
         display:none;align-items:center;justify-content:space-between;gap:12px;
         padding:10px 20px;background:#eef2ff;border-bottom:1px solid #e0e7ff;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
-                <span style="font-size:13px;font-weight:600;color:#4338ca;">
-                    <span id="bulk-selected-count">0</span> selected
-                </span>
-                <button onclick="clearSelection()" style="
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
+            <span style="font-size:13px;font-weight:600;color:#4338ca;">
+                <span id="bulk-selected-count">0</span> selected
+            </span>
+            <button onclick="clearSelection()" style="
                 background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
                 cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                    Clear
-                </button>
-                <span id="select-all-matching-link" style="display:none;">
-                    <button onclick="selectAllMatching()" style="
+                Clear
+            </button>
+            <span id="select-all-matching-link" style="display:none;">
+                <button onclick="selectAllMatching()" style="
                     background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
                     cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                        Select all <span id="select-all-matching-count">0</span> expenses
-                    </button>
-                </span>
-            </div>
-            <button onclick="bulkDeleteExpenses()" style="
+                    Select all <span id="select-all-matching-count">0</span> expenses
+                </button>
+            </span>
+        </div>
+        <button onclick="bulkDeleteExpenses()" style="
             display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
             background:#fee2e2;color:#dc2626;border:none;cursor:pointer;
             font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s;"
-                onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-                Delete Selected
-            </button>
-        </div>
+            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+            Delete Selected
+        </button>
+    </div>
     <?php endif; ?>
 
     <!-- ── List view ── -->
@@ -90,10 +90,10 @@
             <thead>
                 <tr>
                     <?php if ($currentUser['role'] === 'admin'): ?>
-                        <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
-                            <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
-                                style="width:16px;height:16px;cursor:pointer;">
-                        </th>
+                    <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
+                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
+                            style="width:16px;height:16px;cursor:pointer;">
+                    </th>
                     <?php endif; ?>
                     <th></th>
                     <th></th>
@@ -202,8 +202,8 @@
                 <div style="position:relative;">
                     <i data-lucide="edit-3"
                         style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026"
-                        class="ss-input" style="padding-left:38px;"
+                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026" class="ss-input"
+                        style="padding-left:38px;"
                         onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
                         onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
                 </div>
@@ -247,33 +247,25 @@
                     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
                     <span id="add-date-range-hint-text">Select an expense type to see if dates are required.</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div>
-                        <label class="ss-label" for="exp-from">
-                            From Date <span id="add-from-required-star" style="color:#ef4444;display:none;">*</span>
-                        </label>
-                        <div style="position:relative;">
-                            <i data-lucide="calendar"
-                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                            <input type="date" id="exp-from" name="from_date" value="<?= date('Y-m-d') ?>"
-                                class="ss-input" style="padding-left:38px;"
-                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="ss-label" for="exp-to">
-                            To Date <span id="add-to-required-star" style="color:#ef4444;display:none;">*</span>
-                        </label>
-                        <div style="position:relative;">
-                            <i data-lucide="calendar"
-                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                            <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>" class="ss-input"
-                                style="padding-left:38px;"
-                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                        </div>
-                    </div>
+                <label class="ss-label" for="exp-from">
+                    Date Range <span id="add-from-required-star" style="color:#ef4444;display:none;">*</span>
+                </label>
+                <div id="add-daterange-box" style="
+                    display:flex;align-items:center;border:1px solid #e2e8f0;border-radius:8px;
+                    background:#fff;transition:border-color .15s, box-shadow .15s;">
+                    <i data-lucide="calendar"
+                        style="width:15px;height:15px;color:#94a3b8;margin-left:13px;flex-shrink:0;"></i>
+                    <input type="date" id="exp-from" name="from_date" value="<?= date('Y-m-d') ?>"
+                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
+                        padding:10px 6px 10px 8px;font-size:14px;font-family:inherit;color:#0f172a;"
+                        onfocus="setDateRangeBoxFocus('add-daterange-box', true)"
+                        onblur="setDateRangeBoxFocus('add-daterange-box', false)">
+                    <span style="color:#cbd5e1;font-size:13px;flex-shrink:0;">&#8594;</span>
+                    <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>"
+                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
+                        padding:10px 12px 10px 6px;font-size:14px;font-family:inherit;color:#0f172a;"
+                        onfocus="setDateRangeBoxFocus('add-daterange-box', true)"
+                        onblur="setDateRangeBoxFocus('add-daterange-box', false)">
                 </div>
                 <p id="add-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
                     From Date and To Date are required for this expense type.
@@ -500,33 +492,25 @@
                     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
                     <span id="edit-date-range-hint-text">Select an expense type to see if dates are required.</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div>
-                        <label class="ss-label" for="edit-exp-from">
-                            From Date <span id="edit-from-required-star" style="color:#ef4444;display:none;">*</span>
-                        </label>
-                        <div style="position:relative;">
-                            <i data-lucide="calendar"
-                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                            <input type="date" id="edit-exp-from" name="from_date" class="ss-input"
-                                style="padding-left:38px;"
-                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="ss-label" for="edit-exp-to">
-                            To Date <span id="edit-to-required-star" style="color:#ef4444;display:none;">*</span>
-                        </label>
-                        <div style="position:relative;">
-                            <i data-lucide="calendar"
-                                style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
-                            <input type="date" id="edit-exp-to" name="to_date" class="ss-input"
-                                style="padding-left:38px;"
-                                onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                                onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
-                        </div>
-                    </div>
+                <label class="ss-label" for="edit-exp-from">
+                    Date Range <span id="edit-from-required-star" style="color:#ef4444;display:none;">*</span>
+                </label>
+                <div id="edit-daterange-box" style="
+                    display:flex;align-items:center;border:1px solid #e2e8f0;border-radius:8px;
+                    background:#fff;transition:border-color .15s, box-shadow .15s;">
+                    <i data-lucide="calendar"
+                        style="width:15px;height:15px;color:#94a3b8;margin-left:13px;flex-shrink:0;"></i>
+                    <input type="date" id="edit-exp-from" name="from_date"
+                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
+                        padding:10px 6px 10px 8px;font-size:14px;font-family:inherit;color:#0f172a;"
+                        onfocus="setDateRangeBoxFocus('edit-daterange-box', true)"
+                        onblur="setDateRangeBoxFocus('edit-daterange-box', false)">
+                    <span style="color:#cbd5e1;font-size:13px;flex-shrink:0;">&#8594;</span>
+                    <input type="date" id="edit-exp-to" name="to_date"
+                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
+                        padding:10px 12px 10px 6px;font-size:14px;font-family:inherit;color:#0f172a;"
+                        onfocus="setDateRangeBoxFocus('edit-daterange-box', true)"
+                        onblur="setDateRangeBoxFocus('edit-daterange-box', false)">
                 </div>
                 <p id="edit-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
                     From Date and To Date are required for this expense type.
@@ -643,7 +627,7 @@
     // ── Expense type → split_method map ─────────────────────────────
     var SPLIT_METHOD_MAP = {
         <?php foreach ($expenseTypes as $type): ?>
-                    '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
+                '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
         <?php endforeach; ?>
     };
 
@@ -962,6 +946,20 @@
     }
 
     // ── Date-range hint helpers ──────────────────────────────────────
+    // Highlights the merged from/to box when either date input inside
+    // it is focused (native inputs have no border of their own now).
+    function setDateRangeBoxFocus(boxId, isFocused) {
+        var box = document.getElementById(boxId);
+        if (!box) return;
+        if (isFocused) {
+            box.style.borderColor = '#7f94f7';
+            box.style.boxShadow = '0 0 0 3px rgba(127,148,247,.15)';
+        } else {
+            box.style.borderColor = '#e2e8f0';
+            box.style.boxShadow = 'none';
+        }
+    }
+
     function updateDateRangeUI(prefix, splitMethod) {
         var isDaysPresent = splitMethod === 'daysPresent';
         var hintEl = document.getElementById(prefix + '-date-range-hint');
@@ -1016,6 +1014,11 @@
         var toVal = document.getElementById(toId).value;
         if (!fromVal || !toVal) {
             document.getElementById(prefix + '-date-error').style.display = 'block';
+            var box = document.getElementById(prefix + '-daterange-box');
+            if (box) {
+                box.style.borderColor = '#ef4444';
+                setTimeout(function () { setDateRangeBoxFocus(prefix + '-daterange-box', false); }, 2000);
+            }
             return false;
         }
         document.getElementById(prefix + '-date-error').style.display = 'none';

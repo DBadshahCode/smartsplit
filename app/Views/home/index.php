@@ -22,17 +22,17 @@
 </div>
 
 <!-- Stat cards -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
+<div id="dash-stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
 
     <div class="ss-card" style="padding:20px 22px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">Total Expenses</span>
             <div
-                style="width:36px;height:36px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;">
+                style="width:36px;height:36px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="receipt" style="width:16px;height:16px;color:#be185d;"></i>
             </div>
         </div>
-        <div style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-expenses">—</div>
+        <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-expenses">—</div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;">All recorded expenses</div>
     </div>
 
@@ -41,11 +41,11 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">This Month's Expenses</span>
             <div
-                style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;">
+                style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="calendar-range" style="width:16px;height:16px;color:#4338ca;"></i>
             </div>
         </div>
-        <div style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-month-count">—</div>
+        <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-month-count">—</div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Billing month: <span
                 id="stat-month-label"><?= date('M Y') ?></span></div>
     </div>
@@ -55,11 +55,11 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
                 <span style="font-size:13px;font-weight:600;color:#64748b;">Total Users</span>
                 <div
-                    style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;">
+                    style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <i data-lucide="users" style="width:16px;height:16px;color:#7c3aed;"></i>
                 </div>
             </div>
-            <div style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-users">—</div>
+            <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-users">—</div>
             <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Registered roommates</div>
         </div>
     <?php endif; ?>
@@ -68,11 +68,11 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <span style="font-size:13px;font-weight:600;color:#64748b;">Current Month</span>
             <div
-                style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
+                style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="calendar" style="width:16px;height:16px;color:#15803d;"></i>
             </div>
         </div>
-        <div style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;"><?= date('M Y') ?></div>
+        <div class="stat-value" style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;"><?= date('M Y') ?></div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;"><?= date('l, d F') ?></div>
     </div>
 
@@ -83,18 +83,18 @@
 
     <!-- Recent Expenses -->
     <div class="ss-card">
-        <div class="ss-card-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="ss-card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div>
                 <h2 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Recent Expenses</h2>
                 <p style="font-size:13px;color:#94a3b8;margin:3px 0 0;">Most recent 5 expenses</p>
             </div>
             <a href="<?= base_url('/expense') ?>"
-                style="font-size:13px;font-weight:600;color:#5c6af0;text-decoration:none;display:flex;align-items:center;gap:4px;">
+                style="font-size:13px;font-weight:600;color:#5c6af0;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;">
                 View all <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
             </a>
         </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-            <table style="width:100%;border-collapse:collapse;min-width:400px;">
+            <table class="recent-expenses-table" style="width:100%;border-collapse:collapse;min-width:400px;">
                 <thead>
                     <tr style="background:#f8fafc;">
                         <th
@@ -136,7 +136,7 @@
 
                 <?php if (session()->get('role') === 'admin'): ?>
                     <a href="<?= base_url('/user') ?>"
-                        style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
+                        style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
                         onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                         <div
                             style="width:34px;height:34px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -151,7 +151,7 @@
                 <?php endif; ?>
 
                 <a href="<?= base_url('/expense') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
+                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <div
                         style="width:34px;height:34px;border-radius:8px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -165,7 +165,7 @@
                 </a>
 
                 <a href="<?= base_url('/absentday') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
+                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <div
                         style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -179,7 +179,7 @@
                 </a>
 
                 <a href="<?= base_url('/finaldistribution') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;"
+                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
                     onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
                     <div
                         style="width:34px;height:34px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -200,14 +200,14 @@
         </div>
 
         <!-- This month card — total driven by billing_month -->
-        <div class="ss-card" style="padding:20px 22px;background:#1a1b4b;border:none;">
+        <div id="dash-billing-card" class="ss-card" style="padding:20px 22px;background:#1a1b4b;border:none;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
                 <i data-lucide="zap" style="width:16px;height:16px;color:#a5bbfb;"></i>
                 <span style="font-size:13px;font-weight:600;color:#a5bbfb;">
                     Billing Month: <span id="stat-month-billing-label"><?= date('M Y') ?></span>
                 </span>
             </div>
-            <div style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;"
+            <div class="stat-value-lg" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;"
                 id="stat-month-total">—</div>
             <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">Total billed this month</div>
             <!-- Breakdown bar: filled proportionally by billing_month expenses vs all -->
@@ -237,6 +237,51 @@
     @media (max-width: 768px) {
         #dashboard-grid {
             grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* ── Mobile responsive pass ─────────────────────────────────────── */
+    @media (max-width: 640px) {
+        .page-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 14px !important;
+        }
+        .page-header .ss-btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+
+        #dash-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        #dash-stats-grid .ss-card {
+            padding: 14px 14px !important;
+        }
+        #dash-stats-grid .stat-value {
+            font-size: 20px !important;
+        }
+
+        #dash-billing-card {
+            padding: 18px !important;
+        }
+        #dash-billing-card .stat-value-lg {
+            font-size: 22px !important;
+        }
+    }
+
+    @media (max-width: 400px) {
+        #dash-stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .recent-expenses-table {
+            min-width: 340px !important;
+        }
+        .recent-expenses-table th,
+        .recent-expenses-table td {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
         }
     }
 </style>
