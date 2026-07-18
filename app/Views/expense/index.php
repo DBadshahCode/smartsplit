@@ -90,7 +90,7 @@
             <thead>
                 <tr>
                     <?php if ($currentUser['role'] === 'admin'): ?>
-                    <th style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
+                    <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
                         <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
                             style="width:16px;height:16px;cursor:pointer;">
                     </th>

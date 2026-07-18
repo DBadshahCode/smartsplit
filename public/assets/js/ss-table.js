@@ -47,6 +47,15 @@
  *
  * The last column in cols is always the Actions column — it is right-aligned
  * and non-sortable by convention. You may override by setting align/sortable.
+ *
+ * Static (non-managed) header cells:
+ *   If your <thead><tr> markup contains extra <th> cells that are NOT part of
+ *   `cols` — e.g. a bulk-select checkbox column rendered conditionally by
+ *   PHP — mark that <th> with `data-ss-static="1"`. SS.Table will leave any
+ *   such cells untouched when it rebuilds the header row, instead of wiping
+ *   them out. Static cells must come before the SS.Table-managed cells and
+ *   the matching <td> must be prepended first (in the same order) inside
+ *   rowFn for every row.
  */
 
 (function (root) {
@@ -289,6 +298,18 @@
     var tr = thead.querySelector("tr");
     if (!tr) return;
 
+    /* Preserve any header cells the view has explicitly marked as static
+     * (e.g. a bulk-select checkbox column that isn't part of `cols`).
+     * Without this, rebuilding the row below would silently destroy them —
+     * along with any elements/ids inside them — and shift every managed
+     * column one position out of alignment with its matching <td>. */
+    var staticHtml = Array.prototype.slice
+      .call(tr.querySelectorAll("th[data-ss-static]"))
+      .map(function (th) {
+        return th.outerHTML;
+      })
+      .join("");
+
     var cells = "";
     cols.forEach(function (col, i) {
       var sortable = col.sortable !== false && col.key;
@@ -324,7 +345,10 @@
         "</th>",
       ].join("");
     });
-    tr.innerHTML = cells;
+
+    /* Static cells (if any) stay first, in their original DOM order;
+     * SS.Table-managed cells follow. */
+    tr.innerHTML = staticHtml + cells;
 
     /* Attach click handlers */
     cols.forEach(function (col) {
