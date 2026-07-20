@@ -8,7 +8,7 @@ $softwareName = 'SmartSplit';
             &copy; <?= $currentYear ?> <?= $softwareName ?>. All rights reserved.
         </p>
         <p class="text-xs text-surface-300 font-mono">
-            v2.0.0
+            v3.0.0
         </p>
     </div>
 </footer>
