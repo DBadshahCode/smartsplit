@@ -2,7 +2,12 @@
 
 namespace App\Controllers;
 
+use \Config\Database as DB;
 use App\Controllers\BaseController;
+use App\Entities\AbsentDay as AbsentDayEntity;
+use App\Entities\ExpenseInvolvement as ExpenseInvolvementEntity;
+use App\Entities\FinalDistribution as FinalDistributionEntity;
+use App\Entities\User as UserEntity;
 use App\Libraries\ExcelExportService;
 use App\Libraries\ExpenseCalculatorService;
 use App\Models\AbsentDay as AbsentDayModel;
@@ -51,7 +56,7 @@ class FinalDistribution extends BaseController
             ->first();
 
         $month = null;
-        if ($latest instanceof \App\Entities\FinalDistribution) {
+        if ($latest instanceof FinalDistributionEntity) {
             $month = $latest->month;
         } elseif (is_array($latest) && isset($latest['month'])) {
             $month = $latest['month'];
@@ -60,7 +65,7 @@ class FinalDistribution extends BaseController
         return $this->response->setJSON(['month' => $month]);
     }
 
-    public function getDistribution($month)
+    public function getDistribution(string $month)
     {
         $records = $this->finalDistributionModel->where('month', $month)->findAll();
 
@@ -70,7 +75,7 @@ class FinalDistribution extends BaseController
             $user = $this->userModel->find($record->user_id);
 
             $data[] = [
-                'name' => $user instanceof \App\Entities\User ? $user->name : 'Unknown',
+                'name' => $user instanceof UserEntity ? $user->name : 'Unknown',
                 'month' => $record->month,
                 'expenses_amount' => $record->other_expenses_amount,
                 'advance_amount' => $record->advance_amount,
@@ -83,7 +88,7 @@ class FinalDistribution extends BaseController
         return $this->response->setJSON(['data' => $data]);
     }
 
-    public function generateDistribution($month)
+    public function generateDistribution(string $month)
     {
         $result = $this->expenseCalculatorService->calculateFinalDistribution($month);
 
@@ -169,8 +174,8 @@ class FinalDistribution extends BaseController
         $users = [];
         foreach ($allUsers as $u) {
             $users[] = [
-                'id' => $u instanceof \App\Entities\User ? $u->id : $u['id'],
-                'name' => $u instanceof \App\Entities\User ? $u->name : $u['name'],
+                'id' => $u instanceof UserEntity ? $u->id : $u['id'],
+                'name' => $u instanceof UserEntity ? $u->name : $u['name'],
             ];
         }
 
@@ -186,12 +191,12 @@ class FinalDistribution extends BaseController
 
         $distributions = [];
         foreach ($distRows as $dr) {
-            $uid = $dr instanceof \App\Entities\FinalDistribution ? $dr->user_id : $dr['user_id'];
+            $uid = $dr instanceof FinalDistributionEntity ? $dr->user_id : $dr['user_id'];
 
             $distributions[$uid] = [
-                'other_expenses_amount' => $dr instanceof \App\Entities\FinalDistribution ? $dr->other_expenses_amount : $dr['other_expenses_amount'],
-                'advance_amount' => $dr instanceof \App\Entities\FinalDistribution ? $dr->advance_amount : $dr['advance_amount'],
-                'final_amount' => $dr instanceof \App\Entities\FinalDistribution ? $dr->final_amount : $dr['final_amount'],
+                'other_expenses_amount' => $dr instanceof FinalDistributionEntity ? $dr->other_expenses_amount : $dr['other_expenses_amount'],
+                'advance_amount' => $dr instanceof FinalDistributionEntity ? $dr->advance_amount : $dr['advance_amount'],
+                'final_amount' => $dr instanceof FinalDistributionEntity ? $dr->final_amount : $dr['final_amount'],
             ];
         }
 
@@ -218,7 +223,7 @@ class FinalDistribution extends BaseController
         $end = date('Y-m-t', mktime(0, 0, 0, (int) $mo, 1, (int) $year));
 
         // Single joined query — includes split_method directly.
-        $db = \Config\Database::connect();
+        $db = DB::connect();
         $rawExpenses = $db->table('expenses e')
             ->select('e.id, e.amount, e.from_date, e.to_date, e.billing_month,
                       et.name AS expense_type, et.split_method,
@@ -250,7 +255,7 @@ class FinalDistribution extends BaseController
 
             $involvements = $this->involvementModel->where('expense_id', $expId)->findAll();
             $involvedIds = array_map(
-                fn ($i) => (int) ($i instanceof \App\Entities\ExpenseInvolvement ? $i->user_id : $i['user_id']),
+                fn($i) => (int) ($i instanceof ExpenseInvolvementEntity ? $i->user_id : $i['user_id']),
                 $involvements
             );
             $involvedCount = count($involvedIds);
@@ -342,8 +347,8 @@ class FinalDistribution extends BaseController
 
         $map = [];
         foreach ($rows as $row) {
-            $uid = $row instanceof \App\Entities\AbsentDay ? $row->user_id : $row['user_id'];
-            $days = $row instanceof \App\Entities\AbsentDay ? $row->days_absent : $row['days_absent'];
+            $uid = $row instanceof AbsentDayEntity ? $row->user_id : $row['user_id'];
+            $days = $row instanceof AbsentDayEntity ? $row->days_absent : $row['days_absent'];
             $map[(int) $uid] = (int) $days;
         }
 

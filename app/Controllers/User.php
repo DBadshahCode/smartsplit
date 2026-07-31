@@ -3,12 +3,13 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Entities\User as UserEntity;
 use App\Models\User as UserModel;
 
 class User extends BaseController
 {
     protected UserModel $userModel;
-    public function __construct() 
+    public function __construct()
     {
         $this->userModel = new UserModel();
     }
@@ -37,7 +38,7 @@ class User extends BaseController
         return $this->response->setJSON(['status' => 'success']);
     }
 
-    public function deleteUser($id)
+    public function deleteUser(int $id)
     {
         $this->userModel->delete($id);
         return $this->response->setJSON(['status' => 'deleted']);
@@ -53,10 +54,10 @@ class User extends BaseController
      */
     public function updateRole(int $id)
     {
-        /** @var \App\Entities\User|null $currentUser */
+        /** @var UserEntity|null $currentUser */
         $currentUser = $this->userModel->find((int) $id);
 
-        if (!($currentUser instanceof \App\Entities\User)) {
+        if (!($currentUser instanceof UserEntity)) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'User not found.'
@@ -104,10 +105,10 @@ class User extends BaseController
      */
     public function resetPassword(int $id)
     {
-        /** @var \App\Entities\User|null $user */
+        /** @var UserEntity|null $user */
         $user = $this->userModel->find((int) $id);
 
-        if (!($user instanceof \App\Entities\User)) {
+        if (!($user instanceof UserEntity)) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'User not found.'

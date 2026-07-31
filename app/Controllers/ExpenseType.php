@@ -7,7 +7,7 @@ use App\Models\ExpenseType as ExpenseTypeModel;
 
 class ExpenseType extends BaseController
 {
-    protected $expenseTypeModel;
+    protected ExpenseTypeModel $expenseTypeModel;
 
     public function __construct()
     {
@@ -53,7 +53,7 @@ class ExpenseType extends BaseController
         ]);
     }
 
-    public function deleteExpenseType($id)
+    public function deleteExpenseType(int $id)
     {
         if ($this->expenseTypeModel->delete($id)) {
             return $this->response->setJSON([

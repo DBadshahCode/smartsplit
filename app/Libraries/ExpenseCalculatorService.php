@@ -2,6 +2,8 @@
 
 namespace App\Libraries;
 
+use App\Entities\Expense as ExpenseEntity;
+use App\Entities\ExpenseType as ExpenseTypeEntity;
 use App\Models\AbsentDay as AbsentDayModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
@@ -86,7 +88,7 @@ class ExpenseCalculatorService
         $absentByExpense = [];
 
         foreach ($expenses as $expense) {
-            /** @var \App\Entities\ExpenseType|null $type */
+            /** @var ExpenseTypeEntity|null $type */
             $type = $this->expenseTypeModel->find($expense->expense_type_id);
 
             if ($type === null) {
@@ -132,7 +134,7 @@ class ExpenseCalculatorService
             ->where('expense_id', $expenseId)
             ->findAll();
 
-        return array_map(static fn ($i) => (int) $i->user_id, $involved);
+        return array_map(static fn($i) => (int) $i->user_id, $involved);
     }
 
     /**
@@ -140,7 +142,7 @@ class ExpenseCalculatorService
      *
      * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
      */
-    private function creditPayerAdvance(array &$dist, object $expense): void
+    private function creditPayerAdvance(array &$dist, ExpenseEntity $expense): void
     {
         if (empty($expense->paid_by)) {
             return;
@@ -157,7 +159,7 @@ class ExpenseCalculatorService
      * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
      * @param int[] $userIds
      */
-    private function splitEqual(array &$dist, object $expense, array $userIds): void
+    private function splitEqual(array &$dist, ExpenseEntity $expense, array $userIds): void
     {
         $share = (float) $expense->amount / count($userIds);
 
@@ -176,7 +178,7 @@ class ExpenseCalculatorService
      * @param array<int, array<int, int>> $absentByExpense Lazy cache, passed
      *                                                      by reference.
      */
-    private function splitByDaysPresent(array &$dist, object $expense, array $userIds, array &$absentByExpense): void
+    private function splitByDaysPresent(array &$dist, ExpenseEntity $expense, array $userIds, array &$absentByExpense): void
     {
         $from = $this->toTimestamp($expense->from_date);
         $to = $this->toTimestamp($expense->to_date);

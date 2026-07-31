@@ -86,5 +86,4 @@ class UserSeeder extends Seeder
         // Insert the users into your users table
         $this->db->table('users')->insertBatch($data);
     }
-
 }

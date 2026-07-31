@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use \Config\Database as DB;
 use App\Controllers\BaseController;
+use App\Entities\User as UserEntity;
 use App\Models\User as UserModel;
 
 class Profile extends BaseController
@@ -16,10 +18,10 @@ class Profile extends BaseController
 
     public function index()
     {
-        /** @var \App\Entities\User|null $user */
+        /** @var UserEntity|null $user */
         $user = $this->userModel->find((int) session()->get('user_id'));
 
-        if (!($user instanceof \App\Entities\User)) {
+        if (!($user instanceof UserEntity)) {
             return redirect()->to('/')->with('error', 'User not found.');
         }
 
@@ -35,10 +37,10 @@ class Profile extends BaseController
     {
         $userId = (int) session()->get('user_id');
 
-        /** @var \App\Entities\User|null $user */
+        /** @var UserEntity|null $user */
         $user = $this->userModel->find($userId);
 
-        if (!($user instanceof \App\Entities\User)) {
+        if (!($user instanceof UserEntity)) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'User not found.',
@@ -98,10 +100,10 @@ class Profile extends BaseController
     {
         $userId = (int) session()->get('user_id');
 
-        /** @var \App\Entities\User|null $user */
+        /** @var UserEntity|null $user */
         $user = $this->userModel->find($userId);
 
-        if (!($user instanceof \App\Entities\User)) {
+        if (!($user instanceof UserEntity)) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'User not found.',
@@ -149,7 +151,7 @@ class Profile extends BaseController
      */
     public function getLatestDistributionMonth()
     {
-        $db = \Config\Database::connect();
+        $db = DB::connect();
         $userId = (int) session()->get('user_id');
 
         $row = $db->table('final_distributions')
@@ -170,7 +172,7 @@ class Profile extends BaseController
      */
     public function getDistributionByMonth($month = '')
     {
-        $db = \Config\Database::connect();
+        $db = DB::connect();
         $userId = (int) session()->get('user_id');
 
         if (!preg_match('/^\d{4}-\d{2}$/', $month)) {

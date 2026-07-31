@@ -2,17 +2,21 @@
 
 namespace App\Controllers;
 
+use \Config\Database as DB;
 use App\Controllers\BaseController;
+use App\Entities\AbsentDay as AbsentDayEntity;
+use App\Entities\Expense as ExpenseEntity;
+use App\Entities\User as UserEntity;
 use App\Models\AbsentDay as AbsentDayModel;
-use App\Models\User as UserModel;
 use App\Models\Expense as ExpenseModel;
+use App\Models\User as UserModel;
 
 class AbsentDay extends BaseController
 {
     protected AbsentDayModel $absentDayModel;
     protected UserModel $userModel;
     protected ExpenseModel $expenseModel;
-    
+
     public function __construct()
     {
         $this->absentDayModel = new AbsentDayModel();
@@ -32,7 +36,7 @@ class AbsentDay extends BaseController
      */
     public function getExpenses()
     {
-        $db = \Config\Database::connect();
+        $db = DB::connect();
 
         $expenses = $db->table('expenses e')
             ->select('e.id, e.from_date, e.to_date, e.amount, et.name AS expense_type')
@@ -72,12 +76,12 @@ class AbsentDay extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Expense not found.']);
         }
 
-        $fromDate = substr((string) ($expense instanceof \App\Entities\Expense ? $expense->from_date : $expense['from_date']), 0, 10);
-        $toDate = substr((string) ($expense instanceof \App\Entities\Expense ? $expense->to_date : $expense['to_date']), 0, 10);
+        $fromDate = substr((string) ($expense instanceof ExpenseEntity ? $expense->from_date : $expense['from_date']), 0, 10);
+        $toDate = substr((string) ($expense instanceof ExpenseEntity ? $expense->to_date : $expense['to_date']), 0, 10);
         $totalDays = (int) ((strtotime($toDate) - strtotime($fromDate)) / 86400) + 1;
 
         // Only users involved in this expense
-        $db = \Config\Database::connect();
+        $db = DB::connect();
         $involvements = $db->table('expense_involvements')
             ->select('user_id')
             ->where('expense_id', $expenseId)
@@ -96,16 +100,16 @@ class AbsentDay extends BaseController
         $absentRecords = $absentModel->where('expense_id', $expenseId)->findAll();
         $absentMap = [];
         foreach ($absentRecords as $record) {
-            $uid = $record instanceof \App\Entities\AbsentDay ? $record->user_id : $record['user_id'];
-            $days = $record instanceof \App\Entities\AbsentDay ? $record->days_absent : $record['days_absent'];
-            $rid = $record instanceof \App\Entities\AbsentDay ? $record->id : $record['id'];
+            $uid = $record instanceof AbsentDayEntity ? $record->user_id : $record['user_id'];
+            $days = $record instanceof AbsentDayEntity ? $record->days_absent : $record['days_absent'];
+            $rid = $record instanceof AbsentDayEntity ? $record->id : $record['id'];
             $absentMap[(int) $uid] = ['id' => $rid, 'days_absent' => (int) $days];
         }
 
         $data = [];
         foreach ($users as $user) {
-            $userId = $user instanceof \App\Entities\User ? $user->id : $user['id'];
-            $name = $user instanceof \App\Entities\User ? $user->name : $user['name'];
+            $userId = $user instanceof UserEntity ? $user->id : $user['id'];
+            $name = $user instanceof UserEntity ? $user->name : $user['name'];
             $entry = $absentMap[(int) $userId] ?? ['id' => null, 'days_absent' => 0];
 
             $data[] = [
@@ -142,8 +146,8 @@ class AbsentDay extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Expense not found.']);
         }
 
-        $fromDate = substr((string) ($expense instanceof \App\Entities\Expense ? $expense->from_date : $expense['from_date']), 0, 10);
-        $toDate = substr((string) ($expense instanceof \App\Entities\Expense ? $expense->to_date : $expense['to_date']), 0, 10);
+        $fromDate = substr((string) ($expense instanceof ExpenseEntity ? $expense->from_date : $expense['from_date']), 0, 10);
+        $toDate = substr((string) ($expense instanceof ExpenseEntity ? $expense->to_date : $expense['to_date']), 0, 10);
         $totalDays = (int) ((strtotime($toDate) - strtotime($fromDate)) / 86400) + 1;
 
         if ($daysAbsent > $totalDays) {
@@ -159,7 +163,7 @@ class AbsentDay extends BaseController
             ->first();
 
         if ($existing) {
-            $recordId = $existing instanceof \App\Entities\AbsentDay ? $existing->id : $existing['id'];
+            $recordId = $existing instanceof AbsentDayEntity ? $existing->id : $existing['id'];
 
             if ($daysAbsent === 0) {
                 // Zero = fully present — delete to keep table clean

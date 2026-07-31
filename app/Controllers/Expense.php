@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use \Config\Database as DB;
 use App\Controllers\BaseController;
+use App\Entities\Expense as ExpenseEntity;
 use App\Models\AbsentDay as AbsentDayModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
@@ -101,7 +103,7 @@ class Expense extends BaseController
         return $this->response->setJSON(['status' => 'success']);
     }
 
-    public function deleteExpense($id)
+    public function deleteExpense(int $id)
     {
         //if absentdays exist, delete them first
         $this->absentDayModel->where('expense_id', $id)->delete();
@@ -131,7 +133,7 @@ class Expense extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid expense IDs']);
         }
 
-        $db = \Config\Database::connect();
+        $db = DB::connect();
         $db->transStart();
 
         $this->absentDayModel->whereIn('expense_id', $ids)->delete();
@@ -150,11 +152,11 @@ class Expense extends BaseController
         ]);
     }
 
-    public function getExpense($id)
+    public function getExpense(int $id)
     {
-        /** @var \App\Entities\Expense|null $expense */
+        /** @var ExpenseEntity|null $expense */
         $expense = $this->expenseModel->find($id);
-        if (!($expense instanceof \App\Entities\Expense)) {
+        if (!($expense instanceof ExpenseEntity)) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
         }
 
@@ -186,11 +188,11 @@ class Expense extends BaseController
         ]);
     }
 
-    public function updateExpense($id)
+    public function updateExpense(int $id)
     {
-        /** @var \App\Entities\Expense|null $expense */
+        /** @var ExpenseEntity|null $expense */
         $expense = $this->expenseModel->find($id);
-        if (!($expense instanceof \App\Entities\Expense)) {
+        if (!($expense instanceof ExpenseEntity)) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
         }
 
@@ -238,7 +240,7 @@ class Expense extends BaseController
      * - Non-admins can only edit if they are the paid_by user
      * - Non-admins can edit if paid_by is null/empty (not assigned)
      */
-    private function canEditExpense($expense, $role, $currentUserId)
+    private function canEditExpense(ExpenseEntity $expense, string $role, int $currentUserId): bool
     {
         // Admin can always edit
         if ($role === 'admin') {

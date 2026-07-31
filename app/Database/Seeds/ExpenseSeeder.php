@@ -38,7 +38,6 @@ class ExpenseSeeder extends Seeder
         }
 
         $userCount = count($userIds);
-        $expenseTypeCount = count($expenseTypeIds);
 
         $expenseTable = $this->db->table('expenses');
         $expenseInvolvements = [];
