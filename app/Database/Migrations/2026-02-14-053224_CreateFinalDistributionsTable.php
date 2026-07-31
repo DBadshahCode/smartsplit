@@ -17,12 +17,7 @@ class CreateFinalDistributionsTable extends Migration
                 'type' => 'VARCHAR',
                 'constraint' => 20,
             ],
-            'chapati_amount' => [
-                'type' => 'DECIMAL',
-                'constraint' => '10,2',
-                'default' => 0.00,
-            ],
-            'other_expenses_amount' => [
+            'expenses_amount' => [
                 'type' => 'DECIMAL',
                 'constraint' => '10,2',
                 'default' => 0.00,

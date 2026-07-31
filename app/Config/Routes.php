@@ -38,24 +38,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->post('absentday/upsert', 'AbsentDay::upsert');
     $routes->delete('absentday/delete/(:num)', 'AbsentDay::delete/$1');
 
-    // Chapati Expenses
-    $routes->get('/chapatiexpense', 'ChapatiExpense::index');
-    $routes->get('/chapatiexpense/getChapatiExpenses', 'ChapatiExpense::getChapatiExpenses');
-    $routes->post('/chapatiexpense/addChapatiExpense', 'ChapatiExpense::addChapatiExpense');
-    $routes->delete('/chapatiexpense/deleteChapatiExpense/(:num)', 'ChapatiExpense::deleteChapatiExpense/$1');
-
-    // Chapati Absences
-    $routes->get('/chapatiabsence', 'ChapatiAbsence::index');
-    $routes->get('/chapatiabsence/getAbsences', 'ChapatiAbsence::getAbsences');
-    $routes->post('/chapatiabsence/addAbsence', 'ChapatiAbsence::addAbsence');
-    $routes->delete('/chapatiabsence/deleteAbsence/(:num)', 'ChapatiAbsence::deleteAbsence/$1');
-
-    // Chapati Extra Expenses
-    $routes->get('/chapatiextraexpense', 'ChapatiExtraExpense::index');
-    $routes->get('/chapatiextraexpense/getExtraExpenses', 'ChapatiExtraExpense::getExtraExpenses');
-    $routes->post('/chapatiextraexpense/addExtraExpense', 'ChapatiExtraExpense::addExtraExpense');
-    $routes->delete('/chapatiextraexpense/delete/(:num)', 'ChapatiExtraExpense::delete/$1');
-
     // User search (used by expense/extra expense forms for all users)
     $routes->get('/user/search', 'User::search');
 

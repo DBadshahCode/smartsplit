@@ -40,7 +40,7 @@ class ExpenseCalculatorService
      * billing month.
      *
      * @param  string $month Format: YYYY-MM (e.g. "2026-02")
-     * @return array<int, array{other_expenses_amount: float, advance: float}>
+     * @return array<int, array{expenses_amount: float, advance: float}>
      *                       Raw per-user accumulator keyed by user_id.
      */
     public function calculateFinalDistribution(string $month): array
@@ -49,7 +49,7 @@ class ExpenseCalculatorService
         // generation is idempotent.
         $this->finalDistributionModel->where('month', $month)->delete();
 
-        // $dist[user_id] = ['other_expenses_amount' => float, 'advance' => float]
+        // $dist[user_id] = ['expenses_amount' => float, 'advance' => float]
         $dist = [];
 
         $this->applyOtherExpenses($month, $dist);
@@ -72,7 +72,7 @@ class ExpenseCalculatorService
      * The payer (paid_by) always gets the full expense amount credited as
      * advance, regardless of split method.
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      */
     private function applyOtherExpenses(string $month, array &$dist): void
     {
@@ -140,7 +140,7 @@ class ExpenseCalculatorService
     /**
      * Credit the expense's payer with the full amount as an advance.
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      */
     private function creditPayerAdvance(array &$dist, ExpenseEntity $expense): void
     {
@@ -156,7 +156,7 @@ class ExpenseCalculatorService
     /**
      * Split an expense amount equally among involved users.
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      * @param int[] $userIds
      */
     private function splitEqual(array &$dist, ExpenseEntity $expense, array $userIds): void
@@ -165,7 +165,7 @@ class ExpenseCalculatorService
 
         foreach ($userIds as $uid) {
             $this->initUser($dist, $uid);
-            $dist[$uid]['other_expenses_amount'] += $share;
+            $dist[$uid]['expenses_amount'] += $share;
         }
     }
 
@@ -173,7 +173,7 @@ class ExpenseCalculatorService
      * Split an expense amount proportionally to each user's days present
      * within the expense's date range.
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      * @param int[] $userIds
      * @param array<int, array<int, int>> $absentByExpense Lazy cache, passed
      *                                                      by reference.
@@ -213,7 +213,7 @@ class ExpenseCalculatorService
         foreach ($presentDays as $uid => $days) {
             $share = ($days / $sumPresentDays) * (float) $expense->amount;
             $this->initUser($dist, $uid);
-            $dist[$uid]['other_expenses_amount'] += $share;
+            $dist[$uid]['expenses_amount'] += $share;
         }
     }
 
@@ -240,7 +240,7 @@ class ExpenseCalculatorService
      * SECTION 2 — Persist final distribution.
      *
      * For each user in the accumulator:
-     *   total_share    = other_expenses_amount
+     *   total_share    = expenses_amount
      *   advance_amount = total amount this user actually paid out
      *   balance        = total_share − advance_amount
      *
@@ -251,12 +251,12 @@ class ExpenseCalculatorService
      *   positive = user owes this much
      *   negative = user is in credit by this much
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      */
     private function persistDistribution(string $month, array $dist): void
     {
         foreach ($dist as $uid => $row) {
-            $other = (float) $row['other_expenses_amount'];
+            $other = (float) $row['expenses_amount'];
             $advancePaid = (float) $row['advance'];
 
             $balance = $other - $advancePaid;
@@ -265,7 +265,7 @@ class ExpenseCalculatorService
             $insertData = [
                 'user_id' => $uid,
                 'month' => $month,
-                'other_expenses_amount' => round($other, 0),
+                'expenses_amount' => round($other, 0),
                 'advance_amount' => round($advancePaid, 0),
                 'due_amount' => round($dueAmount, 0),
                 'final_amount' => round($balance, 0),
@@ -281,13 +281,13 @@ class ExpenseCalculatorService
     /**
      * Initialise an empty per-user accumulator if it does not exist yet.
      *
-     * @param array<int, array{other_expenses_amount: float, advance: float}> $dist
+     * @param array<int, array{expenses_amount: float, advance: float}> $dist
      */
     private function initUser(array &$dist, int $uid): void
     {
         if (!isset($dist[$uid])) {
             $dist[$uid] = [
-                'other_expenses_amount' => 0.0,
+                'expenses_amount' => 0.0,
                 'advance' => 0.0,
             ];
         }

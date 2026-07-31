@@ -77,7 +77,7 @@ class FinalDistribution extends BaseController
             $data[] = [
                 'name' => $user instanceof UserEntity ? $user->name : 'Unknown',
                 'month' => $record->month,
-                'expenses_amount' => $record->other_expenses_amount,
+                'expenses_amount' => $record->expenses_amount,
                 'advance_amount' => $record->advance_amount,
                 'due_amount' => $record->due_amount,
                 'final_amount' => $record->final_amount,
@@ -183,7 +183,7 @@ class FinalDistribution extends BaseController
     }
 
     /**
-     * @return array<int, array{other_expenses_amount: float, advance_amount: float, final_amount: float}>
+     * @return array<int, array{expenses_amount: float, advance_amount: float, final_amount: float}>
      */
     private function buildDistributionMap(string $month): array
     {
@@ -194,7 +194,7 @@ class FinalDistribution extends BaseController
             $uid = $dr instanceof FinalDistributionEntity ? $dr->user_id : $dr['user_id'];
 
             $distributions[$uid] = [
-                'other_expenses_amount' => $dr instanceof FinalDistributionEntity ? $dr->other_expenses_amount : $dr['other_expenses_amount'],
+                'expenses_amount' => $dr instanceof FinalDistributionEntity ? $dr->expenses_amount : $dr['expenses_amount'],
                 'advance_amount' => $dr instanceof FinalDistributionEntity ? $dr->advance_amount : $dr['advance_amount'],
                 'final_amount' => $dr instanceof FinalDistributionEntity ? $dr->final_amount : $dr['final_amount'],
             ];

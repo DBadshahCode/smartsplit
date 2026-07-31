@@ -13,7 +13,7 @@ class FinalDistribution extends Model
     protected $returnType = FinalDistributionEntity::class;
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['month', 'user_id', 'chapati_amount', 'other_expenses_amount', 'due_amount', 'advance_amount', 'final_amount', 'generated_at'];
+    protected $allowedFields = ['month', 'user_id', 'expenses_amount', 'due_amount', 'advance_amount', 'final_amount', 'generated_at'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -29,14 +29,7 @@ class FinalDistribution extends Model
     protected $deletedField = 'deleted_at';
 
     // Validation
-    protected $validationRules = [
-        // 'expense_id' => 'required|is_natural_no_zero',
-        // 'user_id' => 'required|is_natural_no_zero',
-        // 'expense_share' => 'required|decimal',
-        // 'chapati_share' => 'required|decimal',
-        // 'extra_expense' => 'required|decimal',
-        // 'final_amount' => 'required|decimal',
-    ];
+    protected $validationRules = [];
     protected $validationMessages = [];
     protected $skipValidation = false;
     protected $cleanValidationRules = true;

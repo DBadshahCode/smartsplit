@@ -60,7 +60,7 @@ class ExcelExportService
      *                       Keys expected:
      *                         users         array of user rows (id, name)
      *                         distributions array keyed by user_id with
-     *                                       other_expenses_amount, advance_amount,
+     *                                       expenses_amount, advance_amount,
      *                                       final_amount
      *                         expenses      array from buildExpenseDetail() — each has
      *                                       id, expense_type, amount, from_date,
@@ -168,7 +168,7 @@ class ExcelExportService
             $uid = $user['id'];
             $dist = $distributions[$uid] ?? [];
 
-            $other = (float) ($dist['other_expenses_amount'] ?? 0);
+            $other = (float) ($dist['expenses_amount'] ?? 0);
             $advance = (float) ($dist['advance_amount'] ?? 0);
             $final = (float) ($dist['final_amount'] ?? 0);
 
@@ -586,7 +586,7 @@ class ExcelExportService
     //
     // Column layout (1-based):
     //   A: month   B: user_id   C: billing_month   D: user_name
-    //   E: other_expenses_amount   F: advance_amount
+    //   E: expenses_amount   F: advance_amount
     //   G: final_amount   H: generated_at
     //
     // billing_month repeats $month for every user row — the distribution is
@@ -604,7 +604,7 @@ class ExcelExportService
             'B' => 'user_id',
             'C' => 'billing_month',
             'D' => 'user_name',
-            'E' => 'other_expenses_amount',
+            'E' => 'expenses_amount',
             'F' => 'advance_amount',
             'G' => 'final_amount',
             'H' => 'generated_at',
@@ -632,7 +632,7 @@ class ExcelExportService
             $ws->setCellValue("B{$row}", $uid);
             $ws->setCellValue("C{$row}", $month); // billing_month = same as distribution month
             $ws->setCellValue("D{$row}", $user['name']);
-            $ws->setCellValue("E{$row}", (float) ($dist['other_expenses_amount'] ?? 0));
+            $ws->setCellValue("E{$row}", (float) ($dist['expenses_amount'] ?? 0));
             $ws->setCellValue("F{$row}", (float) ($dist['advance_amount'] ?? 0));
             $ws->setCellValue("G{$row}", (float) ($dist['final_amount'] ?? 0));
             $ws->setCellValue("H{$row}", $now);
@@ -657,7 +657,7 @@ class ExcelExportService
             'B' => 10, // user_id
             'C' => 14, // billing_month
             'D' => 22, // user_name
-            'E' => 22, // other_expenses_amount
+            'E' => 22, // expenses_amount
             'F' => 18, // advance_amount
             'G' => 16, // final_amount
             'H' => 20, // generated_at
