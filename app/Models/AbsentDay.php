@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Entities\AbsentDay as AbsentDayEntity;
 use CodeIgniter\Model;
 
 class AbsentDay extends Model
@@ -9,7 +10,7 @@ class AbsentDay extends Model
     protected $table = 'absent_days';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType = \App\Entities\AbsentDay::class;
+    protected $returnType = AbsentDayEntity::class;
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = ['user_id', 'expense_id', 'days_absent'];

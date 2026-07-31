@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Entities\FinalDistribution as FinalDistributionEntity;
 use CodeIgniter\Model;
 
 class FinalDistribution extends Model
@@ -9,7 +10,7 @@ class FinalDistribution extends Model
     protected $table = 'final_distributions';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType = \App\Entities\FinalDistribution::class;
+    protected $returnType = FinalDistributionEntity::class;
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = ['month', 'user_id', 'chapati_amount', 'other_expenses_amount', 'due_amount', 'advance_amount', 'final_amount', 'generated_at'];

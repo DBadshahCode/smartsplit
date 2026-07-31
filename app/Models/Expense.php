@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Entities\Expense as ExpenseEntity;
 use CodeIgniter\Model;
 
 class Expense extends Model
@@ -9,7 +10,7 @@ class Expense extends Model
     protected $table = 'expenses';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType = \App\Entities\Expense::class;
+    protected $returnType = ExpenseEntity::class;
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = ['expense_type_id', 'description', 'amount', 'billing_month', 'from_date', 'to_date', 'paid_by'];

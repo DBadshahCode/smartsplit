@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Entities\ExpenseInvolvement as ExpenseInvolvementEntity;
 use CodeIgniter\Model;
 
 class ExpenseInvolvement extends Model
@@ -9,7 +10,7 @@ class ExpenseInvolvement extends Model
     protected $table = 'expense_involvements';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType = \App\Entities\ExpenseInvolvement::class;
+    protected $returnType = ExpenseInvolvementEntity::class;
     protected $useSoftDeletes = false;
     protected $protectFields = true;
     protected $allowedFields = ['expense_id', 'user_id'];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Entities\User as UserEntity;
 use CodeIgniter\Model;
 
 class User extends Model
@@ -9,10 +10,10 @@ class User extends Model
     protected $table            = 'users';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = \App\Entities\User::class;
+    protected $returnType       = UserEntity::class;
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['name','email','password','role','joined_date'];
+    protected $allowedFields    = ['name', 'email', 'password', 'role', 'joined_date'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
