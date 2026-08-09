@@ -11,40 +11,36 @@
         <p class="page-subtitle">Track and manage all shared expenses</p>
     </div>
     <button onclick="openAddModal()" class="ss-btn ss-btn-primary">
-        <i data-lucide="plus" style="width:16px;height:16px;"></i>
+        <i data-lucide="plus" class="w-4 h-4"></i>
         Add Expense
     </button>
 </div>
 
 <!-- ── Expenses table card ─────────────────────────────────────── -->
 <div class="ss-card">
-    <div class="ss-card-header"
-        style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div class="ss-card-header flex items-center justify-between flex-wrap gap-3">
         <div>
-            <h2 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">All Expenses</h2>
-            <p style="font-size:13px;color:#94a3b8;margin:3px 0 0;">
+            <h2 class="text-[15px] font-bold text-surface-900 m-0">All Expenses</h2>
+            <p class="text-[13px] text-surface-400 mt-[3px] mb-0">
                 <span id="expense-count">—</span> expenses recorded
             </p>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:13px;color:#64748b;">Total:</span>
-                <span id="expense-total"
-                    style="font-size:15px;font-weight:700;color:#0f172a;font-family:'JetBrains Mono',monospace;">—</span>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-[13px] text-surface-500">Total:</span>
+                <span id="expense-total" class="text-[15px] font-bold text-surface-900 font-mono">—</span>
             </div>
             <!-- View toggle -->
-            <div style="display:flex;align-items:center;gap:2px;background:#f1f5f9;border-radius:8px;padding:3px;">
-                <button id="btn-view-list" onclick="setView('list')" title="List view" style="
-                    width:32px;height:32px;border-radius:6px;border:none;cursor:pointer;
-                    display:flex;align-items:center;justify-content:center;
-                    background:#fff;color:#5c6af0;transition:all .15s;">
-                    <i data-lucide="list" style="width:15px;height:15px;"></i>
+            <div class="flex items-center gap-0.5 bg-surface-100 rounded-lg p-[3px]">
+                <button id="btn-view-list" onclick="setView('list')" title="List view"
+                    class="w-8 h-8 rounded-md border-none cursor-pointer flex items-center justify-center transition-all duration-150"
+                    style="background:#fff;color:#5c6af0;">
+                    <i data-lucide="list" class="w-[15px] h-[15px]"></i>
                 </button>
-                <button id="btn-view-grid" onclick="setView('grid')" title="Grid view" style="
-                    width:32px;height:32px;border-radius:6px;border:none;cursor:pointer;
-                    display:flex;align-items:center;justify-content:center;
-                    background:transparent;color:#94a3b8;transition:all .15s;">
-                    <i data-lucide="layout-grid" style="width:15px;height:15px;"></i>
+                <button id="btn-view-grid" onclick="setView('grid')" title="Grid view"
+                    class="w-8 h-8 rounded-md border-none cursor-pointer flex items-center justify-center transition-all duration-150"
+                    style="background:transparent;color:#94a3b8;">
+                    <i data-lucide="layout-grid" class="w-[15px] h-[15px]"></i>
                 </button>
             </div>
         </div>
@@ -52,48 +48,42 @@
 
     <!-- ── Bulk actions bar (admin only) ── -->
     <?php if ($currentUser['role'] === 'admin'): ?>
-    <div id="bulk-actions-bar" style="
-        display:none;align-items:center;justify-content:space-between;gap:12px;
-        padding:10px 20px;background:#eef2ff;border-bottom:1px solid #e0e7ff;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <i data-lucide="check-square" style="width:15px;height:15px;color:#4338ca;"></i>
-            <span style="font-size:13px;font-weight:600;color:#4338ca;">
-                <span id="bulk-selected-count">0</span> selected
-            </span>
-            <button onclick="clearSelection()" style="
-                background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
-                cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                Clear
-            </button>
-            <span id="select-all-matching-link" style="display:none;">
-                <button onclick="selectAllMatching()" style="
-                    background:none;border:none;color:#5c6af0;font-size:12px;font-weight:600;
-                    cursor:pointer;text-decoration:underline;padding:0;font-family:'DM Sans',sans-serif;">
-                    Select all <span id="select-all-matching-count">0</span> expenses
+        <div id="bulk-actions-bar"
+            class="hidden items-center justify-between gap-3 px-5 py-2.5 bg-indigo-50 border-b border-indigo-100 flex-wrap">
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <i data-lucide="check-square" class="w-[15px] h-[15px] text-indigo-700"></i>
+                <span class="text-[13px] font-semibold text-indigo-700">
+                    <span id="bulk-selected-count">0</span> selected
+                </span>
+                <button onclick="clearSelection()"
+                    class="bg-transparent border-none text-brand-500 text-xs font-semibold cursor-pointer underline p-0">
+                    Clear
                 </button>
-            </span>
+                <span id="select-all-matching-link" class="hidden">
+                    <button onclick="selectAllMatching()"
+                        class="bg-transparent border-none text-brand-500 text-xs font-semibold cursor-pointer underline p-0">
+                        Select all <span id="select-all-matching-count">0</span> expenses
+                    </button>
+                </span>
+            </div>
+            <button onclick="bulkDeleteExpenses()" class="ss-btn ss-btn-danger"
+                style="padding:7px 14px;font-size:12px;min-height:auto;">
+                <i data-lucide="trash-2" class="w-[13px] h-[13px]"></i>
+                Delete Selected
+            </button>
         </div>
-        <button onclick="bulkDeleteExpenses()" style="
-            display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
-            background:#fee2e2;color:#dc2626;border:none;cursor:pointer;
-            font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s;"
-            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-            Delete Selected
-        </button>
-    </div>
     <?php endif; ?>
 
     <!-- ── List view ── -->
     <div id="expenses-list-wrap" class="ss-table-wrap" style="border:none;border-radius:0;">
-        <table style="width:100%;border-collapse:collapse;min-width:680px;">
+        <table class="w-full border-collapse" style="min-width:680px;">
             <thead>
                 <tr>
                     <?php if ($currentUser['role'] === 'admin'): ?>
-                    <th data-ss-static="1" style="width:36px;padding:13px 16px;border-bottom:1px solid #f1f5f9;">
-                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
-                            style="width:16px;height:16px;cursor:pointer;">
-                    </th>
+                        <th data-ss-static="1" class="w-9 px-4 py-3.5 border-b border-surface-100">
+                            <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
+                                class="w-4 h-4 cursor-pointer">
+                        </th>
                     <?php endif; ?>
                     <th></th>
                     <th></th>
@@ -110,19 +100,15 @@
     </div>
 
     <!-- ── Grid view ── -->
-    <div id="expenses-grid-wrap" style="display:none;padding:12px;">
-        <div id="expenses-grid" style="
-            display:grid;
-            grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-            gap:12px;">
+    <div id="expenses-grid-wrap" class="hidden p-3">
+        <div id="expenses-grid" class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
         </div>
-        <div id="expenses-grid-empty" style="display:none;padding:40px 16px;text-align:center;">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-                <div
-                    style="width:48px;height:48px;border-radius:12px;background:#f8fafc;display:flex;align-items:center;justify-content:center;">
-                    <i data-lucide="receipt" style="width:22px;height:22px;color:#e2e8f0;"></i>
+        <div id="expenses-grid-empty" class="hidden py-10 px-4 text-center">
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-12 h-12 rounded-xl bg-surface-50 flex items-center justify-center">
+                    <i data-lucide="receipt" class="w-[22px] h-[22px] text-surface-200"></i>
                 </div>
-                <span style="font-size:14px;color:#94a3b8;font-weight:500;">No expenses found</span>
+                <span class="text-sm text-surface-400 font-medium">No expenses found</span>
             </div>
         </div>
     </div>
@@ -132,184 +118,125 @@
 <!-- ══════════════════════════════════════════════════════════════
      ADD EXPENSE MODAL
 ════════════════════════════════════════════════════════════════ -->
-<div id="modal-backdrop" onclick="closeAddModal()" style="
-    display:none;position:fixed;inset:0;
-    background:rgba(15,23,42,.45);z-index:100;
-    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
-"></div>
+<div id="modal-backdrop" onclick="closeAddModal()" class="modal-backdrop" style="z-index:100;"></div>
 
-<div id="add-expense-modal" style="
-    display:none;position:fixed;
-    top:50%;left:50%;
-    transform:translate(-50%,-50%) scale(0.97);
-    width:calc(100% - 32px);max-width:500px;
-    max-height:90vh;
-    background:#fff;border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.15);
-    z-index:101;opacity:0;
-    transition:transform .2s ease, opacity .2s ease;
-    flex-direction:column;
-">
-    <div
-        style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <div
-                style="width:34px;height:34px;border-radius:8px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="receipt" style="width:16px;height:16px;color:#be185d;"></i>
+<div id="add-expense-modal" class="modal-panel modal-shell" style="z-index:101;">
+    <div class="modal-header">
+        <div class="modal-header-info">
+            <div class="modal-header-icon bg-pink-100">
+                <i data-lucide="receipt" class="w-4 h-4 text-pink-700"></i>
             </div>
             <div>
-                <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Add New Expense</h3>
-                <p style="font-size:12px;color:#94a3b8;margin:2px 0 0;">Fill in the expense details below</p>
+                <h3 class="modal-header-title">Add New Expense</h3>
+                <p class="modal-header-subtitle">Fill in the expense details below</p>
             </div>
         </div>
-        <button onclick="closeAddModal()" style="
-            width:32px;height:32px;border-radius:8px;
-            background:#f1f5f9;border:none;cursor:pointer;
-            display:flex;align-items:center;justify-content:center;
-            color:#64748b;transition:background .15s;flex-shrink:0;
-        " onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-            <i data-lucide="x" style="width:16px;height:16px;"></i>
+        <button onclick="closeAddModal()" class="icon-btn icon-btn-muted icon-btn-sm">
+            <i data-lucide="x"></i>
         </button>
     </div>
 
-    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
-        <form id="addExpenseForm" style="padding:20px 24px 24px;">
+    <div class="modal-body">
+        <form id="addExpenseForm" class="modal-form">
 
             <!-- Expense Type -->
-            <div style="margin-bottom:16px;">
-                <label class="ss-label" for="exp-type">Expense Type <span style="color:#ef4444;">*</span></label>
-                <div style="position:relative;">
-                    <i data-lucide="tag"
-                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <select id="exp-type" name="expense_type_id" required class="ss-input"
-                        style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+            <div class="field-group">
+                <label class="ss-label" for="exp-type">Expense Type <span class="required-star">*</span></label>
+                <div class="field-icon-wrap">
+                    <i data-lucide="tag" class="field-icon"></i>
+                    <select id="exp-type" name="expense_type_id" required class="ss-input ss-input-icon"
                         onchange="onAddTypeChange(this.value)">
                         <option value="">— Select type —</option>
                         <?php foreach ($expenseTypes as $type): ?>
                             <option value="<?= $type->id ?>"><?= esc($type->name) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <i data-lucide="chevron-down"
-                        style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                    <i data-lucide="chevron-down" class="field-icon-trail"></i>
                 </div>
             </div>
 
             <!-- Description -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label" for="exp-description">Description</label>
-                <div style="position:relative;">
-                    <i data-lucide="edit-3"
-                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026" class="ss-input"
-                        style="padding-left:38px;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                <div class="field-icon-wrap">
+                    <i data-lucide="edit-3" class="field-icon"></i>
+                    <input type="text" id="exp-description" name="description" placeholder="e.g. Rent of Jan 2026"
+                        class="ss-input pl-[38px]">
                 </div>
             </div>
 
             <!-- Amount -->
-            <div style="margin-bottom:16px;">
-                <label class="ss-label" for="exp-amount">Amount <span style="color:#ef4444;">*</span></label>
-                <div style="position:relative;">
-                    <span
-                        style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:600;color:#94a3b8;pointer-events:none;font-family:'JetBrains Mono',monospace;">₹</span>
+            <div class="field-group">
+                <label class="ss-label" for="exp-amount">Amount <span class="required-star">*</span></label>
+                <div class="field-icon-wrap">
+                    <span class="field-prefix">₹</span>
                     <input type="number" id="exp-amount" name="amount" placeholder="0.00" min="0" step="0.01" required
-                        class="ss-input" style="padding-left:30px;font-family:'JetBrains Mono',monospace;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        class="ss-input ss-input-amount">
                 </div>
             </div>
 
             <!-- Billing Month -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label" for="exp-billing-month">
-                    Billing Month <span style="color:#ef4444;">*</span>
+                    Billing Month <span class="required-star">*</span>
                 </label>
-                <div style="position:relative;">
-                    <i data-lucide="calendar-range"
-                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
+                <div class="field-icon-wrap">
+                    <i data-lucide="calendar-range" class="field-icon"></i>
                     <input type="month" id="exp-billing-month" name="billing_month" value="<?= date('Y-m') ?>" required
-                        class="ss-input" style="padding-left:38px;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        class="ss-input pl-[38px]">
                 </div>
             </div>
 
             <!-- Date range -->
-            <div id="add-date-range-wrap" style="margin-bottom:16px;">
-                <div id="add-date-range-hint" style="
-                    display:flex;align-items:center;gap:6px;
-                    padding:8px 12px;margin-bottom:10px;
-                    background:#fef9c3;border:1px solid #fde68a;border-radius:8px;
-                    font-size:12px;color:#92400e;">
-                    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
+            <div id="add-date-range-wrap" class="field-group">
+                <div id="add-date-range-hint" class="hint-box hint-warn">
+                    <i data-lucide="info" class="w-[13px] h-[13px] flex-shrink-0"></i>
                     <span id="add-date-range-hint-text">Select an expense type to see if dates are required.</span>
                 </div>
                 <label class="ss-label" for="exp-from">
-                    Date Range <span id="add-from-required-star" style="color:#ef4444;display:none;">*</span>
+                    Date Range <span id="add-from-required-star" class="required-star hidden">*</span>
                 </label>
-                <div id="add-daterange-box" style="
-                    display:flex;align-items:center;border:1px solid #e2e8f0;border-radius:8px;
-                    background:#fff;transition:border-color .15s, box-shadow .15s;">
-                    <i data-lucide="calendar"
-                        style="width:15px;height:15px;color:#94a3b8;margin-left:13px;flex-shrink:0;"></i>
+                <div id="add-daterange-box" class="daterange-box">
+                    <i data-lucide="calendar" class="field-icon"></i>
                     <input type="date" id="exp-from" name="from_date" value="<?= date('Y-m-d') ?>"
-                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
-                        padding:10px 6px 10px 8px;font-size:14px;font-family:inherit;color:#0f172a;"
-                        onfocus="setDateRangeBoxFocus('add-daterange-box', true)"
-                        onblur="setDateRangeBoxFocus('add-daterange-box', false)">
-                    <span style="color:#cbd5e1;font-size:13px;flex-shrink:0;">&#8594;</span>
-                    <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>"
-                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
-                        padding:10px 12px 10px 6px;font-size:14px;font-family:inherit;color:#0f172a;"
-                        onfocus="setDateRangeBoxFocus('add-daterange-box', true)"
-                        onblur="setDateRangeBoxFocus('add-daterange-box', false)">
+                        class="daterange-input">
+                    <span class="daterange-sep">&#8594;</span>
+                    <input type="date" id="exp-to" name="to_date" value="<?= date('Y-m-d') ?>" class="daterange-input">
                 </div>
-                <p id="add-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                <p id="add-date-error" class="field-hint hidden">
                     From Date and To Date are required for this expense type.
                 </p>
             </div>
 
             <!-- Paid By -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label">
                     Paid By
-                    <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional — can be set
-                        later</span>
+                    <span class="text-[11px] font-normal text-surface-400 ml-1">optional — can be set later</span>
                 </label>
                 <?php if ($currentUser['role'] === 'admin'): ?>
-                    <div style="position:relative;">
-                        <i data-lucide="user"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                        <select name="paid_by" class="ss-input"
-                            style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                    <div class="field-icon-wrap">
+                        <i data-lucide="user" class="field-icon"></i>
+                        <select name="paid_by" class="ss-input ss-input-icon">
                             <option value="">— Not paid yet —</option>
                             <?php foreach ($users as $user): ?>
                                 <option value="<?= $user->id ?>"><?= esc($user->name) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <i data-lucide="chevron-down"
-                            style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                        <i data-lucide="chevron-down" class="field-icon-trail"></i>
                     </div>
                 <?php else: ?>
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div
-                            style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                    <div class="radio-pill-group">
+                        <div class="radio-pill-row">
+                            <label class="radio-pill">
                                 <input type="radio" name="paid_by_option" value="me" id="pbo-me"
-                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
                                     onchange="togglePaidBy(this.value)">
-                                <span style="font-size:13px;font-weight:500;color:#334155;">Paid by me</span>
+                                <span>Paid by me</span>
                             </label>
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                            <label class="radio-pill">
                                 <input type="radio" name="paid_by_option" value="none" id="pbo-none" checked
-                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
                                     onchange="togglePaidBy(this.value)">
-                                <span style="font-size:13px;font-weight:500;color:#334155;">Not paid yet</span>
+                                <span>Not paid yet</span>
                             </label>
                         </div>
                         <input type="hidden" name="paid_by" id="paid-by-value" value="">
@@ -318,40 +245,34 @@
             </div>
 
             <!-- Involved Roommates -->
-            <div style="margin-bottom:24px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <label class="ss-label" style="margin-bottom:0;">Involved Roommates <span
-                            style="color:#ef4444;">*</span></label>
-                    <div style="display:flex;gap:6px;">
+            <div class="field-group-lg">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="ss-label mb-0">Involved Roommates <span class="required-star">*</span></label>
+                    <div class="flex gap-1.5">
                         <button type="button" onclick="selectAllUsers()" class="ss-btn ss-btn-ghost"
                             style="padding:4px 10px;font-size:12px;min-height:28px;">All</button>
                         <button type="button" onclick="deselectAllUsers()" class="ss-btn ss-btn-ghost"
                             style="padding:4px 10px;font-size:12px;min-height:28px;">None</button>
                     </div>
                 </div>
-                <div id="involved-users-list"
-                    style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+                <div id="involved-users-list" class="check-list">
                     <?php foreach ($users as $user): ?>
-                        <label
-                            style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
-                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-                            <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>"
-                                style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;flex-shrink:0;">
-                            <span style="font-size:14px;font-weight:500;color:#334155;"><?= esc($user->name) ?></span>
+                        <label class="check-list-item">
+                            <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>">
+                            <span><?= esc($user->name) ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>
-                <p id="involved-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                <p id="involved-error" class="field-hint hidden">
                     Please select at least one roommate.
                 </p>
             </div>
 
             <!-- Actions -->
-            <div style="display:flex;gap:10px;">
-                <button type="button" onclick="closeAddModal()" class="ss-btn ss-btn-ghost"
-                    style="flex:1;">Cancel</button>
-                <button type="submit" id="addExpenseBtn" class="ss-btn ss-btn-primary" style="flex:2;">
-                    <i data-lucide="plus" style="width:15px;height:15px;" id="addExpenseBtnIcon"></i>
+            <div class="flex gap-2.5">
+                <button type="button" onclick="closeAddModal()" class="ss-btn ss-btn-ghost flex-1">Cancel</button>
+                <button type="submit" id="addExpenseBtn" class="ss-btn ss-btn-primary flex-[2]">
+                    <i data-lucide="plus" class="w-[15px] h-[15px]" id="addExpenseBtnIcon"></i>
                     <span id="addExpenseBtnText">Save Expense</span>
                 </button>
             </div>
@@ -363,197 +284,137 @@
 <!-- ══════════════════════════════════════════════════════════════
      EDIT EXPENSE MODAL
 ════════════════════════════════════════════════════════════════ -->
-<div id="edit-modal-backdrop" onclick="closeEditModal()" style="
-    display:none;position:fixed;inset:0;
-    background:rgba(15,23,42,.45);z-index:100;
-    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
-"></div>
+<div id="edit-modal-backdrop" onclick="closeEditModal()" class="modal-backdrop" style="z-index:100;"></div>
 
-<div id="edit-expense-modal" style="
-    display:none;position:fixed;
-    top:50%;left:50%;
-    transform:translate(-50%,-50%) scale(0.97);
-    width:calc(100% - 32px);max-width:500px;
-    max-height:90vh;
-    background:#fff;border-radius:16px;
-    box-shadow:0 20px 60px rgba(0,0,0,.15);
-    z-index:101;opacity:0;
-    transition:transform .2s ease, opacity .2s ease;
-    flex-direction:column;
-">
-    <div
-        style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;flex-shrink:0;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <div
-                style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="pencil" style="width:16px;height:16px;color:#4338ca;"></i>
+<div id="edit-expense-modal" class="modal-panel modal-shell" style="z-index:101;">
+    <div class="modal-header">
+        <div class="modal-header-info">
+            <div class="modal-header-icon bg-indigo-100">
+                <i data-lucide="pencil" class="w-4 h-4 text-indigo-700"></i>
             </div>
             <div>
-                <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Edit Expense</h3>
-                <p style="font-size:12px;color:#94a3b8;margin:2px 0 0;">Update the expense details below</p>
+                <h3 class="modal-header-title">Edit Expense</h3>
+                <p class="modal-header-subtitle">Update the expense details below</p>
             </div>
         </div>
-        <button onclick="closeEditModal()" style="
-            width:32px;height:32px;border-radius:8px;
-            background:#f1f5f9;border:none;cursor:pointer;
-            display:flex;align-items:center;justify-content:center;
-            color:#64748b;transition:background .15s;flex-shrink:0;
-        " onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-            <i data-lucide="x" style="width:16px;height:16px;"></i>
+        <button onclick="closeEditModal()" class="icon-btn icon-btn-muted icon-btn-sm">
+            <i data-lucide="x"></i>
         </button>
     </div>
 
-    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
+    <div class="modal-body">
 
-        <div id="edit-permission-denied" style="display:none;padding:20px 24px;">
-            <div
-                style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px 24px;text-align:center;">
-                <div
-                    style="width:56px;height:56px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
-                    <i data-lucide="lock" style="width:24px;height:24px;color:#dc2626;"></i>
+        <div id="edit-permission-denied" class="hidden px-6 py-5">
+            <div class="flex flex-col items-center justify-center gap-3 py-8 px-6 text-center">
+                <div class="w-14 h-14 rounded-xl bg-red-100 flex items-center justify-center">
+                    <i data-lucide="lock" class="w-6 h-6 text-red-600"></i>
                 </div>
                 <div>
-                    <h4 style="font-size:15px;font-weight:700;color:#0f172a;margin:0 0 6px;">Cannot Edit This Expense
-                    </h4>
-                    <p style="font-size:13px;color:#64748b;margin:0;line-height:1.6;">
+                    <h4 class="text-[15px] font-bold text-surface-900 mb-1.5">Cannot Edit This Expense</h4>
+                    <p class="text-[13px] text-surface-500 m-0 leading-relaxed">
                         You can only edit expenses that you paid for or expenses with no assigned payer.
                     </p>
                 </div>
             </div>
         </div>
 
-        <form id="editExpenseForm" style="display:block;padding:20px 24px 24px;">
+        <form id="editExpenseForm" class="modal-form">
             <input type="hidden" id="edit-expense-id" name="expense_id" value="">
 
             <!-- Expense Type -->
-            <div style="margin-bottom:16px;">
-                <label class="ss-label" for="edit-exp-type">Expense Type <span style="color:#ef4444;">*</span></label>
-                <div style="position:relative;">
-                    <i data-lucide="tag"
-                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <select id="edit-exp-type" name="expense_type_id" required class="ss-input"
-                        style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'"
+            <div class="field-group">
+                <label class="ss-label" for="edit-exp-type">Expense Type <span class="required-star">*</span></label>
+                <div class="field-icon-wrap">
+                    <i data-lucide="tag" class="field-icon"></i>
+                    <select id="edit-exp-type" name="expense_type_id" required class="ss-input ss-input-icon"
                         onchange="onEditTypeChange(this.value)">
                         <option value="">— Select type —</option>
                         <?php foreach ($expenseTypes as $type): ?>
                             <option value="<?= $type->id ?>"><?= esc($type->name) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <i data-lucide="chevron-down"
-                        style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                    <i data-lucide="chevron-down" class="field-icon-trail"></i>
                 </div>
             </div>
 
             <!-- Description -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label" for="edit-exp-description">Description</label>
-                <input type="text" id="edit-exp-description" name="description" placeholder="e.g. Rent" class="ss-input"
-                    onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                    onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                <input type="text" id="edit-exp-description" name="description" placeholder="e.g. Rent"
+                    class="ss-input">
             </div>
 
             <!-- Amount -->
-            <div style="margin-bottom:16px;">
-                <label class="ss-label" for="edit-exp-amount">Amount <span style="color:#ef4444;">*</span></label>
-                <div style="position:relative;">
-                    <span
-                        style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:600;color:#94a3b8;pointer-events:none;font-family:'JetBrains Mono',monospace;">₹</span>
+            <div class="field-group">
+                <label class="ss-label" for="edit-exp-amount">Amount <span class="required-star">*</span></label>
+                <div class="field-icon-wrap">
+                    <span class="field-prefix">₹</span>
                     <input type="number" id="edit-exp-amount" name="amount" placeholder="0.00" min="0" step="0.01"
-                        required class="ss-input" style="padding-left:30px;font-family:'JetBrains Mono',monospace;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                        required class="ss-input ss-input-amount">
                 </div>
             </div>
 
             <!-- Billing Month -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label" for="edit-exp-billing-month">
-                    Billing Month <span style="color:#ef4444;">*</span>
+                    Billing Month <span class="required-star">*</span>
                 </label>
-                <div style="position:relative;">
-                    <i data-lucide="calendar-range"
-                        style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                    <input type="month" id="edit-exp-billing-month" name="billing_month" required class="ss-input"
-                        style="padding-left:38px;"
-                        onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                        onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                <div class="field-icon-wrap">
+                    <i data-lucide="calendar-range" class="field-icon"></i>
+                    <input type="month" id="edit-exp-billing-month" name="billing_month" required
+                        class="ss-input pl-[38px]">
                 </div>
             </div>
 
             <!-- Date range -->
-            <div id="edit-date-range-wrap" style="margin-bottom:16px;">
-                <div id="edit-date-range-hint" style="
-                    display:flex;align-items:center;gap:6px;
-                    padding:8px 12px;margin-bottom:10px;
-                    background:#fef9c3;border:1px solid #fde68a;border-radius:8px;
-                    font-size:12px;color:#92400e;">
-                    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
+            <div id="edit-date-range-wrap" class="field-group">
+                <div id="edit-date-range-hint" class="hint-box hint-warn">
+                    <i data-lucide="info" class="w-[13px] h-[13px] flex-shrink-0"></i>
                     <span id="edit-date-range-hint-text">Select an expense type to see if dates are required.</span>
                 </div>
                 <label class="ss-label" for="edit-exp-from">
-                    Date Range <span id="edit-from-required-star" style="color:#ef4444;display:none;">*</span>
+                    Date Range <span id="edit-from-required-star" class="required-star hidden">*</span>
                 </label>
-                <div id="edit-daterange-box" style="
-                    display:flex;align-items:center;border:1px solid #e2e8f0;border-radius:8px;
-                    background:#fff;transition:border-color .15s, box-shadow .15s;">
-                    <i data-lucide="calendar"
-                        style="width:15px;height:15px;color:#94a3b8;margin-left:13px;flex-shrink:0;"></i>
-                    <input type="date" id="edit-exp-from" name="from_date"
-                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
-                        padding:10px 6px 10px 8px;font-size:14px;font-family:inherit;color:#0f172a;"
-                        onfocus="setDateRangeBoxFocus('edit-daterange-box', true)"
-                        onblur="setDateRangeBoxFocus('edit-daterange-box', false)">
-                    <span style="color:#cbd5e1;font-size:13px;flex-shrink:0;">&#8594;</span>
-                    <input type="date" id="edit-exp-to" name="to_date"
-                        style="flex:1;min-width:0;border:none;outline:none;background:transparent;
-                        padding:10px 12px 10px 6px;font-size:14px;font-family:inherit;color:#0f172a;"
-                        onfocus="setDateRangeBoxFocus('edit-daterange-box', true)"
-                        onblur="setDateRangeBoxFocus('edit-daterange-box', false)">
+                <div id="edit-daterange-box" class="daterange-box">
+                    <i data-lucide="calendar" class="field-icon"></i>
+                    <input type="date" id="edit-exp-from" name="from_date" class="daterange-input">
+                    <span class="daterange-sep">&#8594;</span>
+                    <input type="date" id="edit-exp-to" name="to_date" class="daterange-input">
                 </div>
-                <p id="edit-date-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                <p id="edit-date-error" class="field-hint hidden">
                     From Date and To Date are required for this expense type.
                 </p>
             </div>
 
             <!-- Paid By -->
-            <div style="margin-bottom:16px;">
+            <div class="field-group">
                 <label class="ss-label">
                     Paid By
-                    <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">optional</span>
+                    <span class="text-[11px] font-normal text-surface-400 ml-1">optional</span>
                 </label>
                 <?php if ($currentUser['role'] === 'admin'): ?>
-                    <div style="position:relative;">
-                        <i data-lucide="user"
-                            style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;z-index:1;"></i>
-                        <select id="edit-paid-by" name="paid_by" class="ss-input"
-                            style="padding-left:38px;cursor:pointer;appearance:none;-webkit-appearance:none;"
-                            onfocus="this.style.borderColor='#7f94f7';this.style.boxShadow='0 0 0 3px rgba(127,148,247,.15)'"
-                            onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
+                    <div class="field-icon-wrap">
+                        <i data-lucide="user" class="field-icon"></i>
+                        <select id="edit-paid-by" name="paid_by" class="ss-input ss-input-icon">
                             <option value="">— Not paid yet —</option>
                             <?php foreach ($users as $user): ?>
                                 <option value="<?= $user->id ?>"><?= esc($user->name) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <i data-lucide="chevron-down"
-                            style="position:absolute;right:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#94a3b8;pointer-events:none;"></i>
+                        <i data-lucide="chevron-down" class="field-icon-trail"></i>
                     </div>
                 <?php else: ?>
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div
-                            style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                    <div class="radio-pill-group">
+                        <div class="radio-pill-row">
+                            <label class="radio-pill">
                                 <input type="radio" name="edit_paid_by_option" value="me" id="edit-pbo-me"
-                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
                                     onchange="toggleEditPaidBy(this.value)">
-                                <span style="font-size:13px;font-weight:500;color:#334155;">Paid by me</span>
+                                <span>Paid by me</span>
                             </label>
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+                            <label class="radio-pill">
                                 <input type="radio" name="edit_paid_by_option" value="none" id="edit-pbo-none"
-                                    style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;"
                                     onchange="toggleEditPaidBy(this.value)">
-                                <span style="font-size:13px;font-weight:500;color:#334155;">Not paid yet</span>
+                                <span>Not paid yet</span>
                             </label>
                         </div>
                         <input type="hidden" name="paid_by" id="edit-paid-by-value" value="">
@@ -562,40 +423,35 @@
             </div>
 
             <!-- Involved Roommates -->
-            <div style="margin-bottom:24px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <label class="ss-label" style="margin-bottom:0;">Involved Roommates <span
-                            style="color:#ef4444;">*</span></label>
-                    <div style="display:flex;gap:6px;">
+            <div class="field-group-lg">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="ss-label mb-0">Involved Roommates <span class="required-star">*</span></label>
+                    <div class="flex gap-1.5">
                         <button type="button" onclick="editSelectAllUsers()" class="ss-btn ss-btn-ghost"
                             style="padding:4px 10px;font-size:12px;min-height:28px;">All</button>
                         <button type="button" onclick="editDeselectAllUsers()" class="ss-btn ss-btn-ghost"
                             style="padding:4px 10px;font-size:12px;min-height:28px;">None</button>
                     </div>
                 </div>
-                <div id="edit-involved-users-list"
-                    style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+                <div id="edit-involved-users-list" class="check-list">
                     <?php foreach ($users as $user): ?>
-                        <label
-                            style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .1s;"
-                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-                            <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>" class="edit-involved-cb"
-                                style="width:16px;height:16px;accent-color:#5c6af0;cursor:pointer;flex-shrink:0;">
-                            <span style="font-size:14px;font-weight:500;color:#334155;"><?= esc($user->name) ?></span>
+                        <label class="check-list-item">
+                            <input type="checkbox" name="involved_users[]" value="<?= $user->id ?>"
+                                class="edit-involved-cb">
+                            <span><?= esc($user->name) ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>
-                <p id="edit-involved-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px;">
+                <p id="edit-involved-error" class="field-hint hidden">
                     Please select at least one roommate.
                 </p>
             </div>
 
             <!-- Actions -->
-            <div style="display:flex;gap:10px;">
-                <button type="button" onclick="closeEditModal()" class="ss-btn ss-btn-ghost"
-                    style="flex:1;">Cancel</button>
-                <button type="submit" id="editExpenseBtn" class="ss-btn ss-btn-primary" style="flex:2;">
-                    <i data-lucide="save" style="width:15px;height:15px;" id="editExpenseBtnIcon"></i>
+            <div class="flex gap-2.5">
+                <button type="button" onclick="closeEditModal()" class="ss-btn ss-btn-ghost flex-1">Cancel</button>
+                <button type="submit" id="editExpenseBtn" class="ss-btn ss-btn-primary flex-[2]">
+                    <i data-lucide="save" class="w-[15px] h-[15px]" id="editExpenseBtnIcon"></i>
                     <span id="editExpenseBtnText">Save Changes</span>
                 </button>
             </div>
@@ -627,7 +483,7 @@
     // ── Expense type → split_method map ─────────────────────────────
     var SPLIT_METHOD_MAP = {
         <?php foreach ($expenseTypes as $type): ?>
-                '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
+                        '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
         <?php endforeach; ?>
     };
 
@@ -826,27 +682,28 @@
         });
     }
 
-    // ── Render grid cards ─────────────────
-    // Mobile-first card — surfaces every list-view column (type,
-    // description, amount, billing month, period, paid by, involved)
-    // so a phone user never has to switch to list view to see a detail.
+    // ══════════════════════════════════════════════════════════════
+    // renderGrid() — every inline style="..." string is now a class
+    // from batch 1/5a (.expense-card, .card-icon-btn-*, .detail-row,
+    // .ss-badge variants). Hover states (border, button bg) are CSS
+    // :hover rules now, so the onmouseover/onmouseout pairs are gone.
+    // ══════════════════════════════════════════════════════════════
     function renderGrid(data) {
         var grid = document.getElementById('expenses-grid');
         var emptyEl = document.getElementById('expenses-grid-empty');
 
         if (!data || data.length === 0) {
             grid.innerHTML = '';
-            emptyEl.style.display = 'block';
+            emptyEl.classList.remove('hidden');
             return;
         }
-        emptyEl.style.display = 'none';
+        emptyEl.classList.add('hidden');
 
         // Small helper: one label/value row inside the card details block
         function detailRow(label, valueHtml) {
-            return '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">'
-                + '<span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;'
-                + 'letter-spacing:.04em;padding-top:2px;flex-shrink:0;">' + label + '</span>'
-                + '<span style="font-size:13px;font-weight:600;color:#334155;text-align:right;">' + valueHtml + '</span>'
+            return '<div class="detail-row">'
+                + '<span class="detail-label">' + label + '</span>'
+                + '<span class="detail-value">' + valueHtml + '</span>'
                 + '</div>';
         }
 
@@ -856,60 +713,45 @@
             var fromDate = fmtDate(e.from_date);
             var toDate = fmtDate(e.to_date);
             var period = (!e.from_date && !e.to_date)
-                ? '<span style="color:#cbd5e1;font-style:italic;font-weight:500;">Not set</span>'
+                ? '<span class="dt-empty">Not set</span>'
                 : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
 
             var paidByHtml = e.paid_by_name
-                ? '<span style="display:inline-flex;align-items:center;gap:4px;">'
-                + '<i data-lucide="user" style="width:11px;height:11px;color:#94a3b8;"></i>'
+                ? '<span class="inline-flex items-center gap-1">'
+                + '<i data-lucide="user" class="w-[11px] h-[11px] text-surface-400"></i>'
                 + e.paid_by_name + '</span>'
-                : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
-                + 'font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">'
-                + '<i data-lucide="clock" style="width:10px;height:10px;"></i>Pending</span>';
+                : '<span class="ss-badge ss-badge-amber gap-1">'
+                + '<i data-lucide="clock" class="w-[10px] h-[10px]"></i>Pending</span>';
 
             var involvedNames = (e.involved_names || '').trim();
             var involvedNamesHtml = involvedNames
-                ? '<div style="margin-top:2px;font-size:12px;line-height:1.5;color:#64748b;">' + involvedNames + '</div>'
+                ? '<div class="mt-0.5 text-xs leading-relaxed text-surface-500">' + involvedNames + '</div>'
                 : '';
 
             var descriptionHtml = e.description
-                ? '<div style="font-size:13px;color:#64748b;line-height:1.5;word-break:break-word;">' + e.description + '</div>'
-                : '<div style="font-size:13px;color:#cbd5e1;font-style:italic;">No description</div>';
+                ? '<div class="expense-card-desc">' + e.description + '</div>'
+                : '<div class="expense-card-desc-empty">No description</div>';
 
-            return '<div style="'
-                + 'background:#fff;border:1px solid #e2e8f0;border-radius:12px;'
-                + 'padding:16px;display:flex;flex-direction:column;gap:12px;'
-                + 'transition:border-color .15s;"'
-                + ' onmouseover="this.style.borderColor=\'#c7d2fe\'" onmouseout="this.style.borderColor=\'#e2e8f0\'">'
+            return '<div class="expense-card">'
 
                 // Top row: type badge + direct action buttons (one tap, no dropdown)
-                + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
-                + '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;'
-                + 'font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;margin-top:3px;">'
-                + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
+                + '<div class="expense-card-top">'
+                + '<span class="ss-badge ss-badge-pink gap-[5px] mt-0.5">'
+                + '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>'
                 + (e.expense_type || '—')
                 + '</span>'
-                + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
-                + '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" style="'
-                + 'width:38px;height:38px;border-radius:8px;border:none;'
-                + 'background:#e0e7ff;color:#4338ca;cursor:pointer;display:flex;align-items:center;'
-                + 'justify-content:center;transition:background .15s;flex-shrink:0;"'
-                + ' onmouseover="this.style.background=\'#c7d2fe\'" onmouseout="this.style.background=\'#e0e7ff\'">'
-                + '<i data-lucide="pencil" style="width:15px;height:15px;"></i>'
+                + '<div class="expense-card-actions">'
+                + '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" class="card-icon-btn card-icon-btn-edit">'
+                + '<i data-lucide="pencil" class="w-[15px] h-[15px]"></i>'
                 + '</button>'
-                + '<button onclick="deleteFromCard(\'' + e.id + '\')" title="Delete" style="'
-                + 'width:38px;height:38px;border-radius:8px;border:none;'
-                + 'background:#fee2e2;color:#dc2626;cursor:pointer;display:flex;align-items:center;'
-                + 'justify-content:center;transition:background .15s;flex-shrink:0;"'
-                + ' onmouseover="this.style.background=\'#fecaca\'" onmouseout="this.style.background=\'#fee2e2\'">'
-                + '<i data-lucide="trash-2" style="width:15px;height:15px;"></i>'
+                + '<button onclick="deleteFromCard(\'' + e.id + '\')" title="Delete" class="card-icon-btn card-icon-btn-delete">'
+                + '<i data-lucide="trash-2" class="w-[15px] h-[15px]"></i>'
                 + '</button>'
                 + '</div>'
                 + '</div>'
 
                 // Amount
-                + '<div style="font-size:24px;font-weight:700;color:#0f172a;'
-                + 'font-family:\'JetBrains Mono\',monospace;letter-spacing:-0.02em;">'
+                + '<div class="expense-card-amount">'
                 + fmt(e.amount)
                 + '</div>'
 
@@ -917,23 +759,18 @@
                 + descriptionHtml
 
                 // Detail rows — every remaining column, clearly labelled
-                + '<div style="display:flex;flex-direction:column;gap:9px;padding-top:12px;'
-                + 'border-top:1px solid #f1f5f9;">'
+                + '<div class="expense-card-details">'
 
-                + detailRow('Billing Month', '<span style="display:inline-flex;align-items:center;gap:4px;'
-                    + 'padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;'
-                    + 'background:#e0e7ff;color:#4338ca;font-family:\'JetBrains Mono\',monospace;">'
-                    + '<i data-lucide="calendar-range" style="width:10px;height:10px;"></i>'
+                + detailRow('Billing Month', '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">'
+                    + '<i data-lucide="calendar-range" class="w-[10px] h-[10px]"></i>'
                     + billingMonth + '</span>')
 
                 + detailRow('Period', period)
 
                 + detailRow('Paid By', paidByHtml)
 
-                + detailRow('Involved', '<span style="display:inline-flex;align-items:center;gap:4px;'
-                    + 'padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;'
-                    + 'background:#dbeafe;color:#1d4ed8;">'
-                    + '<i data-lucide="users" style="width:10px;height:10px;"></i>'
+                + detailRow('Involved', '<span class="ss-badge ss-badge-blue gap-1">'
+                    + '<i data-lucide="users" class="w-[10px] h-[10px]"></i>'
                     + (e.total_involved || 0) + '</span>')
                 + involvedNamesHtml
 
@@ -945,21 +782,10 @@
         lucide.createIcons({ nodes: [grid] });
     }
 
-    // ── Date-range hint helpers ──────────────────────────────────────
-    // Highlights the merged from/to box when either date input inside
-    // it is focused (native inputs have no border of their own now).
-    function setDateRangeBoxFocus(boxId, isFocused) {
-        var box = document.getElementById(boxId);
-        if (!box) return;
-        if (isFocused) {
-            box.style.borderColor = '#7f94f7';
-            box.style.boxShadow = '0 0 0 3px rgba(127,148,247,.15)';
-        } else {
-            box.style.borderColor = '#e2e8f0';
-            box.style.boxShadow = 'none';
-        }
-    }
-
+    // ══════════════════════════════════════════════════════════════
+    // 2) updateDateRangeUI — swap CSS classes instead of writing
+    //    background/border/color inline for every state change.
+    // ══════════════════════════════════════════════════════════════
     function updateDateRangeUI(prefix, splitMethod) {
         var isDaysPresent = splitMethod === 'daysPresent';
         var hintEl = document.getElementById(prefix + '-date-range-hint');
@@ -968,29 +794,25 @@
         var starTo = document.getElementById(prefix + '-to-required-star');
         var errEl = document.getElementById(prefix + '-date-error');
 
+        hintEl.classList.remove('hint-warn', 'hint-required', 'hint-optional');
+
         if (isDaysPresent) {
-            hintEl.style.background = '#fce7f3';
-            hintEl.style.borderColor = '#fbcfe8';
-            hintEl.style.color = '#9d174d';
+            hintEl.classList.add('hint-required');
             hintText.textContent = 'Required for this type — absent days are calculated from the date range.';
-            if (starFrom) starFrom.style.display = 'inline';
-            if (starTo) starTo.style.display = 'inline';
+            if (starFrom) starFrom.classList.remove('hidden');
+            if (starTo) starTo.classList.remove('hidden');
         } else if (splitMethod === '') {
-            hintEl.style.background = '#fef9c3';
-            hintEl.style.borderColor = '#fde68a';
-            hintEl.style.color = '#92400e';
+            hintEl.classList.add('hint-warn');
             hintText.textContent = 'Select an expense type to see if dates are required.';
-            if (starFrom) starFrom.style.display = 'none';
-            if (starTo) starTo.style.display = 'none';
+            if (starFrom) starFrom.classList.add('hidden');
+            if (starTo) starTo.classList.add('hidden');
         } else {
-            hintEl.style.background = '#f0fdf4';
-            hintEl.style.borderColor = '#bbf7d0';
-            hintEl.style.color = '#166534';
+            hintEl.classList.add('hint-optional');
             hintText.textContent = 'Optional for this expense type.';
-            if (starFrom) starFrom.style.display = 'none';
-            if (starTo) starTo.style.display = 'none';
+            if (starFrom) starFrom.classList.add('hidden');
+            if (starTo) starTo.classList.add('hidden');
         }
-        if (errEl) errEl.style.display = 'none';
+        if (errEl) errEl.classList.add('hidden');
     }
 
     function onAddTypeChange(typeId) {
@@ -1002,6 +824,11 @@
         updateDateRangeUI('edit', typeId ? method : '');
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // 3) validateDates — error border now toggles `.has-error` on the
+    //    daterange-box instead of writing borderColor directly, and no
+    //    longer calls the deleted setDateRangeBoxFocus().
+    // ══════════════════════════════════════════════════════════════
     function validateDates(prefix) {
         var typeId = document.getElementById(
             prefix === 'add' ? 'exp-type' : 'edit-exp-type'
@@ -1013,15 +840,15 @@
         var fromVal = document.getElementById(fromId).value;
         var toVal = document.getElementById(toId).value;
         if (!fromVal || !toVal) {
-            document.getElementById(prefix + '-date-error').style.display = 'block';
+            document.getElementById(prefix + '-date-error').classList.remove('hidden');
             var box = document.getElementById(prefix + '-daterange-box');
             if (box) {
-                box.style.borderColor = '#ef4444';
-                setTimeout(function () { setDateRangeBoxFocus(prefix + '-daterange-box', false); }, 2000);
+                box.classList.add('has-error');
+                setTimeout(function () { box.classList.remove('has-error'); }, 2000);
             }
             return false;
         }
-        document.getElementById(prefix + '-date-error').style.display = 'none';
+        document.getElementById(prefix + '-date-error').classList.add('hidden');
         return true;
     }
 
@@ -1055,76 +882,73 @@
             if (_currentView === 'grid') renderGrid(data);
         },
 
+        // ══════════════════════════════════════════════════════════════
+        // rowFn() — table-row renderer for the list view (SS.Table).
+        // Same treatment: .dt-cell for every <td>, .ss-badge variants for
+        // pills, .row-action-btn for Edit/Delete. Row hover now comes from
+        // `.ss-table-wrap tbody tr:hover` in main.php (batch 5a), so the
+        // onmouseover/onmouseout pair on <tr> is gone.
+        // ══════════════════════════════════════════════════════════════
         rowFn: function (e) {
             var fromDate = fmtDate(e.from_date);
             var toDate = fmtDate(e.to_date);
             var period = (!e.from_date && !e.to_date)
-                ? '<span style="color:#cbd5e1;font-style:italic;">—</span>'
+                ? '<span class="dt-empty">—</span>'
                 : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
 
             var billingMonth = e.billing_month || '—';
 
-            return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
+            return '<tr>'
 
                 + (IS_ADMIN
-                    ? '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;">'
-                    + '<input type="checkbox" class="row-checkbox" data-id="' + e.id + '" style="width:16px;height:16px;cursor:pointer;">'
+                    ? '<td class="dt-cell">'
+                    + '<input type="checkbox" class="row-checkbox w-4 h-4 cursor-pointer" data-id="' + e.id + '">'
                     + '</td>'
                     : '')
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
-                + '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
-                + '<i data-lucide="tag" style="width:11px;height:11px;"></i>'
+                + '<td class="dt-cell dt-cell-nowrap">'
+                + '<span class="ss-badge ss-badge-pink gap-[5px]">'
+                + '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>'
                 + (e.expense_type || '—')
                 + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;max-width:200px;">'
-                + '<span style="font-size:13px;color:#64748b;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
-                + (e.description || '<span style="color:#cbd5e1;font-style:italic;">No description</span>')
+                + '<td class="dt-cell" style="max-width:200px;">'
+                + '<span class="dt-cell-truncate text-[13px] text-surface-500">'
+                + (e.description || '<span class="dt-empty">No description</span>')
                 + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
-                + '<span style="font-size:14px;font-weight:700;color:#0f172a;font-family:\'JetBrains Mono\',monospace;">'
+                + '<td class="dt-cell dt-cell-nowrap">'
+                + '<span class="text-sm font-bold text-surface-900 font-mono">'
                 + fmt(e.amount) + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
-                + '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#e0e7ff;color:#4338ca;font-family:\'JetBrains Mono\',monospace;">'
-                + '<i data-lucide="calendar-range" style="width:11px;height:11px;"></i>'
+                + '<td class="dt-cell dt-cell-nowrap">'
+                + '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">'
+                + '<i data-lucide="calendar-range" class="w-[11px] h-[11px]"></i>'
                 + billingMonth + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
-                + '<span style="font-size:13px;color:#64748b;">' + period + '</span></td>'
+                + '<td class="dt-cell dt-cell-nowrap">'
+                + '<span class="text-[13px] text-surface-500">' + period + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">'
+                + '<td class="dt-cell dt-cell-nowrap">'
                 + (e.paid_by_name
-                    ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#334155;">'
-                    + '<i data-lucide="user" style="width:12px;height:12px;color:#94a3b8;"></i>'
+                    ? '<span class="inline-flex items-center gap-[5px] text-[13px] text-surface-700">'
+                    + '<i data-lucide="user" class="w-3 h-3 text-surface-400"></i>'
                     + e.paid_by_name + '</span>'
-                    : '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:#fef9c3;color:#a16207;">'
-                    + '<i data-lucide="clock" style="width:11px;height:11px;"></i>Pending</span>')
+                    : '<span class="ss-badge ss-badge-amber gap-[5px]">'
+                    + '<i data-lucide="clock" class="w-[11px] h-[11px]"></i>Pending</span>')
                 + '</td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;white-space:nowrap;text-align:center;">'
-                + '<span class="ss-involved-badge" data-names="' + (e.involved_names || '') + '" style="'
-                + 'display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;'
-                + 'font-size:12px;font-weight:600;background:#dbeafe;color:#1d4ed8;cursor:default;">'
-                + '<i data-lucide="users" style="width:11px;height:11px;"></i>'
+                + '<td class="dt-cell dt-cell-nowrap dt-cell-center">'
+                + '<span class="ss-involved-badge ss-badge ss-badge-blue gap-[5px]" data-names="' + (e.involved_names || '') + '" style="cursor:default;">'
+                + '<i data-lucide="users" class="w-[11px] h-[11px]"></i>'
                 + (e.total_involved || 0) + '</span></td>'
 
-                + '<td style="padding:13px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">'
-                + '<div style="display:inline-flex;gap:6px;align-items:center;">'
-                + '<button class="editExpenseBtn" data-id="' + e.id + '" style="'
-                + 'display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;'
-                + 'background:#e0e7ff;color:#4338ca;border:none;cursor:pointer;'
-                + 'font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;min-height:32px;transition:background .15s;"'
-                + ' onmouseover="this.style.background=\'#c7d2fe\'" onmouseout="this.style.background=\'#e0e7ff\'">'
-                + '<i data-lucide="pencil" style="width:12px;height:12px;"></i>Edit</button>'
-                + '<button class="deleteExpenseBtn" data-id="' + e.id + '" style="'
-                + 'display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;'
-                + 'background:#fee2e2;color:#dc2626;border:none;cursor:pointer;'
-                + 'font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;min-height:32px;transition:background .15s;"'
-                + ' onmouseover="this.style.background=\'#fecaca\'" onmouseout="this.style.background=\'#fee2e2\'">'
-                + '<i data-lucide="trash-2" style="width:12px;height:12px;"></i>Delete</button>'
+                + '<td class="dt-cell dt-cell-right dt-cell-nowrap">'
+                + '<div class="inline-flex gap-1.5 items-center">'
+                + '<button class="editExpenseBtn row-action-btn row-action-edit" data-id="' + e.id + '">'
+                + '<i data-lucide="pencil" class="w-3 h-3"></i>Edit</button>'
+                + '<button class="deleteExpenseBtn row-action-btn row-action-delete" data-id="' + e.id + '">'
+                + '<i data-lucide="trash-2" class="w-3 h-3"></i>Delete</button>'
                 + '</div></td>'
 
                 + '</tr>';
@@ -1212,6 +1036,10 @@
         document.getElementById('exp-type').focus();
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // 5) closeAddModal — error paragraphs toggle via classList('hidden')
+    //    to match the markup's Tailwind `hidden` class (batch 3).
+    // ══════════════════════════════════════════════════════════════
     function closeAddModal() {
         var modal = document.getElementById('add-expense-modal');
         var backdrop = document.getElementById('modal-backdrop');
@@ -1222,8 +1050,8 @@
             backdrop.style.display = 'none';
             document.getElementById('addExpenseForm').reset();
             deselectAllUsers();
-            document.getElementById('involved-error').style.display = 'none';
-            document.getElementById('add-date-error').style.display = 'none';
+            document.getElementById('involved-error').classList.add('hidden');
+            document.getElementById('add-date-error').classList.add('hidden');
             updateDateRangeUI('add', '');
             var pboNone = document.getElementById('pbo-none');
             var pbInput = document.getElementById('paid-by-value');
@@ -1251,17 +1079,21 @@
         window.setLucideIcon('addExpenseBtnIcon', 'plus');
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // 4) Add form submit handler — involved-users error now toggles
+    //    `.has-error` on the check-list instead of borderColor.
+    // ══════════════════════════════════════════════════════════════
     document.getElementById('addExpenseForm').addEventListener('submit', function (e) {
         e.preventDefault();
         var checked = document.querySelectorAll('#involved-users-list input[type="checkbox"]:checked');
         if (checked.length === 0) {
-            document.getElementById('involved-error').style.display = 'block';
+            document.getElementById('involved-error').classList.remove('hidden');
             var list = document.getElementById('involved-users-list');
-            list.style.borderColor = '#ef4444';
-            setTimeout(function () { list.style.borderColor = '#e2e8f0'; }, 2000);
+            list.classList.add('has-error');
+            setTimeout(function () { list.classList.remove('has-error'); }, 2000);
             return;
         }
-        document.getElementById('involved-error').style.display = 'none';
+        document.getElementById('involved-error').classList.add('hidden');
         if (!validateDates('add')) return;
         setAddBtnLoading();
         $.post('/expense/addExpense', $(this).serialize(), function (res) {
@@ -1360,8 +1192,8 @@
             modal.style.display = 'none';
             backdrop.style.display = 'none';
             document.getElementById('editExpenseForm').reset();
-            document.getElementById('edit-involved-error').style.display = 'none';
-            document.getElementById('edit-date-error').style.display = 'none';
+            document.getElementById('edit-involved-error').classList.add('hidden');
+            document.getElementById('edit-date-error').classList.add('hidden');
             updateDateRangeUI('edit', '');
             resetEditBtn();
             _editingId = null;
@@ -1397,17 +1229,21 @@
         window.setLucideIcon('editExpenseBtnIcon', 'save');
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // 6) Edit form submit handler + closeEditModal — same treatment,
+    //    mirrored for the edit-* ids.
+    // ══════════════════════════════════════════════════════════════
     document.getElementById('editExpenseForm').addEventListener('submit', function (e) {
         e.preventDefault();
         var checked = document.querySelectorAll('.edit-involved-cb:checked');
         if (checked.length === 0) {
-            document.getElementById('edit-involved-error').style.display = 'block';
+            document.getElementById('edit-involved-error').classList.remove('hidden');
             var list = document.getElementById('edit-involved-users-list');
-            list.style.borderColor = '#ef4444';
-            setTimeout(function () { list.style.borderColor = '#e2e8f0'; }, 2000);
+            list.classList.add('has-error');
+            setTimeout(function () { list.classList.remove('has-error'); }, 2000);
             return;
         }
-        document.getElementById('edit-involved-error').style.display = 'none';
+        document.getElementById('edit-involved-error').classList.add('hidden');
         if (!validateDates('edit')) return;
         setEditBtnLoading();
         $.post('/expense/updateExpense/' + _editingId, $(this).serialize(), function (res) {

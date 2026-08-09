@@ -10,112 +10,98 @@
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">
             Good <?php
-            $h = (int) date('H');
-            echo $h < 12 ? 'morning' : ($h < 17 ? 'afternoon' : 'evening');
-            ?>, <?= esc(session()->get('name')) ?> 👋
+                    $h = (int) date('H');
+                    echo $h < 12 ? 'morning' : ($h < 17 ? 'afternoon' : 'evening');
+                    ?>, <?= esc(session()->get('name')) ?> 👋
         </p>
     </div>
-    <a href="<?= base_url('/finaldistribution') ?>" class="ss-btn ss-btn-primary" style="text-decoration:none;">
-        <i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i>
+    <a href="<?= base_url('/finaldistribution') ?>" class="ss-btn ss-btn-primary no-underline">
+        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
         <span>View Distribution</span>
     </a>
 </div>
 
 <!-- Stat cards -->
-<div id="dash-stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px;">
+<div id="dash-stats-grid" class="grid gap-4 mb-7" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
 
-    <div class="ss-card" style="padding:20px 22px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <span style="font-size:13px;font-weight:600;color:#64748b;">Total Expenses</span>
-            <div
-                style="width:36px;height:36px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="receipt" style="width:16px;height:16px;color:#be185d;"></i>
+    <div class="ss-card stat-card">
+        <div class="stat-card-head">
+            <span class="stat-card-label">Total Expenses</span>
+            <div class="stat-icon-box bg-pink-100">
+                <i data-lucide="receipt" class="w-4 h-4 text-pink-700"></i>
             </div>
         </div>
-        <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-expenses">—</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">All recorded expenses</div>
+        <div class="stat-value" id="stat-expenses">—</div>
+        <div class="stat-caption">All recorded expenses</div>
     </div>
 
     <!-- This Month Expenses count — filtered by billing_month -->
-    <div class="ss-card" style="padding:20px 22px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <span style="font-size:13px;font-weight:600;color:#64748b;">This Month's Expenses</span>
-            <div
-                style="width:36px;height:36px;border-radius:10px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="calendar-range" style="width:16px;height:16px;color:#4338ca;"></i>
+    <div class="ss-card stat-card">
+        <div class="stat-card-head">
+            <span class="stat-card-label">This Month's Expenses</span>
+            <div class="stat-icon-box bg-indigo-100">
+                <i data-lucide="calendar-range" class="w-4 h-4 text-indigo-700"></i>
             </div>
         </div>
-        <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-month-count">—</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Billing month: <span
-                id="stat-month-label"><?= date('M Y') ?></span></div>
+        <div class="stat-value" id="stat-month-count">—</div>
+        <div class="stat-caption">Billing month: <span id="stat-month-label"><?= date('M Y') ?></span></div>
     </div>
 
     <?php if (session()->get('role') === 'admin'): ?>
-        <div class="ss-card" style="padding:20px 22px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <span style="font-size:13px;font-weight:600;color:#64748b;">Total Users</span>
-                <div
-                    style="width:36px;height:36px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i data-lucide="users" style="width:16px;height:16px;color:#7c3aed;"></i>
+        <div class="ss-card stat-card">
+            <div class="stat-card-head">
+                <span class="stat-card-label">Total Users</span>
+                <div class="stat-icon-box bg-violet-100">
+                    <i data-lucide="users" class="w-4 h-4 text-violet-600"></i>
                 </div>
             </div>
-            <div class="stat-value" style="font-size:28px;font-weight:700;color:#0f172a;letter-spacing:-0.03em;" id="stat-users">—</div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Registered roommates</div>
+            <div class="stat-value" id="stat-users">—</div>
+            <div class="stat-caption">Registered roommates</div>
         </div>
     <?php endif; ?>
 
-    <div class="ss-card" style="padding:20px 22px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <span style="font-size:13px;font-weight:600;color:#64748b;">Current Month</span>
-            <div
-                style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="calendar" style="width:16px;height:16px;color:#15803d;"></i>
+    <div class="ss-card stat-card">
+        <div class="stat-card-head">
+            <span class="stat-card-label">Current Month</span>
+            <div class="stat-icon-box bg-green-100">
+                <i data-lucide="calendar" class="w-4 h-4 text-green-700"></i>
             </div>
         </div>
-        <div class="stat-value" style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.02em;"><?= date('M Y') ?></div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px;"><?= date('l, d F') ?></div>
+        <div class="stat-value" style="font-size:22px;letter-spacing:-0.02em;"><?= date('M Y') ?></div>
+        <div class="stat-caption"><?= date('l, d F') ?></div>
     </div>
 
 </div>
 
 <!-- Main grid -->
-<div id="dashboard-grid" style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+<div id="dashboard-grid" class="grid gap-5 items-start grid-cols-[1fr_300px]">
 
     <!-- Recent Expenses -->
     <div class="ss-card">
-        <div class="ss-card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="ss-card-header flex items-center justify-between gap-3 flex-wrap">
             <div>
-                <h2 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Recent Expenses</h2>
-                <p style="font-size:13px;color:#94a3b8;margin:3px 0 0;">Most recent 5 expenses</p>
+                <h2 class="text-[15px] font-bold text-surface-900 m-0">Recent Expenses</h2>
+                <p class="text-[13px] text-surface-400 mt-[3px] mb-0">Most recent 5 expenses</p>
             </div>
             <a href="<?= base_url('/expense') ?>"
-                style="font-size:13px;font-weight:600;color:#5c6af0;text-decoration:none;display:flex;align-items:center;gap:4px;white-space:nowrap;">
-                View all <i data-lucide="arrow-right" style="width:14px;height:14px;"></i>
+                class="text-[13px] font-semibold text-brand-500 no-underline flex items-center gap-1 whitespace-nowrap">
+                View all <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
             </a>
         </div>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-            <table class="recent-expenses-table" style="width:100%;border-collapse:collapse;min-width:400px;">
+        <div class="overflow-x-auto" style="-webkit-overflow-scrolling:touch;">
+            <table class="recent-expenses-table w-full border-collapse" style="min-width:400px;">
                 <thead>
-                    <tr style="background:#f8fafc;">
-                        <th
-                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
-                            Type</th>
-                        <th
-                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
-                            Amount</th>
-                        <th
-                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
-                            Paid By</th>
-                        <th
-                            style="padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;">
-                            Billing Month</th>
+                    <tr class="bg-surface-50">
+                        <th class="mini-table-th">Type</th>
+                        <th class="mini-table-th">Amount</th>
+                        <th class="mini-table-th">Paid By</th>
+                        <th class="mini-table-th">Billing Month</th>
                     </tr>
                 </thead>
                 <tbody id="recent-expenses-body">
                     <tr>
-                        <td colspan="4" style="padding:32px 16px;text-align:center;color:#cbd5e1;font-size:14px;">
-                            <i data-lucide="loader"
-                                style="width:18px;height:18px;display:inline-block;margin-bottom:6px;"></i>
+                        <td colspan="4" class="mini-table-empty-td">
+                            <i data-lucide="loader" class="w-[18px] h-[18px] inline-block mb-1.5"></i>
                             <div>Loading…</div>
                         </td>
                     </tr>
@@ -125,113 +111,106 @@
     </div>
 
     <!-- Right column -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="flex flex-col gap-4">
 
         <!-- Quick Actions -->
         <div class="ss-card">
             <div class="ss-card-header">
-                <h2 style="font-size:15px;font-weight:700;color:#0f172a;margin:0;">Quick Actions</h2>
+                <h2 class="text-[15px] font-bold text-surface-900 m-0">Quick Actions</h2>
             </div>
-            <div style="padding:12px 8px;">
+            <div class="py-3 px-2">
 
                 <?php if (session()->get('role') === 'admin'): ?>
-                    <a href="<?= base_url('/user') ?>"
-                        style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
-                        onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                        <div
-                            style="width:34px;height:34px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i data-lucide="users" style="width:16px;height:16px;color:#7c3aed;"></i>
+                    <a href="<?= base_url('/user') ?>" class="qa-link">
+                        <div class="qa-icon-box bg-violet-100">
+                            <i data-lucide="users" class="w-4 h-4 text-violet-600"></i>
                         </div>
                         <div>
-                            <div style="font-size:13px;font-weight:600;">Manage Users</div>
-                            <div style="font-size:12px;color:#94a3b8;">Add or remove members</div>
+                            <div class="qa-title">Manage Users</div>
+                            <div class="qa-subtitle">Add or remove members</div>
                         </div>
-                        <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
+                        <i data-lucide="chevron-right" class="qa-chevron"></i>
                     </a>
                 <?php endif; ?>
 
-                <a href="<?= base_url('/expense') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
-                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div
-                        style="width:34px;height:34px;border-radius:8px;background:#fce7f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="plus-circle" style="width:16px;height:16px;color:#be185d;"></i>
+                <a href="<?= base_url('/expense') ?>" class="qa-link">
+                    <div class="qa-icon-box bg-pink-100">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-pink-700"></i>
                     </div>
                     <div>
-                        <div style="font-size:13px;font-weight:600;">Add Expense</div>
-                        <div style="font-size:12px;color:#94a3b8;">Record a new expense</div>
+                        <div class="qa-title">Add Expense</div>
+                        <div class="qa-subtitle">Record a new expense</div>
                     </div>
-                    <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
+                    <i data-lucide="chevron-right" class="qa-chevron"></i>
                 </a>
 
-                <a href="<?= base_url('/absentday') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
-                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div
-                        style="width:34px;height:34px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="calendar-x" style="width:16px;height:16px;color:#4338ca;"></i>
+                <a href="<?= base_url('/absentday') ?>" class="qa-link">
+                    <div class="qa-icon-box bg-indigo-100">
+                        <i data-lucide="calendar-x" class="w-4 h-4 text-indigo-700"></i>
                     </div>
                     <div>
-                        <div style="font-size:13px;font-weight:600;">Mark Absence</div>
-                        <div style="font-size:12px;color:#94a3b8;">Record absent days</div>
+                        <div class="qa-title">Mark Absence</div>
+                        <div class="qa-subtitle">Record absent days</div>
                     </div>
-                    <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
+                    <i data-lucide="chevron-right" class="qa-chevron"></i>
                 </a>
 
-                <a href="<?= base_url('/finaldistribution') ?>"
-                    style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;text-decoration:none;color:#1e293b;transition:background .15s;min-height:44px;box-sizing:border-box;"
-                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-                    <div
-                        style="width:34px;height:34px;border-radius:8px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="bar-chart-2" style="width:16px;height:16px;color:#15803d;"></i>
+                <a href="<?= base_url('/finaldistribution') ?>" class="qa-link">
+                    <div class="qa-icon-box bg-green-100">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-green-700"></i>
                     </div>
                     <div>
-                        <div style="font-size:13px;font-weight:600;">
+                        <div class="qa-title">
                             <?= session()->get('role') === 'admin' ? 'Generate Distribution' : 'View Distribution' ?>
                         </div>
-                        <div style="font-size:12px;color:#94a3b8;">
+                        <div class="qa-subtitle">
                             <?= session()->get('role') === 'admin' ? 'Calculate monthly split' : 'View monthly split' ?>
                         </div>
                     </div>
-                    <i data-lucide="chevron-right" style="width:14px;height:14px;color:#cbd5e1;margin-left:auto;"></i>
+                    <i data-lucide="chevron-right" class="qa-chevron"></i>
                 </a>
 
             </div>
         </div>
 
         <!-- This month card — total driven by billing_month -->
-        <div id="dash-billing-card" class="ss-card" style="padding:20px 22px;background:#1a1b4b;border:none;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                <i data-lucide="zap" style="width:16px;height:16px;color:#a5bbfb;"></i>
-                <span style="font-size:13px;font-weight:600;color:#a5bbfb;">
+        <div id="dash-billing-card" class="ss-card stat-card bg-brand-950 border-none">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="zap" class="w-4 h-4 text-brand-300"></i>
+                <span class="text-[13px] font-semibold text-brand-300">
                     Billing Month: <span id="stat-month-billing-label"><?= date('M Y') ?></span>
                 </span>
             </div>
-            <div class="stat-value-lg" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.03em;font-family:'JetBrains Mono',monospace;"
+            <div class="stat-value-lg text-[28px] font-bold text-white font-mono" style="letter-spacing:-0.03em;"
                 id="stat-month-total">—</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;">Total billed this month</div>
+            <div class="text-xs text-white/50 mt-1">Total billed this month</div>
+
             <!-- Breakdown bar: filled proportionally by billing_month expenses vs all -->
-            <div style="margin-top:14px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <span style="font-size:11px;color:rgba(255,255,255,.45);">Share of all-time total</span>
-                    <span style="font-size:11px;font-weight:600;color:#a5bbfb;" id="stat-month-pct">—</span>
+            <div class="mt-3.5">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-[11px] text-white/45">Share of all-time total</span>
+                    <span class="text-[11px] font-semibold text-brand-300" id="stat-month-pct">—</span>
                 </div>
-                <div style="height:4px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;">
-                    <div id="stat-month-bar"
-                        style="height:100%;width:0%;background:#818cf8;border-radius:99px;transition:width .6s ease;">
-                    </div>
+                <div class="h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="stat-month-bar" class="h-full rounded-full" style="width:0%;background:#818cf8;transition:width .6s ease;"></div>
                 </div>
             </div>
-            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);">
+
+            <div class="mt-4 pt-4" style="border-top:1px solid rgba(255,255,255,.1);">
                 <a href="<?= base_url('/finaldistribution') ?>"
-                    style="font-size:13px;font-weight:600;color:#7f94f7;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-                    View breakdown <i data-lucide="arrow-right" style="width:13px;height:13px;"></i>
+                    class="text-[13px] font-semibold text-brand-400 no-underline inline-flex items-center gap-1">
+                    View breakdown <i data-lucide="arrow-right" class="w-[13px] h-[13px]"></i>
                 </a>
             </div>
         </div>
 
     </div>
 </div>
+
+<!-- The @media style block below this in the original file (mobile grid
+     collapse, .stat-value / .stat-value-lg overrides) is untouched — every
+     class it targets (#dash-stats-grid, .recent-expenses-table, .stat-value,
+     #dash-billing-card, .stat-value-lg) still exists with the same name. -->
 
 <style>
     @media (max-width: 768px) {
@@ -247,6 +226,7 @@
             align-items: flex-start !important;
             gap: 14px !important;
         }
+
         .page-header .ss-btn-primary {
             width: 100%;
             justify-content: center;
@@ -256,9 +236,11 @@
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
         }
+
         #dash-stats-grid .ss-card {
             padding: 14px 14px !important;
         }
+
         #dash-stats-grid .stat-value {
             font-size: 20px !important;
         }
@@ -266,6 +248,7 @@
         #dash-billing-card {
             padding: 18px !important;
         }
+
         #dash-billing-card .stat-value-lg {
             font-size: 22px !important;
         }
@@ -275,9 +258,11 @@
         #dash-stats-grid {
             grid-template-columns: 1fr !important;
         }
+
         .recent-expenses-table {
             min-width: 340px !important;
         }
+
         .recent-expenses-table th,
         .recent-expenses-table td {
             padding: 8px 10px !important;
@@ -299,7 +284,8 @@
 
     function fmt(n) {
         return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2, maximumFractionDigits: 2
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
     }
 
@@ -319,7 +305,7 @@
     // ── Resolve the actual "billing month" to use for dashboard stats ────────
     // Mirrors finaldistribution/index.php — always reflects the most recently
     // generated distribution month, not just today's calendar month.
-    $.get('/finaldistribution/getLatestMonth', function (res) {
+    $.get('/finaldistribution/getLatestMonth', function(res) {
         if (res && res.month) {
             currentMonth = res.month;
             var label = fmtBillingMonth(currentMonth);
@@ -328,20 +314,29 @@
             if (el1) el1.textContent = label;
             if (el2) el2.textContent = label;
         }
-    }).always(function () {
+    }).always(function() {
         // Only fetch expenses once we know which billing month to filter by
         loadDashboardExpenses();
     });
 
     <?php if (session()->get('role') === 'admin'): ?>
-        $.get('/user/getUsers', function (res) {
+        $.get('/user/getUsers', function(res) {
             var el = document.getElementById('stat-users');
             if (el) el.textContent = (res.data || []).length;
         });
     <?php endif; ?>
 
+    // ══════════════════════════════════════════════════════════════
+    // loadDashboardExpenses() — only the parts that build HTML strings
+    // changed. Row hover now comes from `.recent-expenses-table tbody
+    // tr:hover` in main.php (batch 1 of this pass), so the per-row
+    // onmouseover/onmouseout pair is gone. Badges reuse the same
+    // .ss-badge-pink / .ss-badge-indigo / .ss-badge-amber classes
+    // already used on the expense list — "Pending" here now matches
+    // "Pending" there exactly, instead of a slightly different yellow.
+    // ══════════════════════════════════════════════════════════════
     function loadDashboardExpenses() {
-        $.get('/expense/getExpenses', function (res) {
+        $.get('/expense/getExpenses', function(res) {
             var all = res.data || [];
 
             // ── Stat: total expense count (all time) ────────────────────────────
@@ -349,7 +344,7 @@
 
             // ── Filter by billing_month for this-month stats ─────────────────────
             // billing_month is the canonical field — do NOT use from_date for this.
-            var thisMonth = all.filter(function (e) {
+            var thisMonth = all.filter(function(e) {
                 return (e.billing_month || '') === currentMonth;
             });
 
@@ -357,19 +352,19 @@
             document.getElementById('stat-month-count').textContent = thisMonth.length;
 
             // ── Stat: total amount billed this month ─────────────────────────────
-            var monthTotal = thisMonth.reduce(function (sum, e) {
+            var monthTotal = thisMonth.reduce(function(sum, e) {
                 return sum + parseFloat(e.amount || 0);
             }, 0);
             document.getElementById('stat-month-total').textContent = fmt(monthTotal);
 
             // ── Progress bar: this month's total vs all-time total ───────────────
-            var allTotal = all.reduce(function (sum, e) {
+            var allTotal = all.reduce(function(sum, e) {
                 return sum + parseFloat(e.amount || 0);
             }, 0);
             var pct = allTotal > 0 ? Math.min(100, (monthTotal / allTotal) * 100) : 0;
             document.getElementById('stat-month-pct').textContent = pct.toFixed(1) + '%';
             // Defer so CSS transition fires after paint
-            setTimeout(function () {
+            setTimeout(function() {
                 document.getElementById('stat-month-bar').style.width = pct.toFixed(1) + '%';
             }, 100);
 
@@ -378,44 +373,38 @@
             var tbody = document.getElementById('recent-expenses-body');
 
             if (recent.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#cbd5e1;font-size:14px;">No expenses recorded yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="mini-table-empty-td">No expenses recorded yet</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = recent.map(function (e) {
-                var paidBy = e.paid_by_name
-                    ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#334155;">'
-                    + e.paid_by_name + '</span>'
-                    : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#fef9c3;color:#a16207;">Pending</span>';
+            tbody.innerHTML = recent.map(function(e) {
+                var paidBy = e.paid_by_name ?
+                    '<span class="text-[13px] text-surface-700">' + e.paid_by_name + '</span>' :
+                    '<span class="ss-badge ss-badge-amber">Pending</span>';
 
                 // Billing month pill — highlight if it matches the current billing month
                 var bm = e.billing_month || '';
                 var bmLabel = fmtBillingMonth(bm);
                 var bmIsCurrentMonth = bm === currentMonth;
-                var bmPill = '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;'
-                    + 'font-size:11px;font-weight:600;font-family:\'JetBrains Mono\',monospace;'
-                    + (bmIsCurrentMonth
-                        ? 'background:#e0e7ff;color:#4338ca;">'
-                        : 'background:#f1f5f9;color:#64748b;">')
-                    + bmLabel + '</span>';
+                var bmPill = '<span class="ss-badge font-mono ' + (bmIsCurrentMonth ? 'ss-badge-indigo' : 'ss-badge-gray') + '">' +
+                    bmLabel + '</span>';
 
-                return '<tr style="transition:background .1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'\'">'
-                    + '<td style="padding:12px 16px;font-size:13px;color:#334155;border-bottom:1px solid #f1f5f9;font-weight:500;">'
-                    + '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#fce7f3;color:#be185d;">'
-                    + (e.expense_type || '—') + '</span>'
-                    + '</td>'
-                    + '<td style="padding:12px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9;font-weight:700;font-family:\'JetBrains Mono\',monospace;white-space:nowrap;">'
-                    + fmt(e.amount)
-                    + '</td>'
-                    + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + paidBy + '</td>'
-                    + '<td style="padding:12px 16px;border-bottom:1px solid #f1f5f9;">' + bmPill + '</td>'
-                    + '</tr>';
+                return '<tr>' +
+                    '<td class="mini-table-td font-medium">' +
+                    '<span class="ss-badge ss-badge-pink">' + (e.expense_type || '—') + '</span>' +
+                    '</td>' +
+                    '<td class="mini-table-td font-mono whitespace-nowrap" style="font-weight:700;color:#0f172a;">' +
+                    fmt(e.amount) +
+                    '</td>' +
+                    '<td class="mini-table-td">' + paidBy + '</td>' +
+                    '<td class="mini-table-td">' + bmPill + '</td>' +
+                    '</tr>';
             }).join('');
 
             lucide.createIcons();
-        }).fail(function () {
+        }).fail(function() {
             document.getElementById('recent-expenses-body').innerHTML =
-                '<tr><td colspan="4" style="padding:32px 16px;text-align:center;color:#ef4444;font-size:13px;">Failed to load expenses.</td></tr>';
+                '<tr><td colspan="4" class="mini-table-empty-td" style="color:#ef4444;">Failed to load expenses.</td></tr>';
         });
     }
 </script>

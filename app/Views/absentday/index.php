@@ -12,87 +12,63 @@
     </div>
 </div>
 
-<!-- ── Main card ──────────────────────────────────────────────────────────── -->
+<!-- ── Main card ────────────────────────────────────────────────────────── -->
 <div class="ss-card">
 
     <!-- Toolbar -->
-    <div class="ss-card-header" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-        <i data-lucide="calendar-search" style="width:15px;height:15px;color:#94a3b8;flex-shrink:0;"></i>
-        <select id="expensePicker" class="ss-input" style="flex:1;min-width:200px;max-width:480px;"
+    <div class="ss-card-header flex items-center gap-3 flex-wrap">
+        <i data-lucide="calendar-search" class="w-[15px] h-[15px] text-surface-400 flex-shrink-0"></i>
+        <select id="expensePicker" class="ss-input flex-1" style="min-width:200px;max-width:480px;"
             onchange="loadAbsentDay()">
             <option value="">— Select an expense —</option>
         </select>
-        <span id="loadingSpinner" style="display:none;font-size:0.82rem;color:#5c6af0;align-items:center;gap:5px;">
-            <i data-lucide="loader-2" style="width:13px;height:13px;"></i> Loading…
+        <span id="loadingSpinner" class="hidden items-center gap-[5px] text-[0.82rem]" style="color:#5c6af0;">
+            <i data-lucide="loader-2" class="w-[13px] h-[13px]"></i> Loading…
         </span>
     </div>
 
     <!-- Info strip (shown after expense selected) -->
-    <div id="expenseInfo"
-        style="display:none;flex-wrap:wrap;gap:1.5rem;padding:0.85rem 1.4rem;background:#f8fafc;border-bottom:1px solid #f1f5f9;">
+    <div id="expenseInfo" class="info-strip">
         <div>
-            <p
-                style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 0.2rem;">
-                Expense Type</p>
-            <p id="infoType" style="font-size:0.875rem;font-weight:600;color:#1e293b;margin:0;"></p>
+            <p class="info-label">Expense Type</p>
+            <p id="infoType" class="info-value"></p>
         </div>
         <div>
-            <p
-                style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 0.2rem;">
-                Period</p>
-            <p id="infoPeriod"
-                style="font-size:0.82rem;font-weight:600;color:#1e293b;margin:0;font-family:'JetBrains Mono',monospace;">
-            </p>
+            <p class="info-label">Period</p>
+            <p id="infoPeriod" class="info-value-mono"></p>
         </div>
         <div>
-            <p
-                style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 0.2rem;">
-                Total Days</p>
-            <p id="infoTotalDays" style="font-size:0.875rem;font-weight:600;color:#5c6af0;margin:0;"></p>
+            <p class="info-label">Total Days</p>
+            <p id="infoTotalDays" class="info-value" style="color:#5c6af0;"></p>
         </div>
         <div>
-            <p
-                style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin:0 0 0.2rem;">
-                Amount</p>
-            <p id="infoAmount"
-                style="font-size:0.82rem;font-weight:600;color:#1e293b;margin:0;font-family:'JetBrains Mono',monospace;">
-            </p>
+            <p class="info-label">Amount</p>
+            <p id="infoAmount" class="info-value-mono"></p>
         </div>
     </div>
 
     <!-- Card sub-header row (shown when table is visible) -->
-    <div id="cardMeta"
-        style="display:none;padding:0.85rem 1.4rem 0.5rem;display:none;align-items:baseline;gap:0.5rem;flex-wrap:wrap;">
-        <span style="font-size:0.95rem;font-weight:600;color:#1e293b;">Absences</span>
-        <span id="periodLabel" style="font-size:0.8rem;color:#94a3b8;"></span>
+    <div id="cardMeta" class="card-meta-row">
+        <span class="text-[0.95rem] font-semibold text-surface-800">Absences</span>
+        <span id="periodLabel" class="text-[0.8rem] text-surface-400"></span>
     </div>
 
     <!-- Empty state -->
-    <div id="emptyState" style="padding:3.5rem 2rem;text-align:center;color:#94a3b8;">
-        <i data-lucide="calendar-search"
-            style="width:44px;height:44px;margin:0 auto 0.85rem;color:#cbd5e1;display:block;"></i>
-        <p style="font-size:0.95rem;font-weight:600;color:#64748b;margin:0 0 0.3rem;">Select an expense to manage
-            absences</p>
-        <p style="font-size:0.82rem;margin:0;">Only expenses with <em>Days Present</em> split method appear above</p>
+    <div id="emptyState" class="empty-state">
+        <i data-lucide="calendar-search" class="empty-state-icon"></i>
+        <p class="empty-state-title">Select an expense to manage absences</p>
+        <p class="empty-state-desc">Only expenses with <em>Days Present</em> split method appear above</p>
     </div>
 
     <!-- Table wrapper — horizontal scroll on small screens -->
-    <div id="tableWrap" class="ss-table-wrap" style="display:none;">
-        <table style="width:100%;border-collapse:collapse;">
+    <div id="tableWrap" class="ss-table-wrap hidden">
+        <table class="w-full border-collapse">
             <thead>
-                <tr style="border-bottom:1px solid #f1f5f9;background:#f8fafc;">
-                    <th
-                        style="padding:0.7rem 1.25rem;font-size:0.72rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;">
-                        Member</th>
-                    <th
-                        style="padding:0.7rem 1.25rem;font-size:0.72rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;text-align:center;white-space:nowrap;">
-                        Days Absent</th>
-                    <th
-                        style="padding:0.7rem 1.25rem;font-size:0.72rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;text-align:center;white-space:nowrap;">
-                        Days Present</th>
-                    <th
-                        style="padding:0.7rem 1.25rem;font-size:0.72rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;text-align:right;white-space:nowrap;">
-                        Actions</th>
+                <tr class="border-b border-surface-100 bg-surface-50">
+                    <th class="abs-th text-left">Member</th>
+                    <th class="abs-th text-center">Days Absent</th>
+                    <th class="abs-th text-center">Days Present</th>
+                    <th class="abs-th text-right">Actions</th>
                 </tr>
             </thead>
             <tbody id="absentTableBody"></tbody>
@@ -102,68 +78,56 @@
 </div>
 
 <!-- ── Edit Modal ──────────────────────────────────────────────────────────── -->
-<div id="editBackdrop"
-    style="display:none;position:fixed;inset:0;background:rgba(15,22,41,.45);z-index:100;opacity:0;transition:opacity .18s;">
-</div>
-<div id="editModal"
-    style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.97);z-index:101;width:calc(100% - 2rem);max-width:440px;background:#fff;border-radius:16px;opacity:0;transition:opacity .18s,transform .18s;overflow:hidden;">
+<div id="editBackdrop" class="modal-backdrop" style="z-index:100;"></div>
+
+<div id="editModal" class="modal-panel modal-shell" style="z-index:101;max-width:440px;">
 
     <!-- Modal header -->
-    <div
-        style="display:flex;align-items:flex-start;gap:1rem;padding:1.5rem 1.5rem 1.1rem;border-bottom:1px solid #f1f5f9;">
-        <div
-            style="width:40px;height:40px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7c3aed;">
-            <i data-lucide="calendar-x" style="width:18px;height:18px;"></i>
+    <div class="modal-header items-start">
+        <div class="modal-header-info items-start">
+            <div class="modal-header-icon bg-violet-100" style="width:40px;height:40px;">
+                <i data-lucide="calendar-x" class="w-[18px] h-[18px] text-violet-600"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="modal-header-title">Edit Absent Days</h3>
+                <p class="modal-header-subtitle">Update absence record for this expense period</p>
+            </div>
         </div>
-        <div style="flex:1;min-width:0;">
-            <p style="font-size:1rem;font-weight:700;color:#1e293b;margin:0 0 0.2rem;">Edit Absent Days</p>
-            <p style="font-size:0.8rem;color:#94a3b8;margin:0;">Update absence record for this expense period</p>
-        </div>
-        <button class="ss-btn ss-btn-ghost" onclick="closeEditModal()"
-            style="width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="x" style="width:15px;height:15px;"></i>
+        <button onclick="closeEditModal()" class="icon-btn icon-btn-muted icon-btn-sm">
+            <i data-lucide="x"></i>
         </button>
     </div>
 
     <!-- Modal body -->
-    <div style="padding:1.25rem 1.5rem;">
+    <div class="modal-body modal-form">
 
         <!-- Meta summary -->
-        <div
-            style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-bottom:1.1rem;padding:0.85rem;background:#f8fafc;border-radius:10px;border:1px solid #f1f5f9;">
+        <div class="meta-grid-2">
             <div>
-                <p
-                    style="font-size:0.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:0 0 0.15rem;">
-                    Member</p>
-                <p id="editUserName" style="font-size:0.875rem;font-weight:600;color:#1e293b;margin:0;"></p>
+                <p class="info-label">Member</p>
+                <p id="editUserName" class="info-value"></p>
             </div>
             <div>
-                <p
-                    style="font-size:0.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin:0 0 0.15rem;">
-                    Period</p>
-                <p id="editPeriod"
-                    style="font-size:0.78rem;font-weight:600;color:#1e293b;margin:0;font-family:'JetBrains Mono',monospace;">
-                </p>
+                <p class="info-label">Period</p>
+                <p id="editPeriod" class="info-value-mono"></p>
             </div>
         </div>
 
         <!-- Days absent input -->
         <label class="ss-label" for="editDaysAbsent">
-            Days Absent <span style="color:#dc2626;">*</span>
+            Days Absent <span class="required-star">*</span>
         </label>
-        <input type="number" id="editDaysAbsent" class="ss-input" style="width:100%;box-sizing:border-box;" min="0"
-            placeholder="0">
-        <p id="editDaysHint" style="font-size:0.75rem;color:#94a3b8;margin:0.35rem 0 0;"></p>
+        <input type="number" id="editDaysAbsent" class="ss-input" min="0" placeholder="0">
+        <p id="editDaysHint" class="text-xs text-surface-400 mt-1.5"></p>
     </div>
 
     <!-- Modal footer -->
-    <div
-        style="display:flex;gap:0.75rem;justify-content:flex-end;padding:1rem 1.5rem;border-top:1px solid #f1f5f9;background:#f8fafc;">
+    <div class="flex gap-3 justify-end p-4 border-t border-surface-100 bg-surface-50">
         <input type="hidden" id="editUserId">
         <input type="hidden" id="editExpenseId">
         <button class="ss-btn ss-btn-ghost" onclick="closeEditModal()">Cancel</button>
         <button class="ss-btn ss-btn-primary" id="btnSave" onclick="saveAbsentDay()">
-            <i data-lucide="save" style="width:14px;height:14px;"></i>
+            <i data-lucide="save" class="w-[14px] h-[14px]"></i>
             Save Changes
         </button>
     </div>
@@ -176,9 +140,14 @@
     const loggedInUserId = <?= (int) session()->get('user_id') ?>;
 
     const AVATAR_COLORS = [
-        ['#ede9fe', '#7c3aed'], ['#fce7f3', '#be185d'], ['#dcfce7', '#15803d'],
-        ['#fef9c3', '#a16207'], ['#dbeafe', '#1d4ed8'], ['#fee2e2', '#dc2626'],
-        ['#e0e7ff', '#4338ca'], ['#f0fdf4', '#166534'],
+        ['#ede9fe', '#7c3aed'],
+        ['#fce7f3', '#be185d'],
+        ['#dcfce7', '#15803d'],
+        ['#fef9c3', '#a16207'],
+        ['#dbeafe', '#1d4ed8'],
+        ['#fee2e2', '#dc2626'],
+        ['#e0e7ff', '#4338ca'],
+        ['#f0fdf4', '#166534'],
     ];
 
     // ── Helpers ────────────────────────────────────────────────────────────────
@@ -201,15 +170,18 @@
     }
 
     function formatMoney(n) {
-        return '₹' + parseFloat(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return '₹' + parseFloat(n).toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
     // ── Expense list cache ─────────────────────────────────────────────────────
     let expenseList = [];
 
     // ── Load expense dropdown ──────────────────────────────────────────────────
-    $(document).ready(function () {
-        $.get('/absentday/getExpenses', function (res) {
+    $(document).ready(function() {
+        $.get('/absentday/getExpenses', function(res) {
             expenseList = res.data || [];
             const select = document.getElementById('expensePicker');
 
@@ -218,7 +190,7 @@
                 return;
             }
 
-            expenseList.forEach(function (exp) {
+            expenseList.forEach(function(exp) {
                 const label = exp.expense_type + '  (' + formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date) + ')';
                 const opt = document.createElement('option');
                 opt.value = exp.id;
@@ -226,7 +198,7 @@
                 select.appendChild(opt);
             });
 
-        }).fail(function () {
+        }).fail(function() {
             ssToast('Failed to load expenses.', 'error');
         });
     });
@@ -247,7 +219,9 @@
         }
 
         // Populate info strip from cache
-        const exp = expenseList.find(function (e) { return e.id == expenseId; });
+        const exp = expenseList.find(function(e) {
+            return e.id == expenseId;
+        });
         if (exp) {
             document.getElementById('infoType').textContent = exp.expense_type;
             document.getElementById('infoPeriod').textContent = formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date);
@@ -258,7 +232,7 @@
         document.getElementById('loadingSpinner').style.display = 'inline-flex';
         document.getElementById('emptyState').style.display = 'none';
 
-        $.get('/absentday/getAbsentDays/' + expenseId, function (res) {
+        $.get('/absentday/getAbsentDays/' + expenseId, function(res) {
             document.getElementById('loadingSpinner').style.display = 'none';
 
             const data = res.data || [];
@@ -277,68 +251,73 @@
             renderTable(data, totalDays, exp);
             document.getElementById('tableWrap').style.display = 'block';
 
-        }).fail(function () {
+        }).fail(function() {
             document.getElementById('loadingSpinner').style.display = 'none';
             document.getElementById('emptyState').style.display = 'block';
             ssToast('Failed to load absent days.', 'error');
         });
     }
 
-    // ── Render table rows ──────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════
+    // renderTable() — pills/avatar/cells now use classes from batch 1.
+    // Two things removed as genuinely dead weight:
+    //   1. onmouseenter/onmouseleave — #tableWrap already has the
+    //      `.ss-table-wrap` class, which already got a
+    //      `tbody tr:hover { background:#f8fafc }` rule (and its own
+    //      transition) added to main.php during the expense-view pass.
+    //      The per-row JS handlers were re-implementing that from scratch.
+    //   2. `canEdit` was computed twice — once for the ternary, once
+    //      again for the setLucideIcon check with the identical
+    //      expression. Computed once now, reused for both.
+    // ══════════════════════════════════════════════════════════════
     function renderTable(data, totalDays, exp) {
         const tbody = document.getElementById('absentTableBody');
         tbody.innerHTML = '';
 
-        data.forEach(function (row) {
+        data.forEach(function(row) {
             const [bg, fg] = avatarColor(row.name);
             const isZero = row.days_absent === 0;
             const period = exp ? formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date) : '';
+            const canEdit = isAdmin || row.user_id === loggedInUserId;
 
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #f8fafc';
-            tr.style.transition = 'background .12s';
-            tr.onmouseenter = function () { tr.style.background = '#f8fafc'; };
-            tr.onmouseleave = function () { tr.style.background = ''; };
 
-            // Absent pill colours
-            const pillBg = isZero ? '#dcfce7' : '#fee2e2';
-            const pillFg = isZero ? '#15803d' : '#dc2626';
+            const pillClass = isZero ? 'abs-pill-ok' : 'abs-pill-absent';
 
-            const canEdit = isAdmin || row.user_id === loggedInUserId;
-
-            const actionCell = canEdit
-                ? `<td style="padding:0.85rem 1.25rem;text-align:right;">
-                       <button class="ss-btn ss-btn-ghost" style="font-size:0.8rem;padding:0.32rem 0.75rem;"
-                           onclick="openEditModal(${row.user_id}, \'${row.name}\', ${row.expense_id}, \'${period}\', ${row.days_absent}, ${totalDays})">
-                           <i id="pencil-${row.user_id}" data-lucide="pencil" style="width:12px;height:12px;"></i>Edit
-                       </button>
-                   </td>`
-                : '<td></td>';
+            const actionCell = canEdit ?
+                `<td class="abs-td text-right">
+                   <button class="row-action-btn row-action-edit"
+                       onclick="openEditModal(${row.user_id}, \'${row.name}\', ${row.expense_id}, \'${period}\', ${row.days_absent}, ${totalDays})">
+                       <i id="pencil-${row.user_id}" data-lucide="pencil" class="w-3 h-3"></i>Edit
+                   </button>
+               </td>` :
+                '<td></td>';
 
             tr.innerHTML = `
-                <td style="padding:0.85rem 1.25rem;font-size:0.875rem;color:#334155;">
-                    <div style="display:flex;align-items:center;gap:0.65rem;">
-                        <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;background:${bg};color:${fg};">
-                            ${initials(row.name)}
-                        </div>
-                        <span style="font-weight:500;color:#1e293b;">${row.name}</span>
+            <td class="abs-td text-sm text-surface-700">
+                <div class="flex items-center gap-2.5">
+                    <div class="avatar-circle avatar-circle-lg" style="background:${bg};color:${fg};">
+                        ${initials(row.name)}
                     </div>
-                </td>
-                <td style="padding:0.85rem 1.25rem;text-align:center;">
-                    <span style="display:inline-block;padding:0.18rem 0.7rem;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;background:${pillBg};color:${pillFg};">
-                        ${row.days_absent}
-                    </span>
-                </td>
-                <td style="padding:0.85rem 1.25rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:#64748b;">
-                    ${row.days_present} / ${totalDays}
-                </td>
-                ${actionCell}
-            `;
+                    <span class="font-medium text-surface-900">${row.name}</span>
+                </div>
+            </td>
+            <td class="abs-td text-center">
+                <span class="abs-pill ${pillClass}">
+                    ${row.days_absent}
+                </span>
+            </td>
+            <td class="abs-td text-center font-mono text-[0.82rem] text-surface-500">
+                ${row.days_present} / ${totalDays}
+            </td>
+            ${actionCell}
+        `;
 
             tbody.appendChild(tr);
 
             // Re-render pencil icon using the safe project helper (not createIcons directly)
-            if (isAdmin || row.user_id === loggedInUserId) {
+            if (canEdit) {
                 window.setLucideIcon('pencil-' + row.user_id, 'pencil');
             }
         });
@@ -360,8 +339,8 @@
         const backdrop = document.getElementById('editBackdrop');
         const modal = document.getElementById('editModal');
         backdrop.style.display = 'block';
-        modal.style.display = 'block';
-        requestAnimationFrame(function () {
+        modal.style.display = 'flex';
+        requestAnimationFrame(function() {
             backdrop.style.opacity = '1';
             modal.style.opacity = '1';
             modal.style.transform = 'translate(-50%,-50%) scale(1)';
@@ -376,7 +355,7 @@
         backdrop.style.opacity = '0';
         modal.style.opacity = '0';
         modal.style.transform = 'translate(-50%,-50%) scale(.97)';
-        setTimeout(function () {
+        setTimeout(function() {
             backdrop.style.display = 'none';
             modal.style.display = 'none';
             document.getElementById('editDaysAbsent').value = '';
@@ -405,25 +384,29 @@
         $.ajax({
             url: '/absentday/upsert',
             type: 'POST',
-            data: { expense_id: expenseId, user_id: userId, days_absent: days },
-            success: function () {
+            data: {
+                expense_id: expenseId,
+                user_id: userId,
+                days_absent: days
+            },
+            success: function() {
                 btn.disabled = false;
                 closeEditModal();
                 ssToast('Absent days saved successfully.', 'success');
                 loadAbsentDay();
             },
-            error: function (xhr) {
+            error: function(xhr) {
                 btn.disabled = false;
-                const msg = xhr.responseJSON && xhr.responseJSON.error
-                    ? xhr.responseJSON.error
-                    : 'Failed to save. Please try again.';
+                const msg = xhr.responseJSON && xhr.responseJSON.error ?
+                    xhr.responseJSON.error :
+                    'Failed to save. Please try again.';
                 ssToast(msg, 'error');
             }
         });
     }
 
     // ── Escape key ─────────────────────────────────────────────────────────────
-    document.addEventListener('keydown', function (e) {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeEditModal();
     });
 </script>

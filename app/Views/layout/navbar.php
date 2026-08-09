@@ -14,7 +14,7 @@ function navActive(string $segment, string $check): string
     <!-- Logo -->
     <div class="sidebar-logo">
         <a href="<?= base_url('/') ?>" class="flex items-center gap-3 no-underline">
-            <img src="<?= base_url('/assets/smartsplit-dark.svg') ?>" alt="SmartSplit Logo" class="w-50 h-50">
+            <img src="<?= base_url('/assets/smartsplit-dark.svg') ?>" alt="SmartSplit Logo" class="w-[200px] h-auto">
         </a>
     </div>
 
@@ -24,7 +24,7 @@ function navActive(string $segment, string $check): string
         <!-- Main -->
         <div class="nav-section-label">Main</div>
 
-        <a href="<?= base_url('/') ?>" class="nav-link <?= ($seg1 === '') ? 'active' : '' ?>">
+        <a href="<?= base_url('/') ?>" class="nav-link <?= navActive($seg1, '') ?>">
             <i data-lucide="layout-dashboard" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Dashboard</span>
         </a>
@@ -54,25 +54,6 @@ function navActive(string $segment, string $check): string
             <span class="nav-text">Absent Days</span>
         </a>
 
-        <!-- Chapati -->
-        <!-- <div class="nav-section-label">Chapati</div>
-
-        <a href="<?= base_url('/chapatiexpense') ?>" class="nav-link <?= navActive($seg1, 'chapatiexpense') ?>">
-            <i data-lucide="utensils" class="nav-icon w-4 h-4"></i>
-            <span class="nav-text">Chapati Expenses</span>
-        </a>
-
-        <a href="<?= base_url('/chapatiabsence') ?>" class="nav-link <?= navActive($seg1, 'chapatiabsence') ?>">
-            <i data-lucide="calendar-x" class="nav-icon w-4 h-4"></i>
-            <span class="nav-text">Chapati Absences</span>
-        </a>
-
-        <a href="<?= base_url('/chapatiextraexpense') ?>"
-            class="nav-link <?= navActive($seg1, 'chapatiextraexpense') ?>">
-            <i data-lucide="plus-circle" class="nav-icon w-4 h-4"></i>
-            <span class="nav-text">Extra Expenses</span>
-        </a> -->
-
         <!-- Reports -->
         <div class="nav-section-label">Reports</div>
 
@@ -85,9 +66,7 @@ function navActive(string $segment, string $check): string
 
     <!-- Sidebar footer -->
     <div class="sidebar-footer">
-        <a href="<?= base_url('/auth/logout') ?>" class="nav-link" style="color:rgba(239,68,68,.75);"
-            onmouseover="this.style.background='rgba(239,68,68,.12)';this.style.color='#f87171';"
-            onmouseout="this.style.background='';this.style.color='rgba(239,68,68,.75)';">
+        <a href="<?= base_url('/auth/logout') ?>" class="nav-link nav-link-danger">
             <i data-lucide="log-out" class="nav-icon w-4 h-4"></i>
             <span class="nav-text">Logout</span>
         </a>
