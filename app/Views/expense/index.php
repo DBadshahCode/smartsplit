@@ -885,7 +885,8 @@
         // ══════════════════════════════════════════════════════════════
         // rowFn() — table-row renderer for the list view (SS.Table).
         // Same treatment: .dt-cell for every <td>, .ss-badge variants for
-        // pills, .row-action-btn for Edit/Delete. Row hover now comes from
+        // pills, .action-menu-* (3-dot menu, shared with the Users view)
+        // for Edit/Delete. Row hover comes from
         // `.ss-table-wrap tbody tr:hover` in main.php (batch 5a), so the
         // onmouseover/onmouseout pair on <tr> is gone.
         // ══════════════════════════════════════════════════════════════
@@ -944,17 +945,27 @@
                 + (e.total_involved || 0) + '</span></td>'
 
                 + '<td class="dt-cell dt-cell-right dt-cell-nowrap">'
-                + '<div class="inline-flex gap-1.5 items-center">'
-                + '<button class="editExpenseBtn row-action-btn row-action-edit" data-id="' + e.id + '">'
-                + '<i data-lucide="pencil" class="w-3 h-3"></i>Edit</button>'
-                + '<button class="deleteExpenseBtn row-action-btn row-action-delete" data-id="' + e.id + '">'
-                + '<i data-lucide="trash-2" class="w-3 h-3"></i>Delete</button>'
-                + '</div></td>'
+                + '<div class="action-menu-wrap">'
+                + '<button type="button" class="action-menu-trigger" aria-label="Actions">'
+                + '<i data-lucide="more-vertical" class="w-4 h-4"></i>'
+                + '</button>'
+                + '<div class="action-menu-dropdown">'
+                + '<button class="action-menu-item editExpenseBtn" data-id="' + e.id + '">'
+                + '<i data-lucide="pencil" class="w-3.5 h-3.5"></i>Edit</button>'
+                + '<div class="action-menu-divider"></div>'
+                + '<button class="action-menu-item action-menu-danger deleteExpenseBtn" data-id="' + e.id + '">'
+                + '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>'
+                + '</div></div></td>'
 
                 + '</tr>';
         },
 
         onRender: function (data) {
+            // Wire the 3-dot action menu for this render's rows.
+            // initActionMenus() lives in app.js (loaded globally from
+            // layout/main) — no per-view definition needed.
+            initActionMenus(document.getElementById('expenses-tbody'));
+
             // Wire list-view action buttons
             document.querySelectorAll('.deleteExpenseBtn').forEach(function (btn) {
                 btn.addEventListener('click', function () {

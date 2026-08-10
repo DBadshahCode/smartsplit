@@ -317,26 +317,33 @@
 
             ${isAdmin ? `
             <td class="abs-td text-right" style="white-space:nowrap;">
-                <div class="inline-flex items-center gap-2">
-                    <button class="toggleRoleBtn row-action-btn ${isAdminRole ? 'row-action-warn' : 'row-action-edit'}"
-                        data-id="${u.id}" data-name="${u.name}" data-role="${u.role}">
-                        <i data-lucide="${isAdminRole ? 'shield-off' : 'shield-check'}" class="w-3 h-3"></i>
-                        ${isAdminRole ? 'Demote' : 'Promote'}
+                <div class="action-menu-wrap">
+                    <button type="button" class="action-menu-trigger" aria-label="Actions">
+                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
                     </button>
-                    <button class="resetPwdBtn row-action-btn row-action-neutral" data-id="${u.id}" data-name="${u.name}">
-                        <i data-lucide="key-round" class="w-3 h-3"></i>
-                        Reset
-                    </button>
-                    <button class="deleteUserBtn row-action-btn row-action-delete" data-id="${u.id}" data-name="${u.name}">
-                        <i data-lucide="trash-2" class="w-3 h-3"></i>
-                        Delete
-                    </button>
+                    <div class="action-menu-dropdown">
+                        <button class="action-menu-item toggleRoleBtn ${isAdminRole ? 'action-menu-warn' : ''}"
+                            data-id="${u.id}" data-name="${u.name}" data-role="${u.role}">
+                            <i data-lucide="${isAdminRole ? 'shield-off' : 'shield-check'}" class="w-3.5 h-3.5"></i>
+                            ${isAdminRole ? 'Demote to User' : 'Promote to Admin'}
+                        </button>
+                        <button class="action-menu-item resetPwdBtn" data-id="${u.id}" data-name="${u.name}">
+                            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                            Reset Password
+                        </button>
+                        <div class="action-menu-divider"></div>
+                        <button class="action-menu-item deleteUserBtn action-menu-danger" data-id="${u.id}" data-name="${u.name}">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            Delete User
+                        </button>
+                    </div>
                 </div>
             </td>` : ''}
         </tr>`;
             }).join('');
 
             lucide.createIcons();
+            initActionMenus(tbody);
 
             // ── Delete handler — the two console.log() debug lines that
             // were here (id + jQuery-availability checks) are removed.

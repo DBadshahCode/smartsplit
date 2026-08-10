@@ -165,12 +165,11 @@
             });
     }
 
-    // ── generated_at: "2026-03-15 14:32:00" → "15 Mar 2026, 2:32 PM" ─
+    // ── generated_at: "2026-03-15 14:32:00" (UTC) → shown in visitor's own timezone ─
     function fmtGeneratedAt(raw) {
         if (!raw) return '';
-        // Handle both plain string and CI4 Time object serialised as {date:...}
         var str = (typeof raw === 'object' && raw.date) ? raw.date : String(raw);
-        var d = new Date(str.replace(' ', 'T'));
+        var d = new Date(str.replace(' ', 'T') + 'Z'); // 'Z' = treat source as UTC
         if (isNaN(d.getTime())) return str;
         return d.toLocaleDateString('en-IN', {
                 day: '2-digit',
