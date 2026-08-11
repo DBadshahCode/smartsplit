@@ -16,8 +16,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  * Generates a detailed Excel workbook for a SmartSplit monthly final distribution.
  *
  * Sheets produced:
- *   1. Summary          — one row per user: other expenses + advance → final
- *   2. Other Expenses   — PIVOT layout: rows = members, columns grouped by expense type.
+ *   1. Summary          — one row per user: expenses + advance → final
+ *   2. Expenses         — PIVOT layout: rows = members, columns grouped by expense type.
  *                         Row 4 = type name header. Row 5 = billing_month sub-header.
  *                         Each type group: member's sum across all entries of that type.
  *                         Only types with ≥1 entry that month appear. Grand Total rightmost col.
@@ -91,7 +91,7 @@ class ExcelExportService
         $this->wb->removeSheetByIndex(0);
 
         $this->buildSummarySheet($month, $users, $distributions);
-        $this->buildOtherExpensesSheet($month, $users, $expenses);
+        $this->buildExpensesSheet($month, $users, $expenses);
         $this->buildRawDataSheet($month, $users, $distributions);
 
         // Activate first sheet.
@@ -106,7 +106,7 @@ class ExcelExportService
     // ══════════════════════════════════════════════════════════════════════════
     // SHEET 1 — SUMMARY
     //
-    // Columns: # | Member | Other Expenses (₹) | Advance Paid (₹) | Final Amount (₹) | Status
+    // Columns: # | Member | Expenses (₹) | Advance Paid (₹) | Final Amount (₹) | Status
     // ══════════════════════════════════════════════════════════════════════════
 
     private function buildSummarySheet(string $month, array $users, array $distributions): void
@@ -149,7 +149,7 @@ class ExcelExportService
         $ws->getRowDimension(4)->setRowHeight(10);
 
         // ── Table header ──────────────────────────────────────────────────────
-        $headers = ['#', 'Member', 'Other Expenses (₹)', 'Advance Paid (₹)', 'Final Amount (₹)', 'Status'];
+        $headers = ['#', 'Member', 'Expenses (₹)', 'Advance Paid (₹)', 'Final Amount (₹)', 'Status'];
         $cols = ['A', 'B', 'C', 'D', 'E', 'F'];
 
         foreach ($headers as $i => $h) {
@@ -166,17 +166,17 @@ class ExcelExportService
 
         // ── Data rows ─────────────────────────────────────────────────────────
         $row = 6;
-        $totalOther = $totalAdvance = $totalFinal = 0.0;
+        $total = $totalAdvance = $totalFinal = 0.0;
 
         foreach ($users as $idx => $user) {
             $uid = $user['id'];
             $dist = $distributions[$uid] ?? [];
 
-            $other = (float) ($dist['expenses_amount'] ?? 0);
+            $expenses = (float) ($dist['expenses_amount'] ?? 0);
             $advance = (float) ($dist['advance_amount'] ?? 0);
             $final = (float) ($dist['final_amount'] ?? 0);
 
-            $totalOther += $other;
+            $total += $expenses;
             $totalAdvance += $advance;
             $totalFinal += $final;
 
@@ -184,7 +184,7 @@ class ExcelExportService
 
             $ws->setCellValue("A{$row}", $idx + 1);
             $ws->setCellValue("B{$row}", $user['name']);
-            $ws->setCellValue("C{$row}", $other);
+            $ws->setCellValue("C{$row}", $expenses);
             $ws->setCellValue("D{$row}", $advance);
             $ws->setCellValue("E{$row}", $final);
 
@@ -226,7 +226,7 @@ class ExcelExportService
         // ── Totals row ────────────────────────────────────────────────────────
         $ws->setCellValue("A{$row}", '');
         $ws->setCellValue("B{$row}", 'TOTAL');
-        $ws->setCellValue("C{$row}", $totalOther);
+        $ws->setCellValue("C{$row}", $total);
         $ws->setCellValue("D{$row}", $totalAdvance);
         $ws->setCellValue("E{$row}", $totalFinal);
         $ws->setCellValue("F{$row}", '');
@@ -291,9 +291,9 @@ class ExcelExportService
         // ── Notes block ───────────────────────────────────────────────────────
         $noteRow = $legendRow + 2;
         $notes = [
-            '• Other Expenses = Your share of household expenses (groceries, bills, etc.), split equally or by days present.',
+            '• Expenses = Your share of household expenses (groceries, bills, etc.), split equally or by days present.',
             '• Advance Paid = Total amount you paid upfront (recorded as paid_by on expense records).',
-            '• Final Amount = Other Expenses − Advance. Positive means you owe; negative means you are in credit.',
+            '• Final Amount = Expenses − Advance. Positive means you owe; negative means you are in credit.',
         ];
         foreach ($notes as $note) {
             $ws->mergeCells("A{$noteRow}:F{$noteRow}");
@@ -311,7 +311,7 @@ class ExcelExportService
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    // SHEET 2 — OTHER EXPENSES BREAKDOWN
+    // SHEET 2 — EXPENSES BREAKDOWN
     //
     // Layout:
     //   Row 1 : Sheet title
@@ -326,10 +326,10 @@ class ExcelExportService
     //   the sub-header shows them comma-separated.
     // ══════════════════════════════════════════════════════════════════════════
 
-    private function buildOtherExpensesSheet(string $month, array $users, array $expenses): void
+    private function buildExpensesSheet(string $month, array $users, array $expenses): void
     {
         $ws = $this->wb->createSheet();
-        $ws->setTitle('Other Expenses');
+        $ws->setTitle('Expenses');
         $ws->getTabColor()->setRGB(self::INDIGO);
 
         [$yr, $mo] = explode('-', $month);
@@ -380,7 +380,7 @@ class ExcelExportService
 
         // ── Step 3: Title rows ────────────────────────────────────────────────
         $ws->mergeCells("A1:{$lastCol}1");
-        $ws->setCellValue('A1', "Other Expenses Breakdown — {$monthLabel}");
+        $ws->setCellValue('A1', "Expenses Breakdown — {$monthLabel}");
         $this->styleCell($ws, 'A1', [
             'font' => ['bold' => true, 'size' => 14, 'color' => self::WHITE],
             'fill' => self::INDIGO,
@@ -481,7 +481,7 @@ class ExcelExportService
 
         if (empty($expenses)) {
             $ws->mergeCells("A{$dataRow}:{$lastCol}{$dataRow}");
-            $ws->setCellValue("A{$dataRow}", 'No other expenses recorded for this month.');
+            $ws->setCellValue("A{$dataRow}", 'No expenses recorded for this month.');
             $this->styleCell($ws, "A{$dataRow}", [
                 'color' => self::MID_TEXT,
                 'alignment' => 'center',

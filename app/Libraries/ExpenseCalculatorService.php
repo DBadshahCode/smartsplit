@@ -15,7 +15,7 @@ use App\Models\FinalDistribution as FinalDistributionModel;
  * expenses recorded against a given billing month.
  *
  * Chapati-related logic has been removed — this project no longer has a
- * chapati module. Only the "other expenses" (equal | daysPresent) flow
+ * chapati module. Only the "expenses" (equal | daysPresent) flow
  * remains.
  */
 class ExpenseCalculatorService
@@ -59,7 +59,7 @@ class ExpenseCalculatorService
     }
 
     /**
-     * SECTION 1 — Other expenses (split_method: equal | daysPresent).
+     * SECTION 1 — Expenses (split_method: equal | daysPresent).
      *
      * Every expense whose billing_month matches the requested month is
      * processed:
