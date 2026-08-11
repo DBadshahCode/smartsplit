@@ -117,7 +117,7 @@ class FinalDistribution extends BaseController
         try {
             $users = $this->buildUserList();
             $distributions = $this->buildDistributionMap($month);
-            $expenses = $this->buildExpenseDetail($month, $users);
+            $expenses = $this->buildExpenseDetail($month);
 
             $data = [
                 'users' => $users,
@@ -213,23 +213,22 @@ class FinalDistribution extends BaseController
      *   id, expense_type, from_date, to_date, amount, split_method,
      *   paid_by_name, billing_month, user_shares[user_id => amount]
      *
-     * @param  array<int, array{id: int, name: string}> $users
      * @return array<int, array<string, mixed>>
      */
-    private function buildExpenseDetail(string $month, array $users): array
+    private function buildExpenseDetail(string $month): array
     {
-        [$year, $mo] = explode('-', $month);
-        $start = $month . '-01';
-        $end = date('Y-m-t', mktime(0, 0, 0, (int) $mo, 1, (int) $year));
-
         // Single joined query — includes split_method directly.
+        // Filtered by billing_month (the canonical grouping field), NOT by
+        // from_date/to_date overlap — those are retained only for daysPresent
+        // share calculations, not for month membership.
         $db = DB::connect();
         $rawExpenses = $db->table('expenses e')
             ->select('e.id, e.amount, e.from_date, e.to_date, e.billing_month,
-                      et.name AS expense_type, et.split_method,
-                      u.name  AS paid_by_name')
+                  et.name AS expense_type, et.split_method,
+                  u.name  AS paid_by_name')
             ->join('expense_types et', 'et.id = e.expense_type_id', 'left')
             ->join('users u', 'u.id  = e.paid_by', 'left')
+            ->where('e.billing_month', $month)
             ->orderBy('e.id', 'DESC')
             ->get()
             ->getResultArray();
@@ -243,11 +242,6 @@ class FinalDistribution extends BaseController
             // Date strings — safe against CI4 Time objects.
             $fromStr = substr((string) $exp['from_date'], 0, 10);
             $toStr = substr((string) $exp['to_date'], 0, 10);
-
-            // Only expenses that overlap with this month.
-            if ($toStr < $start || $fromStr > $end) {
-                continue;
-            }
 
             $expId = (int) $exp['id'];
             $amount = (float) $exp['amount'];

@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use CodeIgniter\I18n\Time;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -47,6 +48,8 @@ class ExcelExportService
 
     // Lighter tint used for billing_month sub-header row in Sheet 2.
     private const INDIGO_SOFT = 'C7D2FE'; // indigo-200 equivalent
+    private const GT_TINT = 'E0E7FF';     // indigo-100 — sets Grand Total column apart
+    private const MONEY_FMT = '"₹"#,##0.00;[RED]-"₹"#,##0.00'; // currency w/ accounting-style negatives
 
     private Spreadsheet $wb;
 
@@ -110,6 +113,7 @@ class ExcelExportService
     {
         $ws = $this->wb->createSheet();
         $ws->setTitle('Summary');
+        $ws->getTabColor()->setRGB(self::INDIGO);
 
         [$yr, $mo] = explode('-', $month);
         $monthLabel = date('F Y', mktime(0, 0, 0, (int) $mo, 1, (int) $yr));
@@ -134,7 +138,7 @@ class ExcelExportService
         $ws->getRowDimension(2)->setRowHeight(24);
 
         $ws->mergeCells('A3:F3');
-        $ws->setCellValue('A3', 'Generated on: ' . date('d M Y, H:i'));
+        $ws->setCellValue('A3', 'Generated on: ' . Time::now()->toLocalizedString('dd MMM yyyy, HH:mm'));
         $this->styleCell($ws, 'A3', [
             'font' => ['size' => 9, 'color' => self::PERIWINKLE, 'italic' => true],
             'fill' => self::NAVY,
@@ -302,6 +306,7 @@ class ExcelExportService
             $noteRow++;
         }
 
+        $ws->freezePane('A6'); // header row stays visible while scrolling members
         $ws->setSelectedCell('A1');
     }
 
@@ -325,6 +330,7 @@ class ExcelExportService
     {
         $ws = $this->wb->createSheet();
         $ws->setTitle('Other Expenses');
+        $ws->getTabColor()->setRGB(self::INDIGO);
 
         [$yr, $mo] = explode('-', $month);
         $monthLabel = date('F Y', mktime(0, 0, 0, (int) $mo, 1, (int) $yr));
@@ -505,10 +511,10 @@ class ExcelExportService
                     $ws->setCellValue($cell, $amount);
                     $this->styleCell($ws, $cell, [
                         'fill' => $bgFill,
-                        'color' => self::DARK_TEXT,
+                        'color' => $amount < 0.005 ? self::MID_TEXT : self::DARK_TEXT,
                         'border' => 'all_thin',
                         'alignment' => 'right',
-                        'format' => '#,##0.00',
+                        'format' => self::MONEY_FMT,
                     ]);
 
                     $memberTotal += $amount;
@@ -518,11 +524,11 @@ class ExcelExportService
                 $gtCell = $lastCol . $dataRow;
                 $ws->setCellValue($gtCell, $memberTotal);
                 $this->styleCell($ws, $gtCell, [
-                    'fill' => $bgFill,
+                    'fill' => self::GT_TINT,
                     'color' => self::DARK_TEXT,
                     'border' => 'all_thin',
                     'alignment' => 'right',
-                    'format' => '#,##0.00',
+                    'format' => self::MONEY_FMT,
                     'font' => ['bold' => true],
                 ]);
 
@@ -551,7 +557,7 @@ class ExcelExportService
                 'color' => self::WHITE,
                 'border' => 'all_thin',
                 'alignment' => 'right',
-                'format' => '#,##0.00',
+                'format' => self::MONEY_FMT,
                 'font' => ['bold' => true],
             ]);
         }
@@ -563,7 +569,7 @@ class ExcelExportService
             'color' => self::WHITE,
             'border' => 'all_thin',
             'alignment' => 'right',
-            'format' => '#,##0.00',
+            'format' => self::MONEY_FMT,
             'font' => ['bold' => true],
         ]);
         $ws->getRowDimension($dataRow)->setRowHeight(22);
@@ -597,6 +603,7 @@ class ExcelExportService
     {
         $ws = $this->wb->createSheet();
         $ws->setTitle('Raw Data');
+        $ws->getTabColor()->setRGB(self::INDIGO);
 
         // ── Header row ────────────────────────────────────────────────────────
         $headers = [
@@ -622,15 +629,16 @@ class ExcelExportService
 
         // ── Data rows ─────────────────────────────────────────────────────────
         $row = 2;
-        $now = date('Y-m-d H:i:s');
+        $now = Time::now()->toDateTimeString();
 
-        foreach ($users as $user) {
+        foreach ($users as $idx => $user) {
             $uid = $user['id'];
             $dist = $distributions[$uid] ?? [];
+            $bgFill = ($idx % 2 === 0) ? self::WHITE : self::LIGHT_BG;
 
             $ws->setCellValue("A{$row}", $month);
             $ws->setCellValue("B{$row}", $uid);
-            $ws->setCellValue("C{$row}", $month); // billing_month = same as distribution month
+            $ws->setCellValue("C{$row}", $month);
             $ws->setCellValue("D{$row}", $user['name']);
             $ws->setCellValue("E{$row}", (float) ($dist['expenses_amount'] ?? 0));
             $ws->setCellValue("F{$row}", (float) ($dist['advance_amount'] ?? 0));
@@ -638,11 +646,10 @@ class ExcelExportService
             $ws->setCellValue("H{$row}", $now);
 
             foreach ($headers as $ci => $col) {
-                $style = ['border' => 'all_thin', 'color' => self::DARK_TEXT];
-                // Columns E–G are numeric amounts → right-align with number format.
+                $style = ['border' => 'all_thin', 'color' => self::DARK_TEXT, 'fill' => $bgFill];
                 if (in_array($ci, ['E', 'F', 'G'], true)) {
                     $style['alignment'] = 'right';
-                    $style['format'] = '#,##0.00';
+                    $style['format'] = self::MONEY_FMT;
                 }
                 $this->styleCell($ws, "{$ci}{$row}", $style);
             }
@@ -666,6 +673,11 @@ class ExcelExportService
             $ws->getColumnDimension($col)->setWidth($w);
         }
 
+        $lastDataRow = $row - 1;
+        if ($lastDataRow >= 2) {
+            $ws->setAutoFilter("A1:H{$lastDataRow}");
+        }
+        $ws->freezePane('A2');
         $ws->setSelectedCell('A1');
     }
 

@@ -254,19 +254,62 @@
         }
     }
 
-    @media (max-width: 400px) {
-        #dash-stats-grid {
-            grid-template-columns: 1fr !important;
-        }
-
+    /* ── Recent Expenses: table → stacked row card on narrow screens ──
+       Instead of shrinking 4 columns into ~340px (which forced the
+       Billing Month header/pill to wrap and rows to go ragged), each
+       row becomes two flex lines: Type+Amount, then Paid By+Month. ── */
+    @media (max-width: 480px) {
         .recent-expenses-table {
-            min-width: 340px !important;
+            min-width: 0 !important;
         }
 
-        .recent-expenses-table th,
+        .recent-expenses-table thead {
+            display: none;
+        }
+
+        .recent-expenses-table,
+        .recent-expenses-table tbody,
+        .recent-expenses-table tr {
+            display: block;
+            width: 100%;
+        }
+
+        .recent-expenses-table tr {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 12px 4px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
         .recent-expenses-table td {
-            padding: 8px 10px !important;
-            font-size: 12px !important;
+            display: block;
+            border-bottom: none !important;
+            padding: 3px 4px !important;
+            font-size: 13px !important;
+        }
+
+        /* Line 1: Type badge (left) ── Amount (right) */
+        .recent-expenses-table td:nth-child(1) {
+            order: 1;
+            flex: 1 1 auto;
+        }
+
+        .recent-expenses-table td:nth-child(2) {
+            order: 2;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        /* Line 2: Paid By (left) ── Billing Month pill (right) */
+        .recent-expenses-table td:nth-child(3) {
+            order: 3;
+            flex: 1 1 auto;
+        }
+
+        .recent-expenses-table td:nth-child(4) {
+            order: 4;
+            text-align: right;
         }
     }
 </style>
