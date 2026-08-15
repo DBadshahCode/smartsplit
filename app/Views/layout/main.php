@@ -97,11 +97,12 @@
      * @var array{
      *     id: int,
      *     name: string,
-     *     role: string
+     *     role: string,
+     *    isLoggedIn: bool
      * } $currentUser
      */
 
-    $isLoggedIn = $currentUser['isLoggedIn'] === true;
+    $isLoggedIn = (bool) ($currentUser['isLoggedIn'] ?? false);
     $userName   = (string) ($currentUser['name'] ?? '');
     $userRole   = (string) ($currentUser['role'] ?? 'guest');
     $groupName  = (string) ($currentUser['group_name'] ?? '');

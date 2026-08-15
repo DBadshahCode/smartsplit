@@ -9,7 +9,8 @@
  * @var array{
  *     id: int,
  *     name: string,
- *     role: string
+ *     role: string,
+ *     isLoggedIn: bool
  * } $currentUser
  * @var array $expenseTypes
  * @var array $users
