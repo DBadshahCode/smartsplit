@@ -4,6 +4,19 @@
 
 <?php $this->section('content'); ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ * @var App\Entities\User $user
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <div class="page-header">
     <div>
         <h1 class="page-title">Profile</h1>
@@ -66,10 +79,10 @@
                         <?= esc($user->name) ?>
                     </span>
                     <!-- Role badge -->
-                    <?php if (session()->get('role') === 'admin'): ?>
+                    <?php if ($isAdmin): ?>
                         <span class="ss-badge bg-violet-100 text-violet-600 uppercase tracking-wide">Admin</span>
                     <?php else: ?>
-                        <span class="ss-badge bg-surface-100 text-surface-600 uppercase tracking-wide">User</span>
+                        <span class="ss-badge bg-surface-100 text-surface-600 uppercase tracking-wide">Member</span>
                     <?php endif; ?>
                 </div>
                 <div id="overview-email" class="text-sm text-surface-500 mt-1">
@@ -130,8 +143,8 @@
                 <div class="relative">
                     <input class="ss-input pr-11" type="password" id="pw-current" placeholder="Enter current password"
                         autocomplete="current-password">
-                    <button type="button" class="pw-toggle-btn text-surface-400"
-                        data-target="pw-current"
+                    <button type="button" class="text-surface-400"
+                        data-toggle-password="pw-current"
                         style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;display:flex;">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
@@ -143,8 +156,8 @@
                 <div class="relative">
                     <input class="ss-input pr-11" type="password" id="pw-new" placeholder="At least 6 characters"
                         autocomplete="new-password">
-                    <button type="button" class="pw-toggle-btn text-surface-400"
-                        data-target="pw-new"
+                    <button type="button" class="text-surface-400"
+                        data-toggle-password="pw-new"
                         style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;display:flex;">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
@@ -156,8 +169,8 @@
                 <div class="relative">
                     <input class="ss-input pr-11" type="password" id="pw-confirm" placeholder="Repeat new password"
                         autocomplete="new-password">
-                    <button type="button" class="pw-toggle-btn text-surface-400"
-                        data-target="pw-confirm"
+                    <button type="button" class="text-surface-400"
+                        data-toggle-password="pw-confirm"
                         style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;display:flex;">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
@@ -167,7 +180,6 @@
             <!-- Strength indicator -->
             <div id="pw-strength-wrap" class="hidden">
                 <div class="flex gap-1 mb-1.5">
-                    <div class="pw-bar h-[3px] flex-1 rounded" style="background:#e2e8f0;"></div>
                     <div class="pw-bar h-[3px] flex-1 rounded" style="background:#e2e8f0;"></div>
                     <div class="pw-bar h-[3px] flex-1 rounded" style="background:#e2e8f0;"></div>
                     <div class="pw-bar h-[3px] flex-1 rounded" style="background:#e2e8f0;"></div>
@@ -189,40 +201,10 @@
     (function() {
 
         /* ── Avatar ─────────────────────────────────────────── */
-        const AVATAR_COLORS = [
-            ['#ede9fe', '#7c3aed'],
-            ['#fce7f3', '#be185d'],
-            ['#dcfce7', '#15803d'],
-            ['#fef9c3', '#a16207'],
-            ['#dbeafe', '#1d4ed8'],
-            ['#fee2e2', '#dc2626'],
-            ['#e0e7ff', '#4338ca'],
-            ['#f0fdf4', '#166534'],
-        ];
-
-        function avatarColor(name) {
-            let i = 0;
-            for (let c of (name || '')) i += c.charCodeAt(0);
-            return AVATAR_COLORS[i % AVATAR_COLORS.length];
-        }
-
-        function initials(name) {
-            if (!name) return '?';
-            const p = name.trim().split(' ');
-            return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
-        }
-
-        function renderAvatar(name) {
-            const el = document.getElementById('profile-avatar');
-            if (!el) return;
-            const [bg, fg] = avatarColor(name);
-            el.style.background = bg;
-            el.style.color = fg;
-            el.textContent = initials(name);
-        }
-
+        // Colour + initials logic now lives globally in app.js
+        // (window.renderAvatarInto) — no longer copy-pasted per view.
         const initialName = <?= json_encode($user->name) ?>;
-        renderAvatar(initialName);
+        window.renderAvatarInto('profile-avatar', initialName);
 
         /* ── Save personal info ──────────────────────────────── */
         document.getElementById('btn-save-info').addEventListener('click', function() {
@@ -254,7 +236,7 @@
                     // Reflect changes in the overview card
                     document.getElementById('overview-name').textContent = res.name || name;
                     document.getElementById('overview-email').textContent = email;
-                    renderAvatar(res.name || name);
+                    window.renderAvatarInto('profile-avatar', res.name || name);
                 },
                 error: function(xhr) {
                     const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to save changes.';
@@ -366,51 +348,12 @@
             });
         });
 
-        /* ── Password visibility toggles ────────────────────── */
-        document.querySelectorAll('.pw-toggle-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const input = document.getElementById(targetId);
-                if (!input) return;
-
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-
-                // Swap icon
-                const iconName = isHidden ? 'eye-off' : 'eye';
-                const iconEl = this.querySelector('i[data-lucide], svg');
-                if (iconEl) {
-                    const id = 'pw-toggle-icon-' + targetId;
-                    iconEl.id = id;
-                    window.setLucideIcon(id, iconName);
-                }
-            });
-        });
-
         /* ── Render icons ────────────────────────────────────── */
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
 
     })();
-
-    /* ── Monthly share ───────────────────────────────────── */
-    function fmtMoney(n) {
-        return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    function fmtMonthLabel(month) {
-        var parts = (month || '').split('-');
-        if (parts.length < 2) return month;
-        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1)
-            .toLocaleDateString('en-IN', {
-                month: 'long',
-                year: 'numeric'
-            });
-    }
 
     function loadShareData(month) {
         if (!month) return;
@@ -458,7 +401,7 @@
 
             result.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 4px;">' +
                 '<div style="font-size:32px;font-weight:700;color:#0f172a;font-family:\'JetBrains Mono\',monospace;letter-spacing:-0.02em;">' +
-                fmtMoney(Math.abs(final)) +
+                window.fmtMoney(Math.abs(final)) +
                 '</div>' +
                 '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border-radius:999px;' +
                 'font-size:12px;font-weight:700;background:' + badgeBg + ';color:' + badgeFg + ';">' +

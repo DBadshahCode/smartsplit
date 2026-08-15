@@ -4,6 +4,18 @@
 
 <?= $this->section('content') ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
@@ -35,7 +47,7 @@
             </button>
 
             <!-- Generate button — admin only -->
-            <?php if (session()->get('role') === 'admin'): ?>
+            <?php if ($isAdmin): ?>
                 <button id="generateBtn" onclick="generateDistribution()" class="ss-btn ss-btn-primary whitespace-nowrap">
                     <i data-lucide="zap" class="w-[15px] h-[15px]" id="generateBtnIcon"></i>
                     <span id="generateBtnText">Generate</span>
@@ -86,11 +98,11 @@
         <div>
             <h2 class="text-[15px] font-bold text-surface-900 m-0">Member Breakdown</h2>
             <p id="distribution-subtitle" class="text-[13px] text-surface-400 mt-[3px] mb-0">
-                Select a month and click <?= session()->get('role') === 'admin' ? 'Generate or View' : 'View' ?>
+                Select a month and click <?= $isAdmin ? 'Generate or View' : 'View' ?>
             </p>
         </div>
         <div class="flex items-start gap-2.5 flex-wrap">
-            <?php if (session()->get('role') === 'admin'): ?>
+            <?php if ($isAdmin): ?>
                 <button id="btnExportExcel" onclick="exportExcel()" class="btn-outline-indigo hidden">
                     <i data-lucide="file-spreadsheet" class="w-[14px] h-[14px]"></i>
                     Export Excel
@@ -126,7 +138,7 @@
                             <span class="text-sm text-surface-400 font-medium">No data yet</span>
                             <span class="text-[13px] text-surface-300">
                                 Select a month and click
-                                <?= session()->get('role') === 'admin' ? 'Generate to calculate' : 'View to load' ?>
+                                <?= $isAdmin ? 'Generate to calculate' : 'View to load' ?>
                                 the distribution
                             </span>
                         </div>
@@ -144,26 +156,11 @@
 <script>
     lucide.createIcons();
 
-    var isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
+    var isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
 
-    // ── Money formatter ──────────────────────────────────────────────
-    function fmt(n) {
-        return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    // ── Month label: "2026-03" → "March 2026" ───────────────────────
-    function fmtMonthLabel(month) {
-        var parts = (month || '').split('-');
-        if (parts.length < 2) return month;
-        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1)
-            .toLocaleDateString('en-IN', {
-                month: 'long',
-                year: 'numeric'
-            });
-    }
+    // Money formatting now lives globally as window.fmtMoney (app.js) —
+    // aliased locally so every existing fmt(...) call below is unchanged.
+    var fmt = window.fmtMoney;
 
     // ── generated_at: "2026-03-15 14:32:00" (UTC) → shown in visitor's own timezone ─
     function fmtGeneratedAt(raw) {
@@ -182,30 +179,6 @@
                 minute: '2-digit',
                 hour12: true
             });
-    }
-
-    // ── Avatar helpers ───────────────────────────────────────────────
-    var AVATAR_COLORS = [
-        ['#ede9fe', '#7c3aed'],
-        ['#fce7f3', '#be185d'],
-        ['#dcfce7', '#15803d'],
-        ['#fef9c3', '#a16207'],
-        ['#dbeafe', '#1d4ed8'],
-        ['#fee2e2', '#dc2626'],
-        ['#e0e7ff', '#4338ca'],
-        ['#f0fdf4', '#166534'],
-    ];
-
-    function avatarColor(name) {
-        var i = 0;
-        for (var ci = 0; ci < (name || '').length; ci++) i += (name || '').charCodeAt(ci);
-        return AVATAR_COLORS[i % AVATAR_COLORS.length];
-    }
-
-    function initials(name) {
-        if (!name) return '?';
-        var p = name.trim().split(' ');
-        return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -238,7 +211,9 @@
             '<i data-lucide="' + c.icon + '" class="w-[15px] h-[15px] flex-shrink-0"></i>' +
             '<span class="text-[13px] font-medium">' + msg + '</span>' +
             '</div>';
-        lucide.createIcons();
+        lucide.createIcons({
+            nodes: [el]
+        });
     }
 
     function hideStatus() {
@@ -287,7 +262,9 @@
                 (isAdmin ? 'Click Generate to calculate' : 'Click View to load') +
                 ' the distribution for this month</span>' +
                 '</div></td></tr>';
-            lucide.createIcons();
+            lucide.createIcons({
+                nodes: [tbody]
+            });
             return;
         }
 
@@ -321,6 +298,7 @@
             var colors = avatarColor(r.name);
             var bg = colors[0];
             var fg = colors[1];
+            var safeName = window.escHtml(r.name);
             var final = parseFloat(r.final_amount || 0);
             var expenses = parseFloat(r.expenses_amount || 0);
             var advance = parseFloat(r.advance_amount || 0);
@@ -354,7 +332,7 @@
                 '<div class="avatar-circle avatar-circle-lg" style="background:' + bg + ';color:' + fg + ';">' +
                 initials(r.name) +
                 '</div>' +
-                '<span class="text-sm font-semibold text-surface-900">' + (r.name || '—') + '</span>' +
+                '<span class="text-sm font-semibold text-surface-900">' + (safeName || '—') + '</span>' +
                 '</div></td>'
 
                 // Expenses
@@ -387,7 +365,7 @@
                 '</tr>';
         }).join('');
 
-        lucide.createIcons();
+        lucide.createIcons({ nodes: [tbody] });
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -408,7 +386,7 @@
             '<i data-lucide="loader" class="w-5 h-5 text-surface-200"></i>' +
             '<span class="text-sm">Loading…</span>' +
             '</div></td></tr>';
-        lucide.createIcons();
+        lucide.createIcons({ nodes: [tbody] });
 
         $.get('/finaldistribution/getDistribution/' + month, function(res) {
             renderTable(res.data || [], month);
@@ -430,7 +408,7 @@
     }
 
     // ── Generate distribution (admin only) ──────────────────────────
-    <?php if (session()->get('role') === 'admin'): ?>
+    <?php if ($isAdmin): ?>
 
         function generateDistribution() {
             var month = document.getElementById('month-input').value;
@@ -467,7 +445,7 @@
     <?php endif; ?>
 
     // ── Export Excel (admin only) ────────────────────────────────────
-    <?php if (session()->get('role') === 'admin'): ?>
+    <?php if ($isAdmin): ?>
 
         function exportExcel() {
             var month = document.getElementById('month-input').value;

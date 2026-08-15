@@ -4,6 +4,20 @@
 
 <?= $this->section('content') ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ * @var array $expenseTypes
+ * @var array $users
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
@@ -47,7 +61,7 @@
     </div>
 
     <!-- ── Bulk actions bar (admin only) ── -->
-    <?php if ($currentUser['role'] === 'admin'): ?>
+    <?php if ($isAdmin): ?>
         <div id="bulk-actions-bar"
             class="hidden items-center justify-between gap-3 px-5 py-2.5 bg-indigo-50 border-b border-indigo-100 flex-wrap">
             <div class="flex items-center gap-2.5 flex-wrap">
@@ -79,7 +93,7 @@
         <table class="w-full border-collapse" style="min-width:680px;">
             <thead>
                 <tr>
-                    <?php if ($currentUser['role'] === 'admin'): ?>
+                    <?php if ($isAdmin): ?>
                         <th data-ss-static="1" class="w-9 px-4 py-3.5 border-b border-surface-100">
                             <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)"
                                 class="w-4 h-4 cursor-pointer">
@@ -214,7 +228,7 @@
                     Paid By
                     <span class="text-[11px] font-normal text-surface-400 ml-1">optional — can be set later</span>
                 </label>
-                <?php if ($currentUser['role'] === 'admin'): ?>
+                <?php if ($isAdmin): ?>
                     <div class="field-icon-wrap">
                         <i data-lucide="user" class="field-icon"></i>
                         <select name="paid_by" class="ss-input ss-input-icon">
@@ -392,7 +406,7 @@
                     Paid By
                     <span class="text-[11px] font-normal text-surface-400 ml-1">optional</span>
                 </label>
-                <?php if ($currentUser['role'] === 'admin'): ?>
+                <?php if ($isAdmin): ?>
                     <div class="field-icon-wrap">
                         <i data-lucide="user" class="field-icon"></i>
                         <select id="edit-paid-by" name="paid_by" class="ss-input ss-input-icon">
@@ -470,29 +484,28 @@
     // Browsers change a focused <input type="number">'s value when the
     // mouse wheel scrolls over it. Blurring on wheel stops that while
     // still letting the page scroll normally underneath the cursor.
-    document.addEventListener('wheel', function (e) {
+    document.addEventListener('wheel', function(e) {
         var el = document.activeElement;
         if (el && el.tagName === 'INPUT' && el.type === 'number' && el === e.target) {
             el.blur();
         }
-    }, { passive: true });
+    }, {
+        passive: true
+    });
 
     // ── Role flag — bulk delete is admin-only ─────────────────────────
-    var IS_ADMIN = <?= $currentUser['role'] === 'admin' ? 'true' : 'false' ?>;
+    var isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
 
     // ── Expense type → split_method map ─────────────────────────────
-    var SPLIT_METHOD_MAP = {
-        <?php foreach ($expenseTypes as $type): ?>
-                        '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
+    var splitMethodMap = {
+        <?php foreach ($expenseTypes as $type): ?> '<?= (int) $type->id ?>': '<?= esc($type->split_method, 'js') ?>',
         <?php endforeach; ?>
     };
 
-    // ── Money formatter ──────────────────────────────────────────────
-    function fmt(n) {
-        return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2, maximumFractionDigits: 2
-        });
-    }
+    // Money formatting now lives globally as window.fmtMoney (app.js) —
+    // aliased locally so every existing fmt(...) call below is unchanged.
+    var fmt = window.fmtMoney;
+
     function fmtDate(d) {
         if (!d) return '—';
         var raw = (typeof d === 'object' && d.date) ? d.date : String(d);
@@ -505,7 +518,7 @@
     var _selectedIds = new Set();
 
     function toggleRowSelect(cb) {
-        if (!IS_ADMIN) return;
+        if (!isAdmin) return;
         var id = cb.dataset.id;
         if (cb.checked) {
             _selectedIds.add(id);
@@ -517,10 +530,10 @@
     }
 
     function toggleSelectAll(cb) {
-        if (!IS_ADMIN) return;
+        if (!isAdmin) return;
         // Selects/deselects only the rows on the currently rendered page.
         // Use "Select all N expenses" to grab everything loaded.
-        document.querySelectorAll('.row-checkbox').forEach(function (rowCb) {
+        document.querySelectorAll('.row-checkbox').forEach(function(rowCb) {
             rowCb.checked = cb.checked;
             var id = rowCb.dataset.id;
             if (cb.checked) {
@@ -542,7 +555,9 @@
             return;
         }
         var checkedCount = 0;
-        boxes.forEach(function (b) { if (b.checked) checkedCount++; });
+        boxes.forEach(function(b) {
+            if (b.checked) checkedCount++;
+        });
         selectAll.checked = checkedCount === boxes.length;
         selectAll.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
     }
@@ -553,11 +568,11 @@
     // this selects everything loaded, not just rows matching an active
     // search term.
     function selectAllMatching() {
-        if (!IS_ADMIN) return;
-        _lastData.forEach(function (e) {
+        if (!isAdmin) return;
+        _lastData.forEach(function(e) {
             _selectedIds.add(String(e.id));
         });
-        document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+        document.querySelectorAll('.row-checkbox').forEach(function(cb) {
             cb.checked = _selectedIds.has(cb.dataset.id);
         });
         syncSelectAllCheckbox();
@@ -565,7 +580,7 @@
     }
 
     function updateBulkBar() {
-        if (!IS_ADMIN) return;
+        if (!isAdmin) return;
         var bar = document.getElementById('bulk-actions-bar');
         var countEl = document.getElementById('bulk-selected-count');
         if (!bar || !countEl) return;
@@ -586,7 +601,9 @@
 
     function clearSelection() {
         _selectedIds.clear();
-        document.querySelectorAll('.row-checkbox').forEach(function (cb) { cb.checked = false; });
+        document.querySelectorAll('.row-checkbox').forEach(function(cb) {
+            cb.checked = false;
+        });
         var selectAll = document.getElementById('select-all-checkbox');
         if (selectAll) {
             selectAll.checked = false;
@@ -596,7 +613,7 @@
     }
 
     function bulkDeleteExpenses() {
-        if (!IS_ADMIN) return;
+        if (!isAdmin) return;
         var ids = Array.from(_selectedIds);
         if (!ids.length) return;
 
@@ -604,22 +621,24 @@
             title: 'Delete Expenses',
             message: 'Delete ' + ids.length + ' selected expense' + (ids.length > 1 ? 's' : '') + '? This cannot be undone.',
             confirmText: 'Delete',
-            onConfirm: function () {
+            onConfirm: function() {
                 $.ajax({
                     url: '/expense/bulkDeleteExpenses',
                     type: 'POST',
-                    data: { 'ids[]': ids },
-                    success: function (res) {
+                    data: {
+                        'ids[]': ids
+                    },
+                    success: function(res) {
                         var count = (res && res.deleted) ? res.deleted : ids.length;
                         ssToast(count + ' expense' + (count > 1 ? 's' : '') + ' deleted.', 'success');
                         _selectedIds.clear();
                         updateBulkBar();
                         _expenseTable.reload();
                     },
-                    error: function (xhr) {
-                        var msg = (xhr.responseJSON && xhr.responseJSON.error)
-                            ? xhr.responseJSON.error
-                            : 'Failed to delete selected expenses.';
+                    error: function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.error) ?
+                            xhr.responseJSON.error :
+                            'Failed to delete selected expenses.';
                         ssToast(msg, 'error');
                     }
                 });
@@ -664,17 +683,17 @@
             title: 'Delete Expense',
             message: 'Delete this expense? This cannot be undone.',
             confirmText: 'Delete',
-            onConfirm: function () {
+            onConfirm: function() {
                 $.ajax({
                     url: '/expense/deleteExpense/' + id,
                     type: 'DELETE',
-                    success: function () {
+                    success: function() {
                         ssToast('Expense deleted.', 'success');
                         _selectedIds.delete(String(id));
                         updateBulkBar();
                         _expenseTable.reload();
                     },
-                    error: function () {
+                    error: function() {
                         ssToast('Failed to delete expense.', 'error');
                     }
                 });
@@ -701,85 +720,97 @@
 
         // Small helper: one label/value row inside the card details block
         function detailRow(label, valueHtml) {
-            return '<div class="detail-row">'
-                + '<span class="detail-label">' + label + '</span>'
-                + '<span class="detail-value">' + valueHtml + '</span>'
-                + '</div>';
+            return '<div class="detail-row">' +
+                '<span class="detail-label">' + label + '</span>' +
+                '<span class="detail-value">' + valueHtml + '</span>' +
+                '</div>';
         }
 
-        grid.innerHTML = data.map(function (e) {
-            var billingMonth = e.billing_month || '—';
+        grid.innerHTML = data.map(function(e) {
+            var billingMonth = window.escHtml(e.billing_month || '—');
+            var safeType = window.escHtml(e.expense_type || '—');
 
             var fromDate = fmtDate(e.from_date);
             var toDate = fmtDate(e.to_date);
-            var period = (!e.from_date && !e.to_date)
-                ? '<span class="dt-empty">Not set</span>'
-                : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
+            var period = (!e.from_date && !e.to_date) ?
+                '<span class="dt-empty">Not set</span>' :
+                (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
 
-            var paidByHtml = e.paid_by_name
-                ? '<span class="inline-flex items-center gap-1">'
-                + '<i data-lucide="user" class="w-[11px] h-[11px] text-surface-400"></i>'
-                + e.paid_by_name + '</span>'
-                : '<span class="ss-badge ss-badge-amber gap-1">'
-                + '<i data-lucide="clock" class="w-[10px] h-[10px]"></i>Pending</span>';
+            var paidByHtml = e.paid_by_name ?
+                '<span class="inline-flex items-center gap-1">' +
+                '<i data-lucide="user" class="w-[11px] h-[11px] text-surface-400"></i>' +
+                window.escHtml(e.paid_by_name) + '</span>' :
+                '<span class="ss-badge ss-badge-amber gap-1">' +
+                '<i data-lucide="clock" class="w-[10px] h-[10px]"></i>Pending</span>';
 
-            var involvedNames = (e.involved_names || '').trim();
-            var involvedNamesHtml = involvedNames
-                ? '<div class="mt-0.5 text-xs leading-relaxed text-surface-500">' + involvedNames + '</div>'
-                : '';
+            var involvedNames = window.escHtml((e.involved_names || '').trim());
+            var involvedNamesHtml = involvedNames ?
+                '<div class="mt-0.5 text-xs leading-relaxed text-surface-500">' + involvedNames + '</div>' :
+                '';
 
-            var descriptionHtml = e.description
-                ? '<div class="expense-card-desc">' + e.description + '</div>'
-                : '<div class="expense-card-desc-empty">No description</div>';
+            var descriptionHtml = e.description ?
+                '<div class="expense-card-desc">' + window.escHtml(e.description) + '</div>' :
+                '<div class="expense-card-desc-empty">No description</div>';
 
             return '<div class="expense-card">'
 
-                // Top row: type badge + direct action buttons (one tap, no dropdown)
-                + '<div class="expense-card-top">'
-                + '<span class="ss-badge ss-badge-pink gap-[5px] mt-0.5">'
-                + '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>'
-                + (e.expense_type || '—')
-                + '</span>'
-                + '<div class="expense-card-actions">'
-                + '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" class="card-icon-btn card-icon-btn-edit">'
-                + '<i data-lucide="pencil" class="w-[15px] h-[15px]"></i>'
-                + '</button>'
-                + '<button onclick="deleteFromCard(\'' + e.id + '\')" title="Delete" class="card-icon-btn card-icon-btn-delete">'
-                + '<i data-lucide="trash-2" class="w-[15px] h-[15px]"></i>'
-                + '</button>'
-                + '</div>'
-                + '</div>'
+                +
+                '<div class="expense-card-top">' +
+                '<span class="ss-badge ss-badge-pink gap-[5px] mt-0.5">' +
+                '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>' +
+                safeType +
+                '</span>'
+            '<div class="expense-card-actions">' +
+            '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" class="card-icon-btn card-icon-btn-edit">' +
+                '<i data-lucide="pencil" class="w-[15px] h-[15px]"></i>' +
+                '</button>' +
+                '<button onclick="deleteFromCard(\'' + e.id + '\')" title="Delete" class="card-icon-btn card-icon-btn-delete">' +
+                '<i data-lucide="trash-2" class="w-[15px] h-[15px]"></i>' +
+                '</button>' +
+                '</div>' +
+                '</div>'
 
                 // Amount
-                + '<div class="expense-card-amount">'
-                + fmt(e.amount)
-                + '</div>'
+                +
+                '<div class="expense-card-amount">' +
+                fmt(e.amount) +
+                '</div>'
 
                 // Description
-                + descriptionHtml
+                +
+                descriptionHtml
 
                 // Detail rows — every remaining column, clearly labelled
-                + '<div class="expense-card-details">'
+                +
+                '<div class="expense-card-details">'
 
-                + detailRow('Billing Month', '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">'
-                    + '<i data-lucide="calendar-range" class="w-[10px] h-[10px]"></i>'
-                    + billingMonth + '</span>')
+                +
+                detailRow('Billing Month', '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">' +
+                    '<i data-lucide="calendar-range" class="w-[10px] h-[10px]"></i>' +
+                    billingMonth + '</span>')
 
-                + detailRow('Period', period)
+                +
+                detailRow('Period', period)
 
-                + detailRow('Paid By', paidByHtml)
+                +
+                detailRow('Paid By', paidByHtml)
 
-                + detailRow('Involved', '<span class="ss-badge ss-badge-blue gap-1">'
-                    + '<i data-lucide="users" class="w-[10px] h-[10px]"></i>'
-                    + (e.total_involved || 0) + '</span>')
-                + involvedNamesHtml
+                +
+                detailRow('Involved', '<span class="ss-badge ss-badge-blue gap-1">' +
+                    '<i data-lucide="users" class="w-[10px] h-[10px]"></i>' +
+                    (e.total_involved || 0) + '</span>') +
+                involvedNamesHtml
 
-                + '</div>'
+                +
+                '</div>'
 
-                + '</div>';
+                +
+                '</div>';
         }).join('');
 
-        lucide.createIcons({ nodes: [grid] });
+        lucide.createIcons({
+            nodes: [grid]
+        });
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -816,11 +847,12 @@
     }
 
     function onAddTypeChange(typeId) {
-        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        var method = splitMethodMap[String(typeId)] || '';
         updateDateRangeUI('add', typeId ? method : '');
     }
+
     function onEditTypeChange(typeId) {
-        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        var method = splitMethodMap[String(typeId)] || '';
         updateDateRangeUI('edit', typeId ? method : '');
     }
 
@@ -833,7 +865,7 @@
         var typeId = document.getElementById(
             prefix === 'add' ? 'exp-type' : 'edit-exp-type'
         ).value;
-        var method = SPLIT_METHOD_MAP[String(typeId)] || '';
+        var method = splitMethodMap[String(typeId)] || '';
         if (method !== 'daysPresent') return true;
         var fromId = prefix === 'add' ? 'exp-from' : 'edit-exp-from';
         var toId = prefix === 'add' ? 'exp-to' : 'edit-exp-to';
@@ -844,7 +876,9 @@
             var box = document.getElementById(prefix + '-daterange-box');
             if (box) {
                 box.classList.add('has-error');
-                setTimeout(function () { box.classList.remove('has-error'); }, 2000);
+                setTimeout(function() {
+                    box.classList.remove('has-error');
+                }, 2000);
             }
             return false;
         }
@@ -859,22 +893,48 @@
         countId: 'expense-count',
         searchPlaceholder: 'Search by type, description, paid by\u2026',
         pageSize: 15,
-        colSpan: <?= $currentUser['role'] === 'admin' ? 9 : 8 ?>,
+        colSpan: <?= $isAdmin ? 9 : 8 ?>,
 
-        cols: [
-            { label: 'Type', key: 'expense_type' },
-            { label: 'Description', key: 'description' },
-            { label: 'Amount', key: 'amount' },
-            { label: 'Billing Month', key: 'billing_month' },
-            { label: 'Period', key: 'from_date' },
-            { label: 'Paid By', key: 'paid_by_name' },
-            { label: 'Involved', key: 'total_involved', align: 'center' },
-            { label: 'Actions', key: null, sortable: false, align: 'right' },
+        cols: [{
+                label: 'Type',
+                key: 'expense_type'
+            },
+            {
+                label: 'Description',
+                key: 'description'
+            },
+            {
+                label: 'Amount',
+                key: 'amount'
+            },
+            {
+                label: 'Billing Month',
+                key: 'billing_month'
+            },
+            {
+                label: 'Period',
+                key: 'from_date'
+            },
+            {
+                label: 'Paid By',
+                key: 'paid_by_name'
+            },
+            {
+                label: 'Involved',
+                key: 'total_involved',
+                align: 'center'
+            },
+            {
+                label: 'Actions',
+                key: null,
+                sortable: false,
+                align: 'right'
+            },
         ],
 
-        onLoad: function (data) {
+        onLoad: function(data) {
             _lastData = data;
-            var total = data.reduce(function (s, e) {
+            var total = data.reduce(function(s, e) {
                 return s + parseFloat(e.amount || 0);
             }, 0);
             document.getElementById('expense-total').textContent = fmt(total);
@@ -890,101 +950,117 @@
         // `.ss-table-wrap tbody tr:hover` in main.php (batch 5a), so the
         // onmouseover/onmouseout pair on <tr> is gone.
         // ══════════════════════════════════════════════════════════════
-        rowFn: function (e) {
+        rowFn: function(e) {
             var fromDate = fmtDate(e.from_date);
             var toDate = fmtDate(e.to_date);
-            var period = (!e.from_date && !e.to_date)
-                ? '<span class="dt-empty">—</span>'
-                : (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
+            var period = (!e.from_date && !e.to_date) ?
+                '<span class="dt-empty">—</span>' :
+                (fromDate === toDate ? fromDate : fromDate + ' \u2192 ' + toDate);
 
-            var billingMonth = e.billing_month || '—';
+            var billingMonth = window.escHtml(e.billing_month || '—');
+            var safeType = window.escHtml(e.expense_type || '—');
+            var safeDescription = e.description ?
+                window.escHtml(e.description) :
+                '<span class="dt-empty">No description</span>';
+            var safePaidBy = window.escHtml(e.paid_by_name || '');
+            var safeInvolvedNames = window.escHtml(e.involved_names || '');
 
             return '<tr>'
 
-                + (IS_ADMIN
-                    ? '<td class="dt-cell">'
-                    + '<input type="checkbox" class="row-checkbox w-4 h-4 cursor-pointer" data-id="' + e.id + '">'
-                    + '</td>'
-                    : '')
+                +
+                (isAdmin ?
+                    '<td class="dt-cell">' +
+                    '<input type="checkbox" class="row-checkbox w-4 h-4 cursor-pointer" data-id="' + e.id + '">' +
+                    '</td>' :
+                    '')
 
-                + '<td class="dt-cell dt-cell-nowrap">'
-                + '<span class="ss-badge ss-badge-pink gap-[5px]">'
-                + '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>'
-                + (e.expense_type || '—')
-                + '</span></td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap">' +
+                '<span class="ss-badge ss-badge-pink gap-[5px]">' +
+                '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>' +
+                safeType +
+                '</span></td>'
 
-                + '<td class="dt-cell" style="max-width:200px;">'
-                + '<span class="dt-cell-truncate text-[13px] text-surface-500">'
-                + (e.description || '<span class="dt-empty">No description</span>')
-                + '</span></td>'
+                +
+                '<td class="dt-cell" style="max-width:200px;">' +
+                '<span class="dt-cell-truncate text-[13px] text-surface-500">' +
+                safeDescription +
+                '</span></td>'
 
-                + '<td class="dt-cell dt-cell-nowrap">'
-                + '<span class="text-sm font-bold text-surface-900 font-mono">'
-                + fmt(e.amount) + '</span></td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap">' +
+                '<span class="text-sm font-bold text-surface-900 font-mono">' +
+                fmt(e.amount) + '</span></td>'
 
-                + '<td class="dt-cell dt-cell-nowrap">'
-                + '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">'
-                + '<i data-lucide="calendar-range" class="w-[11px] h-[11px]"></i>'
-                + billingMonth + '</span></td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap">' +
+                '<span class="ss-badge ss-badge-indigo gap-[5px] font-mono">' +
+                '<i data-lucide="calendar-range" class="w-[11px] h-[11px]"></i>' +
+                billingMonth + '</span></td>'
 
-                + '<td class="dt-cell dt-cell-nowrap">'
-                + '<span class="text-[13px] text-surface-500">' + period + '</span></td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap">' +
+                '<span class="text-[13px] text-surface-500">' + period + '</span></td>'
 
-                + '<td class="dt-cell dt-cell-nowrap">'
-                + (e.paid_by_name
-                    ? '<span class="inline-flex items-center gap-[5px] text-[13px] text-surface-700">'
-                    + '<i data-lucide="user" class="w-3 h-3 text-surface-400"></i>'
-                    + e.paid_by_name + '</span>'
-                    : '<span class="ss-badge ss-badge-amber gap-[5px]">'
-                    + '<i data-lucide="clock" class="w-[11px] h-[11px]"></i>Pending</span>')
-                + '</td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap">' +
+                (e.paid_by_name ?
+                    '<span class="inline-flex items-center gap-[5px] text-[13px] text-surface-700">' +
+                    '<i data-lucide="user" class="w-3 h-3 text-surface-400"></i>' +
+                    safePaidBy + '</span>' :
+                    '<span class="ss-badge ss-badge-amber gap-[5px]">' +
+                    '<i data-lucide="clock" class="w-[11px] h-[11px]"></i>Pending</span>') +
+                '</td>'
 
-                + '<td class="dt-cell dt-cell-nowrap dt-cell-center">'
-                + '<span class="ss-involved-badge ss-badge ss-badge-blue gap-[5px]" data-names="' + (e.involved_names || '') + '" style="cursor:default;">'
-                + '<i data-lucide="users" class="w-[11px] h-[11px]"></i>'
-                + (e.total_involved || 0) + '</span></td>'
+                +
+                '<td class="dt-cell dt-cell-nowrap dt-cell-center">' +
+                '<span class="ss-involved-badge ss-badge ss-badge-blue gap-[5px]" data-names="' + safeInvolvedNames + '" style="cursor:default;">' +
+                '<i data-lucide="users" class="w-[11px] h-[11px]"></i>' +
+                (e.total_involved || 0) + '</span></td>'
 
-                + '<td class="dt-cell dt-cell-right dt-cell-nowrap">'
-                + '<div class="action-menu-wrap">'
-                + '<button type="button" class="action-menu-trigger" aria-label="Actions">'
-                + '<i data-lucide="more-vertical" class="w-4 h-4"></i>'
-                + '</button>'
-                + '<div class="action-menu-dropdown">'
-                + '<button class="action-menu-item editExpenseBtn" data-id="' + e.id + '">'
-                + '<i data-lucide="pencil" class="w-3.5 h-3.5"></i>Edit</button>'
-                + '<div class="action-menu-divider"></div>'
-                + '<button class="action-menu-item action-menu-danger deleteExpenseBtn" data-id="' + e.id + '">'
-                + '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>'
-                + '</div></div></td>'
+                +
+                '<td class="dt-cell dt-cell-right dt-cell-nowrap">' +
+                '<div class="action-menu-wrap">' +
+                '<button type="button" class="action-menu-trigger" aria-label="Actions">' +
+                '<i data-lucide="more-vertical" class="w-4 h-4"></i>' +
+                '</button>' +
+                '<div class="action-menu-dropdown">' +
+                '<button class="action-menu-item editExpenseBtn" data-id="' + e.id + '">' +
+                '<i data-lucide="pencil" class="w-3.5 h-3.5"></i>Edit</button>' +
+                '<div class="action-menu-divider"></div>' +
+                '<button class="action-menu-item action-menu-danger deleteExpenseBtn" data-id="' + e.id + '">' +
+                '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Delete</button>' +
+                '</div></div></td>'
 
-                + '</tr>';
+                +
+                '</tr>';
         },
 
-        onRender: function (data) {
+        onRender: function(data) {
             // Wire the 3-dot action menu for this render's rows.
             // initActionMenus() lives in app.js (loaded globally from
             // layout/main) — no per-view definition needed.
             initActionMenus(document.getElementById('expenses-tbody'));
 
             // Wire list-view action buttons
-            document.querySelectorAll('.deleteExpenseBtn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
+            document.querySelectorAll('.deleteExpenseBtn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
                     var id = this.dataset.id;
                     ssConfirm({
                         title: 'Delete Expense',
                         message: 'Delete this expense? This cannot be undone.',
                         confirmText: 'Delete',
-                        onConfirm: function () {
+                        onConfirm: function() {
                             $.ajax({
                                 url: '/expense/deleteExpense/' + id,
                                 type: 'DELETE',
-                                success: function () {
+                                success: function() {
                                     ssToast('Expense deleted.', 'success');
                                     _selectedIds.delete(id);
                                     updateBulkBar();
                                     _expenseTable.reload();
                                 },
-                                error: function () {
+                                error: function() {
                                     ssToast('Failed to delete expense.', 'error');
                                 }
                             });
@@ -993,18 +1069,18 @@
                 });
             });
 
-            document.querySelectorAll('.editExpenseBtn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
+            document.querySelectorAll('.editExpenseBtn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
                     openEditModal(this.dataset.id);
                 });
             });
 
             // Wire row checkboxes — restore checked state from _selectedIds
             // (selection persists across search/sort/page changes)
-            if (IS_ADMIN) {
-                document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+            if (isAdmin) {
+                document.querySelectorAll('.row-checkbox').forEach(function(cb) {
                     cb.checked = _selectedIds.has(cb.dataset.id);
-                    cb.addEventListener('change', function () {
+                    cb.addEventListener('change', function() {
                         toggleRowSelect(this);
                     });
                 });
@@ -1021,30 +1097,33 @@
     // ── Add modal ────────────────────────────────────────────────────
     function selectAllUsers() {
         document.querySelectorAll('#involved-users-list input[type="checkbox"]')
-            .forEach(function (cb) { cb.checked = true; });
+            .forEach(function(cb) {
+                cb.checked = true;
+            });
     }
+
     function deselectAllUsers() {
         document.querySelectorAll('#involved-users-list input[type="checkbox"]')
-            .forEach(function (cb) { cb.checked = false; });
+            .forEach(function(cb) {
+                cb.checked = false;
+            });
     }
 
     var currentUserId = '<?= (int) $currentUser['id'] ?>';
+
     function togglePaidBy(val) {
         var input = document.getElementById('paid-by-value');
         if (input) input.value = val === 'me' ? currentUserId : '';
     }
 
     function openAddModal() {
-        var backdrop = document.getElementById('modal-backdrop');
-        var modal = document.getElementById('add-expense-modal');
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex';
-        requestAnimationFrame(function () {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        window.ssModalOpen({
+            modalId: 'add-expense-modal',
+            backdropId: 'modal-backdrop',
+            display: 'flex',
+            focusId: 'exp-type'
         });
         updateDateRangeUI('add', '');
-        document.getElementById('exp-type').focus();
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1052,24 +1131,22 @@
     //    to match the markup's Tailwind `hidden` class (batch 3).
     // ══════════════════════════════════════════════════════════════
     function closeAddModal() {
-        var modal = document.getElementById('add-expense-modal');
-        var backdrop = document.getElementById('modal-backdrop');
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function () {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            document.getElementById('addExpenseForm').reset();
-            deselectAllUsers();
-            document.getElementById('involved-error').classList.add('hidden');
-            document.getElementById('add-date-error').classList.add('hidden');
-            updateDateRangeUI('add', '');
-            var pboNone = document.getElementById('pbo-none');
-            var pbInput = document.getElementById('paid-by-value');
-            if (pboNone) pboNone.checked = true;
-            if (pbInput) pbInput.value = '';
-            resetAddBtn();
-        }, 180);
+        window.ssModalClose({
+            modalId: 'add-expense-modal',
+            backdropId: 'modal-backdrop',
+            onClosed: function() {
+                document.getElementById('addExpenseForm').reset();
+                deselectAllUsers();
+                document.getElementById('involved-error').classList.add('hidden');
+                document.getElementById('add-date-error').classList.add('hidden');
+                updateDateRangeUI('add', '');
+                var pboNone = document.getElementById('pbo-none');
+                var pbInput = document.getElementById('paid-by-value');
+                if (pboNone) pboNone.checked = true;
+                if (pbInput) pbInput.value = '';
+                resetAddBtn();
+            }
+        });
     }
 
     function setAddBtnLoading() {
@@ -1080,6 +1157,7 @@
         text.textContent = 'Saving\u2026';
         window.setLucideIcon('addExpenseBtnIcon', 'loader');
     }
+
     function resetAddBtn() {
         var btn = document.getElementById('addExpenseBtn');
         var text = document.getElementById('addExpenseBtnText');
@@ -1094,20 +1172,22 @@
     // 4) Add form submit handler — involved-users error now toggles
     //    `.has-error` on the check-list instead of borderColor.
     // ══════════════════════════════════════════════════════════════
-    document.getElementById('addExpenseForm').addEventListener('submit', function (e) {
+    document.getElementById('addExpenseForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var checked = document.querySelectorAll('#involved-users-list input[type="checkbox"]:checked');
         if (checked.length === 0) {
             document.getElementById('involved-error').classList.remove('hidden');
             var list = document.getElementById('involved-users-list');
             list.classList.add('has-error');
-            setTimeout(function () { list.classList.remove('has-error'); }, 2000);
+            setTimeout(function() {
+                list.classList.remove('has-error');
+            }, 2000);
             return;
         }
         document.getElementById('involved-error').classList.add('hidden');
         if (!validateDates('add')) return;
         setAddBtnLoading();
-        $.post('/expense/addExpense', $(this).serialize(), function (res) {
+        $.post('/expense/addExpense', $(this).serialize(), function(res) {
             if (res.status === 'success') {
                 ssToast('Expense added successfully!', 'success');
                 closeAddModal();
@@ -1116,7 +1196,7 @@
                 ssToast('Failed to save expense.', 'error');
                 resetAddBtn();
             }
-        }, 'json').fail(function () {
+        }, 'json').fail(function() {
             ssToast('Something went wrong.', 'error');
             resetAddBtn();
         });
@@ -1126,18 +1206,16 @@
     // ── Edit modal ───────────────────────────────────────────────────
     var _editingId = null;
 
+    // NEW
     function openEditModal(id) {
         _editingId = id;
-        var backdrop = document.getElementById('edit-modal-backdrop');
-        var modal = document.getElementById('edit-expense-modal');
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex';
-        requestAnimationFrame(function () {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        window.ssModalOpen({
+            modalId: 'edit-expense-modal',
+            backdropId: 'edit-modal-backdrop',
+            display: 'flex'
         });
 
-        $.get('/expense/getExpense/' + id, function (res) {
+        $.get('/expense/getExpense/' + id, function(res) {
             var d = res.data;
             var canEdit = d.can_edit || false;
             var permDiv = document.getElementById('edit-permission-denied');
@@ -1160,10 +1238,10 @@
             document.getElementById('edit-exp-from').value = (d.from_date || '').substring(0, 10);
             document.getElementById('edit-exp-to').value = (d.to_date || '').substring(0, 10);
 
-            var method = SPLIT_METHOD_MAP[String(d.expense_type_id)] || '';
+            var method = splitMethodMap[String(d.expense_type_id)] || '';
             updateDateRangeUI('edit', d.expense_type_id ? method : '');
 
-            var isAdmin = <?= $currentUser['role'] === 'admin' ? 'true' : 'false' ?>;
+            var isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
             if (isAdmin) {
                 var sel = document.getElementById('edit-paid-by');
                 if (sel) sel.value = d.paid_by || '';
@@ -1182,41 +1260,45 @@
             }
 
             var involvedIds = d.involved_ids || [];
-            document.querySelectorAll('.edit-involved-cb').forEach(function (cb) {
+            document.querySelectorAll('.edit-involved-cb').forEach(function(cb) {
                 cb.checked = involvedIds.indexOf(parseInt(cb.value, 10)) !== -1;
             });
 
             lucide.createIcons();
             document.getElementById('edit-exp-type').focus();
-        }).fail(function () {
+        }).fail(function() {
             ssToast('Failed to load expense data.', 'error');
             closeEditModal();
         });
     }
 
     function closeEditModal() {
-        var modal = document.getElementById('edit-expense-modal');
-        var backdrop = document.getElementById('edit-modal-backdrop');
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function () {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            document.getElementById('editExpenseForm').reset();
-            document.getElementById('edit-involved-error').classList.add('hidden');
-            document.getElementById('edit-date-error').classList.add('hidden');
-            updateDateRangeUI('edit', '');
-            resetEditBtn();
-            _editingId = null;
-        }, 180);
+        window.ssModalClose({
+            modalId: 'edit-expense-modal',
+            backdropId: 'edit-modal-backdrop',
+            onClosed: function() {
+                document.getElementById('editExpenseForm').reset();
+                document.getElementById('edit-involved-error').classList.add('hidden');
+                document.getElementById('edit-date-error').classList.add('hidden');
+                updateDateRangeUI('edit', '');
+                resetEditBtn();
+                _editingId = null;
+            }
+        });
     }
 
     function editSelectAllUsers() {
-        document.querySelectorAll('.edit-involved-cb').forEach(function (cb) { cb.checked = true; });
+        document.querySelectorAll('.edit-involved-cb').forEach(function(cb) {
+            cb.checked = true;
+        });
     }
+
     function editDeselectAllUsers() {
-        document.querySelectorAll('.edit-involved-cb').forEach(function (cb) { cb.checked = false; });
+        document.querySelectorAll('.edit-involved-cb').forEach(function(cb) {
+            cb.checked = false;
+        });
     }
+
     function toggleEditPaidBy(val) {
         var input = document.getElementById('edit-paid-by-value');
         if (input) input.value = val === 'me' ? '<?= (int) $currentUser['id'] ?>' : '';
@@ -1230,6 +1312,7 @@
         text.textContent = 'Saving\u2026';
         window.setLucideIcon('editExpenseBtnIcon', 'loader');
     }
+
     function resetEditBtn() {
         var btn = document.getElementById('editExpenseBtn');
         var text = document.getElementById('editExpenseBtnText');
@@ -1244,20 +1327,22 @@
     // 6) Edit form submit handler + closeEditModal — same treatment,
     //    mirrored for the edit-* ids.
     // ══════════════════════════════════════════════════════════════
-    document.getElementById('editExpenseForm').addEventListener('submit', function (e) {
+    document.getElementById('editExpenseForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var checked = document.querySelectorAll('.edit-involved-cb:checked');
         if (checked.length === 0) {
             document.getElementById('edit-involved-error').classList.remove('hidden');
             var list = document.getElementById('edit-involved-users-list');
             list.classList.add('has-error');
-            setTimeout(function () { list.classList.remove('has-error'); }, 2000);
+            setTimeout(function() {
+                list.classList.remove('has-error');
+            }, 2000);
             return;
         }
         document.getElementById('edit-involved-error').classList.add('hidden');
         if (!validateDates('edit')) return;
         setEditBtnLoading();
-        $.post('/expense/updateExpense/' + _editingId, $(this).serialize(), function (res) {
+        $.post('/expense/updateExpense/' + _editingId, $(this).serialize(), function(res) {
             if (res.status === 'success') {
                 ssToast('Expense updated successfully!', 'success');
                 closeEditModal();
@@ -1266,13 +1351,13 @@
                 ssToast('Failed to update expense.', 'error');
                 resetEditBtn();
             }
-        }, 'json').fail(function () {
+        }, 'json').fail(function() {
             ssToast('Something went wrong.', 'error');
             resetEditBtn();
         });
     });
 
-    document.addEventListener('keydown', function (e) {
+    document.addEventListener('keydown', function(e) {
         if (e.key !== 'Escape') return;
         closeAddModal();
         closeEditModal();
@@ -1280,7 +1365,7 @@
 
 
     // ── Involved-users tooltip ───────────────────────────────────────
-    (function () {
+    (function() {
         var tip = document.createElement('div');
         tip.style.cssText = [
             'position:fixed', 'z-index:9999', 'background:#1e293b', 'color:#f8fafc',
@@ -1292,15 +1377,17 @@
         document.body.appendChild(tip);
 
         var showTimer;
-        document.addEventListener('mouseover', function (ev) {
+        document.addEventListener('mouseover', function(ev) {
             var badge = ev.target.closest('.ss-involved-badge');
             if (!badge) return;
             var names = (badge.getAttribute('data-names') || '').trim();
             if (!names) return;
-            var list = names.split(',').map(function (n) { return '\u2022 ' + n.trim(); }).join('<br>');
+            var list = names.split(',').map(function(n) {
+                return '\u2022 ' + window.escHtml(n.trim());
+            }).join('<br>');
             tip.innerHTML = '<div style="margin-bottom:4px;font-weight:700;font-size:11px;color:#94a3b8;letter-spacing:.05em;text-transform:uppercase;">Involved</div>' + list;
             clearTimeout(showTimer);
-            showTimer = setTimeout(function () {
+            showTimer = setTimeout(function() {
                 var rect = badge.getBoundingClientRect();
                 var tipW = tip.offsetWidth || 180;
                 var tipH = tip.offsetHeight || 60;
@@ -1312,14 +1399,18 @@
                 tip.style.left = left + 'px';
                 tip.style.top = top + 'px';
                 tip.style.display = 'block';
-                requestAnimationFrame(function () { tip.style.opacity = '1'; });
+                requestAnimationFrame(function() {
+                    tip.style.opacity = '1';
+                });
             }, 80);
         });
-        document.addEventListener('mouseout', function (ev) {
+        document.addEventListener('mouseout', function(ev) {
             if (!ev.target.closest('.ss-involved-badge')) return;
             clearTimeout(showTimer);
             tip.style.opacity = '0';
-            setTimeout(function () { tip.style.display = 'none'; }, 120);
+            setTimeout(function() {
+                tip.style.display = 'none';
+            }, 120);
         });
     })();
 </script>

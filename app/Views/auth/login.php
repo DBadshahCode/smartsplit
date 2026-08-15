@@ -34,7 +34,7 @@
         <?php endif; ?>
 
         <!-- Form -->
-        <form method="post" action="<?= base_url('/auth/loginUser') ?>" id="loginForm">
+        <form method="post" action="<?= base_url('/auth/loginUser') ?>" id="loginForm" data-loading-submit>
 
             <!-- Email -->
             <div class="mb-[18px]">
@@ -54,18 +54,18 @@
                     <input type="password" id="password" name="password" placeholder="••••••••" required
                         autocomplete="current-password" class="ss-input pl-10 pr-11">
                     <!-- Show/hide toggle -->
-                    <button type="button" id="togglePassword" onclick="togglePasswordVisibility()"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-surface-400 p-1 flex items-center justify-center min-w-[32px] min-h-[32px]"
-                        aria-label="Toggle password visibility">
-                        <i data-lucide="eye" id="togglePasswordIcon" class="w-4 h-4"></i>
+                    <button type="button" data-toggle-password="password"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-surface-400 p-1 flex items-center justify-center min-w-[32px] min-h-[32px]">
+                        <i data-lucide="eye" class="w-[15px] h-[15px]"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Submit -->
-            <button type="submit" id="submitBtn" class="ss-btn ss-btn-primary w-full">
-                <i data-lucide="log-in" class="w-4 h-4" id="btnIcon"></i>
-                <span id="btnText">Sign in</span>
+            <button type="submit" class="ss-btn ss-btn-primary w-full"
+                data-loading-text="Signing in…" data-loading-icon="loader">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                <span>Sign in</span>
             </button>
 
         </form>
@@ -78,35 +78,4 @@
     </div>
 </div>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
-<script>
-    // Re-render lucide icons after page load
-    lucide.createIcons();
-
-    // ── Show / hide password ──────────────────────────────
-    // FIX: was setAttribute()+createIcons() directly, which does not
-    // re-render an icon Lucide has already swapped to <svg> — same bug
-    // class as expensetype's button icon. Uses the safe project helper now.
-    function togglePasswordVisibility() {
-        const input = document.getElementById('password');
-        const isHidden = input.type === 'password';
-        input.type = isHidden ? 'text' : 'password';
-        window.setLucideIcon('togglePasswordIcon', isHidden ? 'eye-off' : 'eye');
-    }
-
-    // ── Loading state on submit ───────────────────────────
-    // Same fix applied here — the spinner icon was never actually
-    // appearing on submit.
-    document.getElementById('loginForm').addEventListener('submit', function() {
-        const btn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        btn.disabled = true;
-        btn.style.opacity = '0.75';
-        btn.style.cursor = 'not-allowed';
-        btnText.textContent = 'Signing in…';
-        window.setLucideIcon('btnIcon', 'loader');
-    });
-</script>
 <?= $this->endSection() ?>

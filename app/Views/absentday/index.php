@@ -4,6 +4,20 @@
 
 <?= $this->section('content') ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ * @var array $expenseTypes
+ * @var array $users
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <!-- ── Page header ────────────────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
@@ -136,44 +150,13 @@
 
 <script>
     // ── Constants ──────────────────────────────────────────────────────────────
-    const isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
-    const loggedInUserId = <?= (int) session()->get('user_id') ?>;
-
-    const AVATAR_COLORS = [
-        ['#ede9fe', '#7c3aed'],
-        ['#fce7f3', '#be185d'],
-        ['#dcfce7', '#15803d'],
-        ['#fef9c3', '#a16207'],
-        ['#dbeafe', '#1d4ed8'],
-        ['#fee2e2', '#dc2626'],
-        ['#e0e7ff', '#4338ca'],
-        ['#f0fdf4', '#166534'],
-    ];
-
-    // ── Helpers ────────────────────────────────────────────────────────────────
-    function avatarColor(name) {
-        let i = 0;
-        for (let c of (name || '')) i += c.charCodeAt(0);
-        return AVATAR_COLORS[i % AVATAR_COLORS.length];
-    }
-
-    function initials(name) {
-        if (!name) return '?';
-        const p = name.trim().split(' ');
-        return (p.length >= 2 ? p[0][0] + p[p.length - 1][0] : name.slice(0, 2)).toUpperCase();
-    }
+    const isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
+    const loggedInUserId = <?= $currentUser['id'] ?>;
 
     function formatDate(ymd) {
         if (!ymd) return '';
         const [y, m, d] = ymd.split('-');
         return d + '/' + m + '/' + y;
-    }
-
-    function formatMoney(n) {
-        return '₹' + parseFloat(n).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
     }
 
     // ── Expense list cache ─────────────────────────────────────────────────────
@@ -206,26 +189,21 @@
     // ── Load absent days for selected expense ─────────────────────────────────
     function loadAbsentDay() {
         const expenseId = document.getElementById('expensePicker').value;
-
-        // Reset visibility
-        document.getElementById('tableWrap').style.display = 'none';
-        document.getElementById('expenseInfo').style.display = 'none';
-        document.getElementById('cardMeta').style.display = 'none';
-        document.getElementById('periodLabel').textContent = '';
-
         if (!expenseId) {
+            document.getElementById('expenseInfo').style.display = 'none';
+            document.getElementById('cardMeta').style.display = 'none';
+            document.getElementById('tableWrap').style.display = 'none';
             document.getElementById('emptyState').style.display = 'block';
             return;
         }
 
-        // Populate info strip from cache
         const exp = expenseList.find(function(e) {
             return e.id == expenseId;
         });
         if (exp) {
             document.getElementById('infoType').textContent = exp.expense_type;
             document.getElementById('infoPeriod').textContent = formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date);
-            document.getElementById('infoAmount').textContent = formatMoney(exp.amount);
+            document.getElementById('infoAmount').textContent = window.fmtMoney(exp.amount);
             document.getElementById('expenseInfo').style.display = 'flex';
         }
 
@@ -259,26 +237,28 @@
     }
 
     // ══════════════════════════════════════════════════════════════
-    // renderTable() — pills/avatar/cells now use classes from batch 1.
-    // Two things removed as genuinely dead weight:
-    //   1. onmouseenter/onmouseleave — #tableWrap already has the
-    //      `.ss-table-wrap` class, which already got a
-    //      `tbody tr:hover { background:#f8fafc }` rule (and its own
-    //      transition) added to main.php during the expense-view pass.
-    //      The per-row JS handlers were re-implementing that from scratch.
-    //   2. `canEdit` was computed twice — once for the ternary, once
-    //      again for the setLucideIcon check with the identical
-    //      expression. Computed once now, reused for both.
+    // renderTable() — row markup no longer builds an inline onclick
+    // with a user's name spliced into it (that broke outright for any
+    // name containing an apostrophe, e.g. "O'Brien" — the attribute
+    // would terminate the JS string early and throw a syntax error on
+    // click). Edit buttons are now wired via data-* attributes +
+    // addEventListener, matching the pattern already used in user.php.
+    // This also means the per-row `id="pencil-N"` + individual
+    // window.setLucideIcon() call is gone — icons render normally and
+    // get picked up by a single lucide.createIcons({ nodes: [tbody] })
+    // call after the loop, instead of N separate DOM swaps.
     // ══════════════════════════════════════════════════════════════
     function renderTable(data, totalDays, exp) {
         const tbody = document.getElementById('absentTableBody');
         tbody.innerHTML = '';
 
+        const period = exp ? formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date) : '';
+
         data.forEach(function(row) {
-            const [bg, fg] = avatarColor(row.name);
+            const [bg, fg] = window.avatarColor(row.name);
             const isZero = row.days_absent === 0;
-            const period = exp ? formatDate(exp.from_date) + ' → ' + formatDate(exp.to_date) : '';
             const canEdit = isAdmin || row.user_id === loggedInUserId;
+            const safeName = window.escHtml(row.name);
 
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #f8fafc';
@@ -287,39 +267,52 @@
 
             const actionCell = canEdit ?
                 `<td class="abs-td text-right">
-                   <button class="row-action-btn row-action-edit"
-                       onclick="openEditModal(${row.user_id}, \'${row.name}\', ${row.expense_id}, \'${period}\', ${row.days_absent}, ${totalDays})">
-                       <i id="pencil-${row.user_id}" data-lucide="pencil" class="w-3 h-3"></i>Edit
-                   </button>
-               </td>` :
+               <button class="row-action-btn row-action-edit editAbsentBtn"
+                   data-user-id="${row.user_id}" data-name="${safeName}"
+                   data-expense-id="${row.expense_id}" data-days="${row.days_absent}">
+                   <i data-lucide="pencil" class="w-3 h-3"></i>Edit
+               </button>
+           </td>` :
                 '<td></td>';
 
             tr.innerHTML = `
-            <td class="abs-td text-sm text-surface-700">
-                <div class="flex items-center gap-2.5">
-                    <div class="avatar-circle avatar-circle-lg" style="background:${bg};color:${fg};">
-                        ${initials(row.name)}
-                    </div>
-                    <span class="font-medium text-surface-900">${row.name}</span>
+        <td class="abs-td text-sm text-surface-700">
+            <div class="flex items-center gap-2.5">
+                <div class="avatar-circle avatar-circle-lg" style="background:${bg};color:${fg};">
+                    ${window.initials(row.name)}
                 </div>
-            </td>
-            <td class="abs-td text-center">
-                <span class="abs-pill ${pillClass}">
-                    ${row.days_absent}
-                </span>
-            </td>
-            <td class="abs-td text-center font-mono text-[0.82rem] text-surface-500">
-                ${row.days_present} / ${totalDays}
-            </td>
-            ${actionCell}
-        `;
+                <span class="font-medium text-surface-900">${safeName}</span>
+            </div>
+        </td>
+        <td class="abs-td text-center">
+            <span class="abs-pill ${pillClass}">
+                ${row.days_absent}
+            </span>
+        </td>
+        <td class="abs-td text-center font-mono text-[0.82rem] text-surface-500">
+            ${row.days_present} / ${totalDays}
+        </td>
+        ${actionCell}
+    `;
 
             tbody.appendChild(tr);
+        });
 
-            // Re-render pencil icon using the safe project helper (not createIcons directly)
-            if (canEdit) {
-                window.setLucideIcon('pencil-' + row.user_id, 'pencil');
-            }
+        lucide.createIcons({
+            nodes: [tbody]
+        });
+
+        tbody.querySelectorAll('.editAbsentBtn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                openEditModal(
+                    parseInt(this.dataset.userId, 10),
+                    this.dataset.name,
+                    parseInt(this.dataset.expenseId, 10),
+                    period,
+                    parseInt(this.dataset.days, 10),
+                    totalDays
+                );
+            });
         });
     }
 
@@ -336,30 +329,23 @@
         document.getElementById('editDaysHint').textContent =
             'Max ' + totalDays + ' days in this expense period. Set 0 to clear.';
 
-        const backdrop = document.getElementById('editBackdrop');
-        const modal = document.getElementById('editModal');
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex';
-        requestAnimationFrame(function() {
-            backdrop.style.opacity = '1';
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
-            input.focus();
-            input.select();
+        window.ssModalOpen({
+            modalId: 'editModal',
+            backdropId: 'editBackdrop',
+            display: 'flex'
         });
+        input.focus();
+        input.select();
     }
 
     function closeEditModal() {
-        const backdrop = document.getElementById('editBackdrop');
-        const modal = document.getElementById('editModal');
-        backdrop.style.opacity = '0';
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(.97)';
-        setTimeout(function() {
-            backdrop.style.display = 'none';
-            modal.style.display = 'none';
-            document.getElementById('editDaysAbsent').value = '';
-        }, 180);
+        window.ssModalClose({
+            modalId: 'editModal',
+            backdropId: 'editBackdrop',
+            onClosed: function() {
+                document.getElementById('editDaysAbsent').value = '';
+            }
+        });
     }
 
     // ── Save ───────────────────────────────────────────────────────────────────

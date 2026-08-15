@@ -4,6 +4,18 @@
 
 <?= $this->section('content') ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <!-- Page header -->
 <div class="page-header">
     <div>
@@ -12,7 +24,7 @@
             Good <?php
                     $h = (int) date('H');
                     echo $h < 12 ? 'morning' : ($h < 17 ? 'afternoon' : 'evening');
-                    ?>, <?= esc(session()->get('name')) ?> 👋
+                    ?>, <?= esc($currentUser['name']) ?> 👋
         </p>
     </div>
     <a href="<?= base_url('/finaldistribution') ?>" class="ss-btn ss-btn-primary no-underline">
@@ -47,7 +59,7 @@
         <div class="stat-caption">Billing month: <span id="stat-month-label"><?= date('M Y') ?></span></div>
     </div>
 
-    <?php if (session()->get('role') === 'admin'): ?>
+    <?php if ($isAdmin): ?>
         <div class="ss-card stat-card">
             <div class="stat-card-head">
                 <span class="stat-card-label">Total Users</span>
@@ -120,7 +132,7 @@
             </div>
             <div class="py-3 px-2">
 
-                <?php if (session()->get('role') === 'admin'): ?>
+                <?php if ($isAdmin): ?>
                     <a href="<?= base_url('/user') ?>" class="qa-link">
                         <div class="qa-icon-box bg-violet-100">
                             <i data-lucide="users" class="w-4 h-4 text-violet-600"></i>
@@ -161,10 +173,10 @@
                     </div>
                     <div>
                         <div class="qa-title">
-                            <?= session()->get('role') === 'admin' ? 'Generate Distribution' : 'View Distribution' ?>
+                            <?= $isAdmin ? 'Generate Distribution' : 'View Distribution' ?>
                         </div>
                         <div class="qa-subtitle">
-                            <?= session()->get('role') === 'admin' ? 'Calculate monthly split' : 'View monthly split' ?>
+                            <?= $isAdmin ? 'Calculate monthly split' : 'View monthly split' ?>
                         </div>
                     </div>
                     <i data-lucide="chevron-right" class="qa-chevron"></i>
@@ -325,12 +337,9 @@
         ssToast('<?= addslashes(session()->getFlashdata('error')) ?>', 'error');
     <?php endif; ?>
 
-    function fmt(n) {
-        return '₹' + parseFloat(n || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
+    // Money formatting now lives globally as window.fmtMoney (app.js) —
+    // aliased locally so both existing fmt(...) call sites below are unchanged.
+    var fmt = window.fmtMoney;
 
     // Format a YYYY-MM billing_month string to a human label e.g. "May 2026"
     function fmtBillingMonth(bm) {
@@ -362,7 +371,7 @@
         loadDashboardExpenses();
     });
 
-    <?php if (session()->get('role') === 'admin'): ?>
+    <?php if ($isAdmin): ?>
         $.get('/user/getUsers', function(res) {
             var el = document.getElementById('stat-users');
             if (el) el.textContent = (res.data || []).length;
@@ -421,11 +430,13 @@
             }
 
             tbody.innerHTML = recent.map(function(e) {
+                var safeType = window.escHtml(e.expense_type || '—');
                 var paidBy = e.paid_by_name ?
-                    '<span class="text-[13px] text-surface-700">' + e.paid_by_name + '</span>' :
+                    '<span class="text-[13px] text-surface-700">' + window.escHtml(e.paid_by_name) + '</span>' :
                     '<span class="ss-badge ss-badge-amber">Pending</span>';
 
                 // Billing month pill — highlight if it matches the current billing month
+                // (built entirely from a parsed YYYY-MM value, never user text — no escaping needed)
                 var bm = e.billing_month || '';
                 var bmLabel = fmtBillingMonth(bm);
                 var bmIsCurrentMonth = bm === currentMonth;
@@ -434,7 +445,7 @@
 
                 return '<tr>' +
                     '<td class="mini-table-td font-medium">' +
-                    '<span class="ss-badge ss-badge-pink">' + (e.expense_type || '—') + '</span>' +
+                    '<span class="ss-badge ss-badge-pink">' + safeType + '</span>' +
                     '</td>' +
                     '<td class="mini-table-td font-mono whitespace-nowrap" style="font-weight:700;color:#0f172a;">' +
                     fmt(e.amount) +
@@ -444,7 +455,9 @@
                     '</tr>';
             }).join('');
 
-            lucide.createIcons();
+            lucide.createIcons({
+                nodes: [tbody]
+            });
         }).fail(function() {
             document.getElementById('recent-expenses-body').innerHTML =
                 '<tr><td colspan="4" class="mini-table-empty-td" style="color:#ef4444;">Failed to load expenses.</td></tr>';

@@ -14,16 +14,30 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0f4ff', 100: '#e0eaff', 200: '#c7d8fd',
-                            300: '#a5bbfb', 400: '#7f94f7', 500: '#5c6af0',
-                            600: '#4549e4', 700: '#3938ca', 800: '#2f2fa3',
-                            900: '#2b2d82', 950: '#1a1b4b',
+                            50: '#f0f4ff',
+                            100: '#e0eaff',
+                            200: '#c7d8fd',
+                            300: '#a5bbfb',
+                            400: '#7f94f7',
+                            500: '#5c6af0',
+                            600: '#4549e4',
+                            700: '#3938ca',
+                            800: '#2f2fa3',
+                            900: '#2b2d82',
+                            950: '#1a1b4b',
                         },
                         surface: {
-                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0',
-                            300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b',
-                            600: '#475569', 700: '#334155', 800: '#1e293b',
-                            900: '#0f172a', 950: '#020617',
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
                         },
                     },
                     fontFamily: {
@@ -59,36 +73,45 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- SS.Table (custom table component — replaces DataTables) -->
-    <script src="<?= base_url('assets/js/ss-table.js') ?>"></script>
+    <script src="<?= base_url('assets/js/ss-table.js') ?>?v=3"></script>
 
     <!-- App javascript — externalized so the browser caches it across
          page navigations instead of re-downloading it with every
          request (bump ?v= when app.css changes) -->
-    <script src="<?= base_url('assets/js/app.js') ?>?v=2"></script>
+    <script src="<?= base_url('assets/js/app.js') ?>?v=3"></script>
 
     <!-- App stylesheet — externalized so the browser caches it across
          page navigations instead of re-downloading it with every
          request (bump ?v= when app.css changes) -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=2">
+    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=3">
 </head>
 
 <body class="h-full bg-surface-50">
 
     <?php
-    // Session values are read once here — every downstream usage below
-    // reads from these locals instead of re-calling session()->get()
-    // and re-casting inline.
+        // Session values are read once here — every downstream usage below
+        // reads from these locals instead of re-calling session()->get()
+        // and re-casting inline.
+
+    /**
+     * @var array{
+     *     id: int,
+     *     name: string,
+     *     role: string
+     * } $currentUser
+     */
+
     $isLoggedIn = session()->get('isLoggedIn') === true;
-    $userName   = (string) (session()->get('name') ?? '');
-    $userRole   = (string) (session()->get('role') ?? 'user');
-    $groupName  = (string) (session()->get('group_name') ?? '');
+    $userName   = (string) ($currentUser['name'] ?? '');
+    $userRole   = (string) ($currentUser['role'] ?? 'guest');
+    $groupName  = (string) ($currentUser['group_name'] ?? '');
     ?>
 
     <?php if ($isLoggedIn): ?>
 
         <!-- ═══════════════════════════════════════════════════════
          SIDEBAR
-    ════════════════════════════════════════════════════════ -->
+        ════════════════════════════════════════════════════════ -->
         <?= $this->include('layout/navbar') ?>
 
         <!-- Mobile overlay -->
@@ -96,7 +119,7 @@
 
         <!-- ═══════════════════════════════════════════════════════
          TOP BAR
-    ════════════════════════════════════════════════════════ -->
+        ════════════════════════════════════════════════════════ -->
         <header id="topbar">
 
             <!-- Hamburger — mobile only -->
@@ -165,10 +188,6 @@
                         <a href="#" class="dropdown-item">
                             <i data-lucide="settings" class="w-[15px] h-[15px]"></i> Settings
                         </a>
-                        <!-- Pay via UPI -->
-                        <button onclick="openQRModal();closeUserDropdown();" class="dropdown-item">
-                            <i data-lucide="qr-code" class="w-[15px] h-[15px]"></i> Pay via UPI
-                        </button>
                         <div class="dropdown-divider"></div>
                         <a href="<?= base_url('/auth/logout') ?>" class="dropdown-item dropdown-item-danger">
                             <i data-lucide="log-out" class="w-[15px] h-[15px]"></i> Logout
@@ -179,80 +198,8 @@
         </header>
 
         <!-- ═══════════════════════════════════════════════════════
-         UPI / QR PAYMENT MODAL
-    ════════════════════════════════════════════════════════ -->
-        <?php
-        $payment   = config('Payment');
-        $upiId     = esc($payment->upiId);
-        $payeeName = esc($payment->payeeName);
-        $upiString = 'upi://pay?pa=' . rawurlencode($payment->upiId)
-            . '&pn=' . rawurlencode($payment->payeeName)
-            . '&tn=' . rawurlencode($payment->paymentNote)
-            . '&cu=INR';
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' . rawurlencode($upiString);
-        ?>
-
-        <!-- Backdrop -->
-        <div id="qr-backdrop" class="modal-backdrop" onclick="closeQRModal()"></div>
-
-        <!-- Modal -->
-        <div id="qr-modal" class="modal-panel">
-
-            <!-- Header -->
-            <div class="flex items-center justify-between px-5 pt-[18px] pb-3.5 border-b border-surface-100">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                        <i data-lucide="qr-code" class="w-[15px] h-[15px] text-green-700"></i>
-                    </div>
-                    <div class="text-left">
-                        <div class="text-sm font-bold text-surface-900">Pay via UPI</div>
-                        <div class="text-[11px] text-surface-400">Scan with any UPI app</div>
-                    </div>
-                </div>
-                <button onclick="closeQRModal()" class="icon-btn !min-w-[30px] !min-h-[30px] !w-[30px] !h-[30px] bg-surface-100">
-                    <i data-lucide="x" class="w-[15px] h-[15px]"></i>
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="px-6 pt-5 pb-6">
-                <p class="text-[15px] font-bold text-surface-900 mb-1"><?= $payeeName ?></p>
-                <p class="text-xs text-surface-500 mb-4">SmartSplit Household</p>
-
-                <!-- QR image -->
-                <div class="inline-block p-2.5 border border-surface-200 rounded-xl bg-white mb-4">
-                    <img src="<?= $qrUrl ?>" alt="UPI QR Code" width="200" height="200" class="block rounded-md"
-                        onerror="this.parentElement.innerHTML='<div style=\'width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:6px;\'><span style=\'font-size:12px;color:#94a3b8;text-align:center;padding:16px;\'>QR unavailable.<br>Use UPI ID below.</span></div>'">
-                </div>
-
-                <!-- UPI ID chip -->
-                <div class="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-surface-50 border border-surface-200 rounded-[10px] mb-4">
-                    <div class="text-left min-w-0">
-                        <div class="text-[10px] font-semibold text-surface-400 tracking-wider uppercase mb-0.5">UPI ID</div>
-                        <div id="upi-id-text" class="text-sm font-semibold text-surface-900 font-mono break-all">
-                            <?= $upiId ?>
-                        </div>
-                    </div>
-                    <button onclick="copyUpiId()" id="copy-btn"
-                        class="shrink-0 px-3 py-1.5 rounded-[7px] bg-indigo-100 text-indigo-700 border-none cursor-pointer text-xs font-semibold flex items-center gap-1 transition-colors min-h-[32px] hover:bg-indigo-200">
-                        <i data-lucide="copy" class="w-3 h-3" id="copy-icon"></i>
-                        <span id="copy-text">Copy</span>
-                    </button>
-                </div>
-
-                <!-- Supported apps -->
-                <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                    <span class="text-[11px] text-surface-400">Works with</span>
-                    <?php foreach (['GPay', 'PhonePe', 'Paytm', 'BHIM', 'Amazon Pay'] as $app): ?>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-100 text-surface-500"><?= esc($app) ?></span>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════════════════
          MAIN CONTENT
-    ════════════════════════════════════════════════════════ -->
+        ════════════════════════════════════════════════════════ -->
         <main id="main-content">
             <div class="page-content">
                 <?= $this->renderSection('content') ?>
@@ -303,16 +250,22 @@
 
         // Show topbar chips on wider screens — done in JS to avoid
         // a flash of hidden content before CSS loads.
-        (function () {
+        (function() {
             var w = window.innerWidth;
             var monthChip = document.getElementById('month-chip');
             var groupBadge = document.getElementById('group-badge');
             var username = document.getElementById('topbar-username');
             var chevron = document.getElementById('user-chevron');
             if (w >= 640) {
-                if (monthChip) { monthChip.style.display = 'inline-flex'; }
-                if (groupBadge) { groupBadge.style.display = 'inline-flex'; }
-                if (username) { username.style.display = 'block'; }
+                if (monthChip) {
+                    monthChip.style.display = 'inline-flex';
+                }
+                if (groupBadge) {
+                    groupBadge.style.display = 'inline-flex';
+                }
+                if (username) {
+                    username.style.display = 'block';
+                }
             }
             // Show desktop sidebar toggle button
             var desktopToggle = document.getElementById('sidebar-desktop-toggle');
@@ -320,7 +273,7 @@
         })();
 
         // Sync topbar title from active nav link text
-        (function () {
+        (function() {
             var active = document.querySelector('.nav-link.active');
             var el = document.getElementById('topbar-title');
             if (active && el) {
@@ -338,6 +291,7 @@
             overlay.style.display = isOpen ? 'none' : 'block';
             document.body.style.overflow = isOpen ? '' : 'hidden';
         }
+
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('mobile-open');
             document.getElementById('sidebar-overlay').style.display = 'none';
@@ -345,35 +299,39 @@
         }
 
         // Close sidebar on nav-link tap (mobile)
-        document.querySelectorAll('#sidebar .nav-link').forEach(function (link) {
-            link.addEventListener('click', function () {
+        document.querySelectorAll('#sidebar .nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
                 if (window.innerWidth < 1024) closeSidebar();
             });
         });
 
         // Close sidebar on Escape (mobile)
-        document.addEventListener('keydown', function (e) {
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (window.innerWidth < 1024) closeSidebar();
-                closeQRModal();
             }
         });
 
         // Swipe left to close sidebar on mobile
-        (function () {
+        (function() {
             var startX = 0;
             var sidebar = document.getElementById('sidebar');
-            sidebar.addEventListener('touchstart', function (e) {
+            sidebar?.addEventListener('touchstart', function(e) {
                 startX = e.touches[0].clientX;
-            }, { passive: true });
-            sidebar.addEventListener('touchend', function (e) {
+            }, {
+                passive: true
+            });
+            sidebar?.addEventListener('touchend', function(e) {
                 var dx = e.changedTouches[0].clientX - startX;
                 if (dx < -60 && window.innerWidth < 1024) closeSidebar();
-            }, { passive: true });
+            }, {
+                passive: true
+            });
         })();
 
         // ── Sidebar — desktop collapse ────────────────────────
         var sidebarCollapsed = false;
+
         function toggleSidebarDesktop() {
             sidebarCollapsed = !sidebarCollapsed;
             document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
@@ -387,11 +345,12 @@
             var dd = document.getElementById('user-dropdown');
             dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
         }
+
         function closeUserDropdown() {
             document.getElementById('user-dropdown').style.display = 'none';
         }
         // Click outside closes dropdown
-        document.addEventListener('click', function (e) {
+        document.addEventListener('click', function(e) {
             var wrapper = document.getElementById('user-menu-wrapper');
             if (wrapper && !wrapper.contains(e.target)) {
                 closeUserDropdown();
@@ -399,111 +358,60 @@
         });
 
         // ── Toast ─────────────────────────────────────────────
-        window.ssToast = function (message, type) {
+        window.ssToast = function(message, type) {
             type = type || 'success';
             var container = document.getElementById('ss-toast');
-            var icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
+            var icons = {
+                success: 'check-circle',
+                error: 'x-circle',
+                info: 'info'
+            };
             var toast = document.createElement('div');
             toast.className = 'toast-item toast-' + type;
-            toast.innerHTML = '<i data-lucide="' + (icons[type] || 'info') + '" style="width:18px;height:18px;flex-shrink:0;"></i>'
-                + '<span>' + message + '</span>';
+            toast.innerHTML = '<i data-lucide="' + (icons[type] || 'info') + '" style="width:18px;height:18px;flex-shrink:0;"></i>' +
+                '<span>' + message + '</span>';
             container.appendChild(toast);
-            lucide.createIcons({ nodes: [toast] });
-            setTimeout(function () {
+            lucide.createIcons({
+                nodes: [toast]
+            });
+            setTimeout(function() {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(20px)';
                 toast.style.transition = 'all .3s ease';
-                setTimeout(function () { toast.remove(); }, 300);
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
             }, 3500);
         };
 
-        // ── setLucideIcon — safe icon swap after SVG render ───
-        // Direct setAttribute() + createIcons() does NOT re-render once
-        // Lucide has already replaced <i> with <svg>. This helper replaces
-        // the element with a fresh <i> before calling createIcons on it.
-        window.setLucideIcon = function (id, iconName) {
-            var el = document.getElementById(id);
-            if (!el) return;
+        // NEW
+        // Generalized: takes an element reference so shared helpers in app.js
+        // (password toggle, submit-loading state, etc.) can swap icons without
+        // needing a unique id on every icon in the app.
+        // FIX: now also preserves `class` — the old version only kept `style`,
+        // so any icon sized via a Tailwind class (e.g. w-4 h-4) silently
+        // reverted to Lucide's 24px default after its first swap.
+        window.swapLucideIcon = function(el, iconName) {
+            if (!el) return null;
             var fresh = document.createElement('i');
             var existingStyle = el.getAttribute('style') || '';
+            var existingClass = el.getAttribute('class') || '';
             fresh.setAttribute('data-lucide', iconName);
-            fresh.setAttribute('id', id);
+            if (el.id) fresh.setAttribute('id', el.id);
             if (existingStyle) fresh.setAttribute('style', existingStyle);
+            if (existingClass) fresh.setAttribute('class', existingClass);
             el.parentNode.replaceChild(fresh, el);
-            lucide.createIcons({ nodes: [fresh] });
-        };
-
-        // ── QR Payment modal ──────────────────────────────────
-        window.openQRModal = function () {
-            var backdrop = document.getElementById('qr-backdrop');
-            var modal = document.getElementById('qr-modal');
-            if (!backdrop || !modal) return;
-            backdrop.style.display = 'block';
-            modal.style.display = 'block';
-            requestAnimationFrame(function () {
-                modal.style.opacity = '1';
-                modal.style.transform = 'translate(-50%,-50%) scale(1)';
+            lucide.createIcons({
+                nodes: [fresh]
             });
-        };
-        window.closeQRModal = function () {
-            var modal = document.getElementById('qr-modal');
-            var backdrop = document.getElementById('qr-backdrop');
-            if (!modal || !backdrop) return;
-            modal.style.opacity = '0';
-            modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-            setTimeout(function () {
-                modal.style.display = 'none';
-                backdrop.style.display = 'none';
-            }, 180);
+            return fresh;
         };
 
-        // ── Copy UPI ID ───────────────────────────────────────
-        // Uses setLucideIcon() to safely swap the copy icon after SVG render.
-        window.copyUpiId = function () {
-            var upiText = (document.getElementById('upi-id-text') || {}).textContent;
-            if (!upiText) return;
-            upiText = upiText.trim();
-
-            function onCopied() {
-                var btn = document.getElementById('copy-btn');
-                var text = document.getElementById('copy-text');
-                if (!btn || !text) return;
-                text.textContent = 'Copied!';
-                btn.style.background = '#dcfce7';
-                btn.style.color = '#15803d';
-                // FIX: use setLucideIcon — icon is already rendered as SVG
-                window.setLucideIcon('copy-icon', 'check');
-                setTimeout(function () {
-                    text.textContent = 'Copy';
-                    btn.style.background = '#e0e7ff';
-                    btn.style.color = '#4338ca';
-                    window.setLucideIcon('copy-icon', 'copy');
-                }, 2000);
-            }
-
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(upiText).then(onCopied).catch(function () {
-                    fallbackCopy(upiText);
-                });
-            } else {
-                fallbackCopy(upiText);
-            }
+        // Unchanged signature/behavior for every existing id-based call site —
+        // now just delegates to swapLucideIcon.
+        window.setLucideIcon = function(id, iconName) {
+            return window.swapLucideIcon(document.getElementById(id), iconName);
         };
-
-        function fallbackCopy(text) {
-            var el = document.createElement('textarea');
-            el.value = text;
-            el.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
-            document.body.appendChild(el);
-            el.select();
-            try {
-                document.execCommand('copy');
-                ssToast('UPI ID copied!', 'success');
-            } catch (e) {
-                ssToast('Copy failed — please copy manually.', 'error');
-            }
-            document.body.removeChild(el);
-        }
 
         var _ssConfirmCallback = null;
 
@@ -521,7 +429,7 @@
             backdrop.style.display = 'block';
             modal.style.display = 'block';
             lucide.createIcons();
-            requestAnimationFrame(function () {
+            requestAnimationFrame(function() {
                 backdrop.style.opacity = '1';
                 modal.style.opacity = '1';
                 modal.style.transform = 'translate(-50%,-50%) scale(1)';
@@ -536,7 +444,7 @@
             backdrop.style.opacity = '0';
             modal.style.opacity = '0';
             modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-            setTimeout(function () {
+            setTimeout(function() {
                 backdrop.style.display = 'none';
                 modal.style.display = 'none';
             }, 180);
@@ -545,7 +453,7 @@
         }
 
         function ssConfirmProceed() {
-            var cb = _ssConfirmCallback;  // ← grab reference before cancel nulls it
+            var cb = _ssConfirmCallback; // ← grab reference before cancel nulls it
             ssConfirmCancel();
             if (typeof cb === 'function') cb();
         }

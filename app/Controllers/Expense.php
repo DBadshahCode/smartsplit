@@ -29,25 +29,16 @@ class Expense extends BaseController
     public function index()
     {
         $page_title = 'Expense Management';
-
         $expenseTypes = $this->expenseTypeModel
             ->where('is_active', 1)
             ->findAll();
-
-        $session = session();
-        $currentUser = [
-            'id' => (int) $session->get('user_id'),
-            'name' => $session->get('name'),
-            'role' => $session->get('role'),
-        ];
         $users = $this->userModel->findAll();
 
-        return view('expense/index', compact(
-            'page_title',
-            'expenseTypes',
-            'users',
-            'currentUser'
-        ));
+        return view('expense/index', $this->viewData([
+            'page_title' => $page_title,
+            'expenseTypes' => $expenseTypes,
+            'users' => $users,
+        ]));
     }
 
     public function getExpenses()

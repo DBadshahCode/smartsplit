@@ -26,7 +26,10 @@ class Profile extends BaseController
         }
 
         $page_title = 'My Profile';
-        return view('profile/index', compact('page_title', 'user'));
+        return view('profile/index', $this->viewData([
+            'page_title' => $page_title,
+            'user' => $user,
+        ]));
     }
 
     /**

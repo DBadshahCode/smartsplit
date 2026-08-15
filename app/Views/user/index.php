@@ -4,13 +4,25 @@
 
 <?= $this->section('content') ?>
 
+<?php
+/**
+ * @var array{
+ *     id: int,
+ *     name: string,
+ *     role: string
+ * } $currentUser
+ */
+
+$isAdmin = $currentUser['role'] === 'admin';
+?>
+
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
         <h1 class="page-title">Users</h1>
         <p class="page-subtitle">Manage roommates and their access roles</p>
     </div>
-    <?php if (session()->get('role') === 'admin'): ?>
+    <?php if ($isAdmin): ?>
         <button onclick="openAddModal()" class="ss-btn ss-btn-primary">
             <i data-lucide="user-plus" class="w-4 h-4"></i>
             Add User
@@ -36,7 +48,7 @@
                     <th class="abs-th text-left">Member</th>
                     <th class="abs-th text-left">Email</th>
                     <th class="abs-th text-left">Role</th>
-                    <?php if (session()->get('role') === 'admin'): ?>
+                    <?php if ($isAdmin): ?>
                         <th class="abs-th text-right">Actions</th>
                     <?php endif; ?>
                 </tr>
@@ -59,7 +71,7 @@
 <!-- ══════════════════════════════════════════════════════════════
      ADD USER MODAL  (admin only)
 ════════════════════════════════════════════════════════════════ -->
-<?php if (session()->get('role') === 'admin'): ?>
+<?php if ($isAdmin): ?>
 
     <div id="modal-backdrop" onclick="closeAddModal()" class="modal-backdrop" style="z-index:100;"></div>
 
@@ -109,9 +121,9 @@
                         <i data-lucide="lock" class="field-icon"></i>
                         <input type="password" id="u-password" name="password" placeholder="••••••••" required
                             autocomplete="new-password" class="ss-input pl-[38px] pr-11">
-                        <button type="button" onclick="toggleUserPwd()"
+                        <button type="button" data-toggle-password="u-password"
                             class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-surface-400 p-1 flex items-center justify-center min-w-[32px] min-h-[32px]">
-                            <i data-lucide="eye" id="u-pwd-icon" class="w-[15px] h-[15px]"></i>
+                            <i data-lucide="eye" class="w-[15px] h-[15px]"></i>
                         </button>
                     </div>
                 </div>
@@ -148,7 +160,7 @@
 <!-- ══════════════════════════════════════════════════════════════
      RESET PASSWORD MODAL  (admin only)
 ════════════════════════════════════════════════════════════════ -->
-<?php if (session()->get('role') === 'admin'): ?>
+<?php if ($isAdmin): ?>
 
     <div id="reset-backdrop" onclick="closeResetModal()" class="modal-backdrop" style="z-index:100;"></div>
 
@@ -188,9 +200,9 @@
                         <i data-lucide="lock" class="field-icon"></i>
                         <input type="password" id="reset-pwd" name="password" placeholder="Min. 6 characters" required
                             autocomplete="new-password" class="ss-input pl-[38px] pr-11" oninput="validateResetPwd()">
-                        <button type="button" onclick="toggleResetPwd()"
+                        <button type="button" data-toggle-password="reset-pwd"
                             class="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-surface-400 p-1 flex items-center justify-center min-w-[32px] min-h-[32px]">
-                            <i data-lucide="eye" id="reset-pwd-icon" class="w-[15px] h-[15px]"></i>
+                            <i data-lucide="eye" class="w-[15px] h-[15px]"></i>
                         </button>
                     </div>
                     <p id="reset-pwd-error" class="field-hint hidden">Password must be at least 6 characters.</p>
@@ -229,31 +241,10 @@
 <script>
     lucide.createIcons();
 
-    // ── Avatar initials helper ───────────────────────────────────────
-    const AVATAR_COLORS = [
-        ['#ede9fe', '#7c3aed'],
-        ['#fce7f3', '#be185d'],
-        ['#dcfce7', '#15803d'],
-        ['#fef9c3', '#a16207'],
-        ['#dbeafe', '#1d4ed8'],
-        ['#fee2e2', '#dc2626'],
-        ['#e0e7ff', '#4338ca'],
-        ['#f0fdf4', '#166534'],
-    ];
-
-    function avatarColor(name) {
-        let i = 0;
-        for (let c of (name || '')) i += c.charCodeAt(0);
-        return AVATAR_COLORS[i % AVATAR_COLORS.length];
-    }
-
-    function initials(name) {
-        if (!name) return '?';
-        const parts = name.trim().split(' ');
-        return parts.length >= 2 ?
-            (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() :
-            name.slice(0, 2).toUpperCase();
-    }
+    // Avatar color + initials now live globally in app.js
+    // (window.avatarColor / window.initials) — no longer copy-pasted
+    // per view. Call sites below (avatarColor(...), initials(...))
+    // are unchanged; they now resolve to the global versions.
 
     // ══════════════════════════════════════════════════════════════
     // loadUsers() — row template. Role badge reuses .ss-badge +
@@ -270,20 +261,22 @@
             const users = res.data || [];
             document.getElementById('user-count').textContent = users.length;
 
-            const isAdmin = <?= session()->get('role') === 'admin' ? 'true' : 'false' ?>;
+            const isAdmin = <?= $isAdmin ?>;
             const tbody = document.getElementById('users-tbody');
 
             if (users.length === 0) {
                 tbody.innerHTML = `
-            <tr>
-                <td colspan="${isAdmin ? 4 : 3}" class="mini-table-empty-td">
-                    <div class="flex flex-col items-center gap-2">
-                        <i data-lucide="users" class="w-6 h-6 text-surface-200"></i>
-                        <span class="text-sm">No users found</span>
-                    </div>
-                </td>
-            </tr>`;
-                lucide.createIcons();
+        <tr>
+            <td colspan="${isAdmin ? 4 : 3}" class="mini-table-empty-td">
+                <div class="flex flex-col items-center gap-2">
+                    <i data-lucide="users" class="w-6 h-6 text-surface-200"></i>
+                    <span class="text-sm">No users found</span>
+                </div>
+            </td>
+        </tr>`;
+                lucide.createIcons({
+                    nodes: [tbody]
+                });
                 return;
             }
 
@@ -292,65 +285,72 @@
                 const isAdminRole = u.role === 'admin';
                 const roleBadgeClass = isAdminRole ? 'bg-violet-100 text-violet-600' : 'bg-surface-100 text-surface-600';
                 const badgeTxt = isAdminRole ? 'Admin' : 'User';
+                // Escaped once, reused everywhere this name/email is interpolated
+                // below — including inside data-name="..." attributes, since an
+                // unescaped double quote in a name would otherwise break out of
+                // the attribute.
+                const safeName = window.escHtml(u.name);
+                const safeEmail = window.escHtml(u.email);
 
                 return `<tr style="border-bottom:1px solid #f1f5f9;">
 
-            <td class="abs-td" style="white-space:nowrap;">
-                <div class="flex items-center gap-2.5">
-                    <div class="avatar-circle" style="width:36px;height:36px;font-size:13px;background:${bg};color:${fg};">
-                        ${initials(u.name)}
-                    </div>
-                    <div class="text-sm font-semibold text-surface-900">${u.name || '—'}</div>
+        <td class="abs-td" style="white-space:nowrap;">
+            <div class="flex items-center gap-2.5">
+                <div class="avatar-circle" style="width:36px;height:36px;font-size:13px;background:${bg};color:${fg};">
+                    ${initials(u.name)}
                 </div>
-            </td>
+                <div class="text-sm font-semibold text-surface-900">${safeName || '—'}</div>
+            </div>
+        </td>
 
-            <td class="abs-td">
-                <span class="text-[13px] text-surface-500">${u.email || '—'}</span>
-            </td>
+        <td class="abs-td">
+            <span class="text-[13px] text-surface-500">${safeEmail || '—'}</span>
+        </td>
 
-            <td class="abs-td" style="white-space:nowrap;">
-                <span class="ss-badge ${roleBadgeClass}" style="gap:5px;">
-                    <i data-lucide="${isAdminRole ? 'shield' : 'user'}" class="w-[11px] h-[11px]"></i>
-                    ${badgeTxt}
-                </span>
-            </td>
+        <td class="abs-td" style="white-space:nowrap;">
+            <span class="ss-badge ${roleBadgeClass}" style="gap:5px;">
+                <i data-lucide="${isAdminRole ? 'shield' : 'user'}" class="w-[11px] h-[11px]"></i>
+                ${badgeTxt}
+            </span>
+        </td>
 
-            ${isAdmin ? `
-            <td class="abs-td text-right" style="white-space:nowrap;">
-                <div class="action-menu-wrap">
-                    <button type="button" class="action-menu-trigger" aria-label="Actions">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+        ${isAdmin ? `
+        <td class="abs-td text-right" style="white-space:nowrap;">
+            <div class="action-menu-wrap">
+                <button type="button" class="action-menu-trigger" aria-label="Actions">
+                    <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                </button>
+                <div class="action-menu-dropdown">
+                    <button class="action-menu-item toggleRoleBtn ${isAdminRole ? 'action-menu-warn' : ''}"
+                        data-id="${u.id}" data-name="${safeName}" data-role="${u.role}">
+                        <i data-lucide="${isAdminRole ? 'shield-off' : 'shield-check'}" class="w-3.5 h-3.5"></i>
+                        ${isAdminRole ? 'Demote to User' : 'Promote to Admin'}
                     </button>
-                    <div class="action-menu-dropdown">
-                        <button class="action-menu-item toggleRoleBtn ${isAdminRole ? 'action-menu-warn' : ''}"
-                            data-id="${u.id}" data-name="${u.name}" data-role="${u.role}">
-                            <i data-lucide="${isAdminRole ? 'shield-off' : 'shield-check'}" class="w-3.5 h-3.5"></i>
-                            ${isAdminRole ? 'Demote to User' : 'Promote to Admin'}
-                        </button>
-                        <button class="action-menu-item resetPwdBtn" data-id="${u.id}" data-name="${u.name}">
-                            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
-                            Reset Password
-                        </button>
-                        <div class="action-menu-divider"></div>
-                        <button class="action-menu-item deleteUserBtn action-menu-danger" data-id="${u.id}" data-name="${u.name}">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            Delete User
-                        </button>
-                    </div>
+                    <button class="action-menu-item resetPwdBtn" data-id="${u.id}" data-name="${safeName}">
+                        <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+                        Reset Password
+                    </button>
+                    <div class="action-menu-divider"></div>
+                    <button class="action-menu-item deleteUserBtn action-menu-danger" data-id="${u.id}" data-name="${safeName}">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        Delete User
+                    </button>
                 </div>
-            </td>` : ''}
-        </tr>`;
+            </div>
+        </td>` : ''}
+    </tr>`;
             }).join('');
 
-            lucide.createIcons();
+            lucide.createIcons({
+                nodes: [tbody]
+            });
             initActionMenus(tbody);
 
-            // ── Delete handler — the two console.log() debug lines that
-            // were here (id + jQuery-availability checks) are removed.
+            // ── Delete handler ────────────────────────────────────────────
             document.querySelectorAll('.deleteUserBtn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
-                    const name = this.dataset.name;
+                    const name = this.dataset.name; // browser decodes entities back automatically
                     ssConfirm({
                         title: 'Delete User',
                         message: 'Are you sure you want to delete user "' + name + '"? This cannot be undone.',
@@ -372,7 +372,7 @@
                 });
             });
 
-            // ── Role toggle handler ──────────────────────────────────
+            // ── Role toggle handler ──────────────────────────────────────
             document.querySelectorAll('.toggleRoleBtn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
@@ -404,7 +404,7 @@
                 });
             });
 
-            // ── Reset password handler ───────────────────────────────
+            // ── Reset password handler ───────────────────────────────────
             document.querySelectorAll('.resetPwdBtn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     openResetModal(this.dataset.id, this.dataset.name);
@@ -422,30 +422,23 @@
     // same fix as expensetype/expense/absentday).
     // ══════════════════════════════════════════════════════════════
     function openAddModal() {
-        const backdrop = document.getElementById('modal-backdrop');
-        const modal = document.getElementById('add-user-modal');
-        if (!backdrop || !modal) return;
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex';
-        requestAnimationFrame(function() {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        window.ssModalOpen({
+            modalId: 'add-user-modal',
+            backdropId: 'modal-backdrop',
+            display: 'flex',
+            focusId: 'u-name'
         });
-        document.getElementById('u-name').focus();
     }
 
     function closeAddModal() {
-        const backdrop = document.getElementById('modal-backdrop');
-        const modal = document.getElementById('add-user-modal');
-        if (!backdrop || !modal) return;
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function() {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            document.getElementById('addUserForm').reset();
-            resetAddBtn();
-        }, 180);
+        window.ssModalClose({
+            modalId: 'add-user-modal',
+            backdropId: 'modal-backdrop',
+            onClosed: function() {
+                document.getElementById('addUserForm').reset();
+                resetAddBtn();
+            }
+        });
     }
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -456,18 +449,13 @@
 
 
     // ══════════════════════════════════════════════════════════════
-    // FIX: all four icon-swap functions below were using
-    // icon.setAttribute('data-lucide', ...) + lucide.createIcons()
-    // directly — the same known-broken pattern as expensetype's and
-    // login's button icons. None of these icon swaps were actually
-    // rendering. All four fixed to use window.setLucideIcon().
+    // Button loading-state icon swaps (add/reset submit buttons) —
+    // these stay page-specific since each pairs a loading state with
+    // bespoke AJAX success/error handling. Password-toggle icon swaps
+    // (u-password, reset-pwd) are gone from here entirely — they're
+    // now wired globally via data-toggle-password + initPasswordToggles()
+    // in app.js, same as login.php and profile.php.
     // ══════════════════════════════════════════════════════════════
-    function toggleUserPwd() {
-        const input = document.getElementById('u-password');
-        input.type = input.type === 'password' ? 'text' : 'password';
-        window.setLucideIcon('u-pwd-icon', input.type === 'password' ? 'eye' : 'eye-off');
-    }
-
     function setAddBtnLoading() {
         const btn = document.getElementById('addUserBtn');
         const text = document.getElementById('addUserBtnText');
@@ -528,36 +516,23 @@
         document.getElementById('reset-match-error').classList.add('hidden');
         document.getElementById('reset-pwd').style.borderColor = '#e2e8f0';
         document.getElementById('reset-pwd-confirm').style.borderColor = '#e2e8f0';
-        const backdrop = document.getElementById('reset-backdrop');
-        const modal = document.getElementById('reset-pwd-modal');
-        if (!backdrop || !modal) return;
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex'; // was 'block' — same .modal-shell fix
-        requestAnimationFrame(function() {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        window.ssModalOpen({
+            modalId: 'reset-pwd-modal',
+            backdropId: 'reset-backdrop',
+            display: 'flex',
+            focusId: 'reset-pwd'
         });
-        document.getElementById('reset-pwd').focus();
     }
 
     function closeResetModal() {
-        const modal = document.getElementById('reset-pwd-modal');
-        const backdrop = document.getElementById('reset-backdrop');
-        if (!modal || !backdrop) return;
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function() {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            resetAddResetBtn();
-            resetUserId = null;
-        }, 180);
-    }
-
-    function toggleResetPwd() {
-        const input = document.getElementById('reset-pwd');
-        input.type = input.type === 'password' ? 'text' : 'password';
-        window.setLucideIcon('reset-pwd-icon', input.type === 'password' ? 'eye' : 'eye-off');
+        window.ssModalClose({
+            modalId: 'reset-pwd-modal',
+            backdropId: 'reset-backdrop',
+            onClosed: function() {
+                resetAddResetBtn();
+                resetUserId = null;
+            }
+        });
     }
 
     function validateResetPwd() {

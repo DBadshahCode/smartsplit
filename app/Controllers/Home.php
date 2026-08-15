@@ -10,6 +10,8 @@ class Home extends BaseController
             return redirect()->to('auth/login');
         }
         $page_title = 'Dashboard';
-        return view('home/index', compact('page_title'));
+        return view('home/index', $this->viewData([
+            'page_title' => $page_title
+        ]));
     }
 }

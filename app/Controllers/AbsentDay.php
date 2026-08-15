@@ -27,7 +27,9 @@ class AbsentDay extends BaseController
     public function index()
     {
         $page_title = 'Absent Days';
-        return view('absentday/index', compact('page_title'));
+        return view('absentday/index', $this->viewData([
+            'page_title' => $page_title,
+        ]));
     }
 
     /**

@@ -241,15 +241,17 @@
 
             if (types.length === 0) {
                 tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="mini-table-empty-td">
-                    <div class="flex flex-col items-center gap-2">
-                        <i data-lucide="tag" class="w-6 h-6 text-surface-200"></i>
-                        <span class="text-sm">No expense types yet</span>
-                    </div>
-                </td>
-            </tr>`;
-                lucide.createIcons();
+                <tr>
+                    <td colspan="5" class="mini-table-empty-td">
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-lucide="tag" class="w-6 h-6 text-surface-200"></i>
+                            <span class="text-sm">No expense types yet</span>
+                        </div>
+                    </td>
+                </tr>`;
+                lucide.createIcons({
+                    nodes: [tbody]
+                });
                 return;
             }
 
@@ -260,48 +262,54 @@
                     dot: '#94a3b8'
                 };
                 const isActive = t.is_active == 1 || t.is_active === true;
+                const safeName = window.escHtml(t.name);
+                const safeDesc = t.description ?
+                    window.escHtml(t.description) :
+                    '<span class="dt-empty">No description</span>';
 
                 return `<tr style="border-bottom:1px solid #f1f5f9;">
- 
-            <!-- Name -->
-            <td class="abs-td" style="white-space:nowrap;">
-                <span class="text-sm font-semibold text-surface-900">${t.name || '—'}</span>
-            </td>
- 
-            <!-- Description -->
-            <td class="abs-td">
-                <span class="dt-cell-truncate text-[13px] text-surface-500" style="max-width:220px;">
-                    ${t.description || '<span class="dt-empty">No description</span>'}
-                </span>
-            </td>
- 
-            <!-- Split method badge -->
-            <td class="abs-td" style="white-space:nowrap;">
-                <span class="ss-badge ${cfg.badgeClass}" style="gap:6px;">
-                    <span style="width:6px;height:6px;border-radius:50%;background:${cfg.dot};flex-shrink:0;"></span>
-                    ${cfg.label}
-                </span>
-            </td>
- 
-            <!-- Status badge -->
-            <td class="abs-td" style="white-space:nowrap;">
-                <span class="ss-badge ${isActive ? 'ss-badge-green' : 'ss-badge-red'}" style="gap:5px;">
-                    <i data-lucide="${isActive ? 'check-circle' : 'x-circle'}" class="w-[11px] h-[11px]"></i>
-                    ${isActive ? 'Active' : 'Inactive'}
-                </span>
-            </td>
- 
-            <!-- Delete -->
-            <td class="abs-td text-right" style="white-space:nowrap;">
-                <button class="deleteTypeBtn row-action-btn row-action-delete" data-id="${t.id}" data-name="${t.name}">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i>
-                    Delete
-                </button>
-            </td>
-        </tr>`;
+
+                <!-- Name -->
+                <td class="abs-td" style="white-space:nowrap;">
+                    <span class="text-sm font-semibold text-surface-900">${safeName || '—'}</span>
+                </td>
+
+                <!-- Description -->
+                <td class="abs-td">
+                    <span class="dt-cell-truncate text-[13px] text-surface-500" style="max-width:220px;">
+                        ${safeDesc}
+                    </span>
+                </td>
+
+                <!-- Split method badge -->
+                <td class="abs-td" style="white-space:nowrap;">
+                    <span class="ss-badge ${cfg.badgeClass}" style="gap:6px;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:${cfg.dot};  flex-shrink:0;"></span>
+                        ${cfg.label}
+                    </span>
+                </td>
+
+                <!-- Status badge -->
+                <td class="abs-td" style="white-space:nowrap;">
+                    <span class="ss-badge ${isActive ? 'ss-badge-green' : 'ss-badge-red'}" style="gap:5px;">
+                        <i data-lucide="${isActive ? 'check-circle' : 'x-circle'}" class="w-[11px] h-[11px] "></i>
+                        ${isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+
+                <!-- Delete -->
+                <td class="abs-td text-right" style="white-space:nowrap;">
+                    <button class="deleteTypeBtn row-action-btn row-action-delete" data-id="${t.id}"    data-name="${safeName}">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        Delete
+                    </button>
+                </td>
+            </tr>`;
             }).join('');
 
-            lucide.createIcons();
+            lucide.createIcons({
+                nodes: [tbody]
+            });
 
             // Delete handler
             document.querySelectorAll('.deleteTypeBtn').forEach(function(btn) {
@@ -354,30 +362,25 @@
 
     // ── Modal open / close ───────────────────────────────────────────
     function openAddModal() {
-        const backdrop = document.getElementById('modal-backdrop');
-        const modal = document.getElementById('add-type-modal');
-        backdrop.style.display = 'block';
-        modal.style.display = 'flex';
-        requestAnimationFrame(function() {
-            modal.style.opacity = '1';
-            modal.style.transform = 'translate(-50%,-50%) scale(1)';
+        window.ssModalOpen({
+            modalId: 'add-type-modal',
+            backdropId: 'modal-backdrop',
+            display: 'flex',
+            focusId: 'et-name'
         });
-        document.getElementById('et-name').focus();
     }
 
     function closeAddModal() {
-        const modal = document.getElementById('add-type-modal');
-        const backdrop = document.getElementById('modal-backdrop');
-        modal.style.opacity = '0';
-        modal.style.transform = 'translate(-50%,-50%) scale(0.97)';
-        setTimeout(function() {
-            modal.style.display = 'none';
-            backdrop.style.display = 'none';
-            document.getElementById('addExpenseTypeForm').reset();
-            selectSplit('');
-            selectedSplit = '';
-            resetAddBtn();
-        }, 180);
+        window.ssModalClose({
+            modalId: 'add-type-modal',
+            backdropId: 'modal-backdrop',
+            onClosed: function() {
+                document.getElementById('addExpenseTypeForm').reset();
+                selectSplit('');
+                selectedSplit = '';
+                resetAddBtn();
+            }
+        });
     }
 
     document.addEventListener('keydown', function(e) {

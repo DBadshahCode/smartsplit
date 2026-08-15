@@ -38,7 +38,9 @@ class FinalDistribution extends BaseController
     {
         $page_title = 'Final Distribution';
 
-        return view('finaldistribution/index', compact('page_title'));
+        return view('finaldistribution/index', $this->viewData([
+            'page_title' => $page_title
+        ]));
     }
 
     /**

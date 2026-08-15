@@ -496,8 +496,11 @@
       this._tbody.innerHTML = rows.map(cfg.rowFn).join("");
     }
 
-    /* Re-render Lucide icons injected by rowFn */
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    /* Re-render Lucide icons injected by rowFn — scoped to this table's
+     * tbody rather than the whole document, since a full-page icon scan
+     * on every search/sort/page-change re-render is unnecessary work. */
+    if (typeof lucide !== "undefined")
+      lucide.createIcons({ nodes: [this._tbody] });
 
     /* Pager */
     this._renderPager(filtered.length);
@@ -616,7 +619,7 @@
       }
     });
 
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    if (typeof lucide !== "undefined") lucide.createIcons({ nodes: [this._pagerEl] });
   };
 
   /* ── Page pills helper ─────────────────────────────────────────────── */
@@ -716,7 +719,8 @@
       cfg.loadingText || "Loading\u2026",
       "#cbd5e1",
     );
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    if (typeof lucide !== "undefined")
+      lucide.createIcons({ nodes: [this._tbody] });
   };
 
   /* ── Generic state row ─────────────────────────────────────────────── */

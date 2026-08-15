@@ -17,11 +17,10 @@ class ExpenseType extends BaseController
     // Load main page
     public function index()
     {
-        $data = [
-            'page_title' => 'Expense Types'
-        ];
-
-        return view('expensetype/index', $data);
+        $pageTitle = 'Expense Types';
+        return view('expensetype/index', $this->viewData([
+            'page_title' => $pageTitle
+        ]));
     }
 
     public function getExpenseTypes()

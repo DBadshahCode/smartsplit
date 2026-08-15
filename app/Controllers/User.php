@@ -16,7 +16,9 @@ class User extends BaseController
     public function index()
     {
         $page_title = 'User Management';
-        return view('user/index', compact('page_title'));
+        return view('user/index', $this->viewData([
+            'page_title' => $page_title
+        ]));
     }
 
     public function getUsers()
