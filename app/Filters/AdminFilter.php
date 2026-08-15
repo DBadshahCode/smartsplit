@@ -29,7 +29,7 @@ class AdminFilter implements FilterInterface
         if (! session()->get('isLoggedIn')) {
             return redirect()->to('/auth/login');
         }
- 
+
         // Must be admin
         if (session()->get('role') !== 'admin') {
             return redirect()->to('/')->with('error', 'Access denied. Admin privileges required.');

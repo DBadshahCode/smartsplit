@@ -6,7 +6,7 @@ class Home extends BaseController
 {
     public function index()
     {
-        if (!$this->session->get('isLoggedIn')) {
+        if (!$this->currentUser['isLoggedIn']) {
             return redirect()->to('auth/login');
         }
         $page_title = 'Dashboard';

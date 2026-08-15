@@ -19,7 +19,7 @@ class Profile extends BaseController
     public function index()
     {
         /** @var UserEntity|null $user */
-        $user = $this->userModel->find((int) session()->get('user_id'));
+        $user = $this->userModel->find((int) $this->currentUser['id']);
 
         if (!($user instanceof UserEntity)) {
             return redirect()->to('/')->with('error', 'User not found.');
@@ -38,7 +38,7 @@ class Profile extends BaseController
      */
     public function updateInfo()
     {
-        $userId = (int) session()->get('user_id');
+        $userId = (int) $this->currentUser['id'];
 
         /** @var UserEntity|null $user */
         $user = $this->userModel->find($userId);
@@ -101,7 +101,7 @@ class Profile extends BaseController
      */
     public function updatePassword()
     {
-        $userId = (int) session()->get('user_id');
+        $userId = (int) $this->currentUser['id'];
 
         /** @var UserEntity|null $user */
         $user = $this->userModel->find($userId);
@@ -155,7 +155,7 @@ class Profile extends BaseController
     public function getLatestDistributionMonth()
     {
         $db = DB::connect();
-        $userId = (int) session()->get('user_id');
+        $userId = (int) $this->currentUser['id'];
 
         $row = $db->table('final_distributions')
             ->where('user_id', $userId)
@@ -176,7 +176,7 @@ class Profile extends BaseController
     public function getDistributionByMonth($month = '')
     {
         $db = DB::connect();
-        $userId = (int) session()->get('user_id');
+        $userId = (int) $this->currentUser['id'];
 
         if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
             return $this->response->setJSON(['data' => null])->setStatusCode(400);

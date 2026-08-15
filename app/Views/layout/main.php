@@ -101,7 +101,7 @@
      * } $currentUser
      */
 
-    $isLoggedIn = session()->get('isLoggedIn') === true;
+    $isLoggedIn = $currentUser['isLoggedIn'] === true;
     $userName   = (string) ($currentUser['name'] ?? '');
     $userRole   = (string) ($currentUser['role'] ?? 'guest');
     $groupName  = (string) ($currentUser['group_name'] ?? '');

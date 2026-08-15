@@ -67,7 +67,7 @@ class User extends BaseController
         }
 
         // Prevent changing your own role
-        if ((int) $id === (int) session()->get('user_id')) {
+        if ((int) $id === (int) $this->currentUser['id']) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'You cannot change your own role.'
