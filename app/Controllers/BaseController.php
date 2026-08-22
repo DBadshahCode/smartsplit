@@ -32,7 +32,8 @@ abstract class BaseController extends Controller
      * @var array{
      *     id: int,
      *     name: string,
-     *     role: string
+     *     role: string,
+     *     isLoggedIn: bool
      * }
      */
     protected array $currentUser = [
@@ -61,7 +62,7 @@ abstract class BaseController extends Controller
             'id'   => (int) ($this->session->get('user_id') ?? 0),
             'name' => (string) ($this->session->get('name') ?? ''),
             'role' => (string) ($this->session->get('role') ?? 'guest'),
-            'isLoggedIn' => (bool) ($this->session->get('isLoggedIn') ?? false),
+            'isLoggedIn' => (bool) ($this->session->get('is_logged_in') ?? false),
         ];
     }
 
@@ -72,7 +73,8 @@ abstract class BaseController extends Controller
      *     currentUser: array{
      *         id: int,
      *         name: string,
-     *         role: string
+     *         role: string,
+     *         isLoggedIn: bool
      *     }
      * }
      */

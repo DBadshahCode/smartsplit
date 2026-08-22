@@ -25,9 +25,8 @@ class Profile extends BaseController
             return redirect()->to('/')->with('error', 'User not found.');
         }
 
-        $page_title = 'My Profile';
         return view('profile/index', $this->viewData([
-            'page_title' => $page_title,
+            'pageTitle' => 'My Profile',
             'user' => $user,
         ]));
     }

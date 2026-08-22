@@ -8,7 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 
 // ── Public routes (no auth required) ────────────────────────────
 $routes->get('/auth/login', 'Auth::login');
-$routes->post('/auth/loginUser', 'Auth::loginUser');
+$routes->post('/auth/authenticate', 'Auth::authenticate');
 $routes->get('/auth/logout', 'Auth::logout');
 
 // ── Authenticated routes (any logged-in user) ────────────────────
@@ -48,6 +48,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/updateInfo', 'Profile::updateInfo');
     $routes->post('profile/updatePassword', 'Profile::updatePassword');
+    $routes->get('user/generatePassword', 'User::generatePassword', ['filter' => 'auth']);
     $routes->get('profile/getLatestDistributionMonth', 'Profile::getLatestDistributionMonth');
     $routes->get('profile/getDistributionByMonth/(:segment)', 'Profile::getDistributionByMonth/$1');
     $routes->get('finaldistribution/getLatestMonth', 'FinalDistribution::getLatestMonth');

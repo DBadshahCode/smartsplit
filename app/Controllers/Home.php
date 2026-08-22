@@ -9,9 +9,9 @@ class Home extends BaseController
         if (!$this->currentUser['isLoggedIn']) {
             return redirect()->to('auth/login');
         }
-        $page_title = 'Dashboard';
+
         return view('home/index', $this->viewData([
-            'page_title' => $page_title
+            'pageTitle' => 'Dashboard'
         ]));
     }
 }

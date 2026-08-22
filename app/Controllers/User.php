@@ -5,19 +5,20 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Entities\User as UserEntity;
 use App\Models\User as UserModel;
+use App\Libraries\PasswordGeneratorService;
 
 class User extends BaseController
 {
     protected UserModel $userModel;
+
     public function __construct()
     {
         $this->userModel = new UserModel();
     }
     public function index()
     {
-        $page_title = 'User Management';
         return view('user/index', $this->viewData([
-            'page_title' => $page_title
+            'pageTitle' => 'Users'
         ]));
     }
 
@@ -152,5 +153,20 @@ class User extends BaseController
         }
 
         return $this->response->setJSON($results);
+    }
+
+    /**
+     * Generate a random memorable password for the admin to use when
+     * creating a user or resetting a password. Does not touch the DB —
+     * the admin still has to submit the form for it to take effect.
+     */
+    public function generatePassword()
+    {
+        $passwordGenerator = new PasswordGeneratorService();
+
+        return $this->response->setJSON([
+            'status'   => 'success',
+            'password' => $passwordGenerator->generate(),
+        ]);
     }
 }

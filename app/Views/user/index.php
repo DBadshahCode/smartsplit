@@ -1,26 +1,27 @@
-<?= $this->extend('layout/main') ?>
-
-<?= $this->section('title') ?>Users<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
-
 <?php
 /**
  * @var array{
  *     id: int,
  *     name: string,
  *     role: string,
- *    isLoggedIn: bool
+ *     isLoggedIn: bool
  * } $currentUser
+ * @var string $pageTitle
  */
 
 $isAdmin = $currentUser['role'] === 'admin';
 ?>
 
+<?= $this->extend('layout/main') ?>
+
+<?= $this->section('title') ?><?= $pageTitle ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">Users</h1>
+        <h1 class="page-title"><?= $pageTitle ?></h1>
         <p class="page-subtitle">Manage roommates and their access roles</p>
     </div>
     <?php if ($isAdmin): ?>
@@ -117,7 +118,19 @@ $isAdmin = $currentUser['role'] === 'admin';
 
                 <!-- Password -->
                 <div class="field-group">
-                    <label class="ss-label" for="u-password">Password</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="ss-label mb-0" for="u-password">Password</label>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="generatePassword('u-password')"
+                                class="text-xs font-semibold text-brand-600 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                                <i data-lucide="dices" class="w-3.5 h-3.5"></i> Generate
+                            </button>
+                            <button type="button" onclick="copyPasswordField('u-password')"
+                                class="text-xs font-semibold text-surface-500 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                            </button>
+                        </div>
+                    </div>
                     <div class="field-icon-wrap">
                         <i data-lucide="lock" class="field-icon"></i>
                         <input type="password" id="u-password" name="password" placeholder="••••••••" required
@@ -196,7 +209,19 @@ $isAdmin = $currentUser['role'] === 'admin';
 
                 <!-- New password -->
                 <div class="field-group">
-                    <label class="ss-label" for="reset-pwd">New Password <span class="required-star">*</span></label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="ss-label mb-0" for="reset-pwd">New Password <span class="required-star">*</span></label>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="generatePassword('reset-pwd', { mirrorId: 'reset-pwd-confirm', afterFill: validateResetPwd })"
+                                class="text-xs font-semibold text-brand-600 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                                <i data-lucide="dices" class="w-3.5 h-3.5"></i> Generate
+                            </button>
+                            <button type="button" onclick="copyPasswordField('reset-pwd')"
+                                class="text-xs font-semibold text-surface-500 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                            </button>
+                        </div>
+                    </div>
                     <div class="field-icon-wrap">
                         <i data-lucide="lock" class="field-icon"></i>
                         <input type="password" id="reset-pwd" name="password" placeholder="Min. 6 characters" required

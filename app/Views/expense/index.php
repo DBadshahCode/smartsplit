@@ -1,28 +1,29 @@
-<?= $this->extend('layout/main') ?>
-
-<?= $this->section('title') ?>Expenses<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
-
 <?php
 /**
  * @var array{
  *     id: int,
  *     name: string,
  *     role: string,
- *    isLoggedIn: bool
+ *     isLoggedIn: bool,
  * } $currentUser
  * @var array $expenseTypes
  * @var array $users
+ * @var string $pageTitle
  */
 
 $isAdmin = $currentUser['role'] === 'admin';
 ?>
 
+<?= $this->extend('layout/main') ?>
+
+<?= $this->section('title') ?><?= $pageTitle ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">Expenses</h1>
+        <h1 class="page-title"><?= $pageTitle ?></h1>
         <p class="page-subtitle">Track and manage all shared expenses</p>
     </div>
     <button onclick="openAddModal()" class="ss-btn ss-btn-primary">
@@ -760,7 +761,7 @@ $isAdmin = $currentUser['role'] === 'admin';
                 '<span class="ss-badge ss-badge-pink gap-[5px] mt-0.5">' +
                 '<i data-lucide="tag" class="w-[11px] h-[11px]"></i>' +
                 safeType +
-                '</span>'
+                '</span>' +
             '<div class="expense-card-actions">' +
             '<button onclick="openEditModal(\'' + e.id + '\')" title="Edit" class="card-icon-btn card-icon-btn-edit">' +
                 '<i data-lucide="pencil" class="w-[15px] h-[15px]"></i>' +

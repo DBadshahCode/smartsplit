@@ -15,29 +15,56 @@ class Auth extends BaseController
     {
         return view('auth/login');
     }
-    public function loginUser()
+    public function authenticate()
     {
-        $userModel = new UserModel();
-        $data = $this->request->getPost();
-        $user = $userModel->where('email', $data['email'])->first();
-        if ($user && password_verify($data['password'], $user->password)) {
-            $session = session();
-            $session->set(
-                [
-                    'user_id' => $user->id,
-                    'role' => $user->role,
-                    'name' => $user->name,
-                    'isLoggedIn' => true
-                ]
-            );
-            return redirect()->to('/');
-        } else {
-            return redirect()->back()->with('error', 'Invalid login');
+        $credentials = $this->request->getPost([
+            'email',
+            'password',
+        ]);
+
+        $rules = [
+            'email' => 'required|valid_email',
+            'password' => 'required',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('errors', $this->validator->getErrors());
         }
+
+        $userModel = new UserModel();
+
+        $user = $userModel
+            ->where('email', $credentials['email'])
+            ->first();
+
+        if (
+            $user === null ||
+            ! password_verify($credentials['password'], $user->password)
+        ) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Invalid email or password.');
+        }
+
+        session()->regenerate();
+
+        session()->set([
+            'user_id'      => $user->id,
+            'role'         => $user->role,
+            'name'         => $user->name,
+            'is_logged_in' => true,
+        ]);
+
+        return redirect()->to('/');
     }
     public function logout()
     {
         session()->destroy();
+
         return redirect()->to('/auth/login');
     }
 }

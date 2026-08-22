@@ -34,7 +34,7 @@
         <?php endif; ?>
 
         <!-- Form -->
-        <form method="post" action="<?= base_url('/auth/loginUser') ?>" id="loginForm" data-loading-submit>
+        <form method="post" action="<?= base_url('/auth/authenticate') ?>" id="loginForm" data-loading-submit>
 
             <!-- Email -->
             <div class="mb-[18px]">

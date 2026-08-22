@@ -1,26 +1,27 @@
-<?= $this->extend('layout/main') ?>
-
-<?= $this->section('title') ?>Dashboard<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
-
 <?php
 /**
  * @var array{
  *     id: int,
  *     name: string,
  *     role: string,
- *    isLoggedIn: bool
+ *     isLoggedIn: bool
  * } $currentUser
+ * @var string $pageTitle
  */
 
 $isAdmin = $currentUser['role'] === 'admin';
 ?>
 
+<?= $this->extend('layout/main') ?>
+
+<?= $this->section('title') ?><?= $pageTitle ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
 <!-- Page header -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">Dashboard</h1>
+        <h1 class="page-title"><?= $pageTitle ?></h1>
         <p class="page-subtitle">
             Good <?php
                     $h = (int) date('H');

@@ -269,3 +269,95 @@ window.escHtml = function (str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 };
+
+// ── Generate password (Add User / Reset Password / Change Password) ──
+// Fetches a random memorable password from the server and fills it into
+// the given input. Reveals it if currently masked — a masked freshly-
+// generated password defeats the point of being able to see/share it —
+// and fires a native 'input' event so any addEventListener('input', ...)
+// listeners (e.g. profile's password-strength meter) react to the
+// programmatic fill same as if the user had typed it.
+// opts.mirrorId — optional second field to fill with the same value
+//                 (a "confirm password" field)
+window.generatePassword = function (inputId, opts) {
+  opts = opts || {};
+  $.get("/user/generatePassword", function (res) {
+    if (res.status !== "success" || !res.password) {
+      if (typeof window.ssToast === "function") {
+        ssToast("Could not generate password.", "error");
+      }
+      return;
+    }
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    input.value = res.password;
+
+    if (input.type === "password") {
+      var toggleBtn = document.querySelector(
+        '[data-toggle-password="' + inputId + '"]',
+      );
+      var icon = toggleBtn
+        ? toggleBtn.querySelector("svg, [data-lucide]")
+        : null;
+      input.type = "text";
+      if (icon && typeof window.swapLucideIcon === "function") {
+        window.swapLucideIcon(icon, "eye-off");
+      }
+    }
+
+    if (opts.mirrorId) {
+      var mirror = document.getElementById(opts.mirrorId);
+      if (mirror) mirror.value = res.password;
+    }
+
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    if (typeof opts.afterFill === "function") opts.afterFill();
+  }).fail(function () {
+    if (typeof window.ssToast === "function") {
+      ssToast("Could not generate password.", "error");
+    }
+  });
+};
+
+// ── Copy a password field's value to clipboard ──────────────────────
+window.copyPasswordField = function (inputId) {
+  var input = document.getElementById(inputId);
+  if (!input || !input.value) {
+    if (typeof window.ssToast === "function") {
+      ssToast("Generate or enter a password first.", "info");
+    }
+    return;
+  }
+  var text = input.value;
+
+  function fallbackCopy() {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      if (typeof window.ssToast === "function")
+        ssToast("Password copied to clipboard.", "success");
+    } catch (e) {
+      if (typeof window.ssToast === "function")
+        ssToast("Could not copy password.", "error");
+    }
+    document.body.removeChild(ta);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard
+      .writeText(text)
+      .then(function () {
+        if (typeof window.ssToast === "function")
+          ssToast("Password copied to clipboard.", "success");
+      })
+      .catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+};

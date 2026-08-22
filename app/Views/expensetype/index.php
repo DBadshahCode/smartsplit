@@ -1,13 +1,19 @@
+<?php
+/**
+ * @var string $pageTitle
+ */
+?>
+
 <?= $this->extend('layout/main') ?>
 
-<?= $this->section('title') ?>Expense Types<?= $this->endSection() ?>
+<?= $this->section('title') ?><?= $pageTitle ?><?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
 <!-- ── Page header ─────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">Expense Types</h1>
+        <h1 class="page-title"><?= $pageTitle ?></h1>
         <p class="page-subtitle">Define how each expense category is split between roommates</p>
     </div>
     <button onclick="openAddModal()" class="ss-btn ss-btn-primary">

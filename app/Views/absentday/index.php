@@ -1,9 +1,3 @@
-<?= $this->extend('layout/main') ?>
-
-<?= $this->section('title') ?>Absent Days<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
-
 <?php
 /**
  * @var array{
@@ -14,15 +8,22 @@
  * } $currentUser
  * @var array $expenseTypes
  * @var array $users
+ * @var string $pageTitle
  */
 
 $isAdmin = $currentUser['role'] === 'admin';
 ?>
 
+<?= $this->extend('layout/main') ?>
+
+<?= $this->section('title') ?><?= esc($pageTitle); ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+
 <!-- ── Page header ────────────────────────────────────────────────────────── -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">Absent Days</h1>
+        <h1 class="page-title"><?= esc($pageTitle) ?></h1>
         <p class="page-subtitle">Track per-expense absences used in days-present splits</p>
     </div>
 </div>

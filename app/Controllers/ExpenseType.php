@@ -17,51 +17,57 @@ class ExpenseType extends BaseController
     // Load main page
     public function index()
     {
-        $pageTitle = 'Expense Types';
         return view('expensetype/index', $this->viewData([
-            'page_title' => $pageTitle
+            'pageTitle' => 'Expense Types'
         ]));
     }
 
     public function getExpenseTypes()
     {
-        $data = $this->expenseTypeModel->findAll();
-
         return $this->response->setJSON([
-            'data' => $data
+            'data' => $this->expenseTypeModel->findAll(),
         ]);
     }
 
     public function addExpenseType()
     {
-        $data = [
-            'name' => $this->request->getPost('name'),
-            'description' => $this->request->getPost('description'),
-            'split_method' => $this->request->getPost('split_method'),
-            'is_active' => $this->request->getPost('is_active')
-        ];
+        $data = $this->request->getPost([
+            'name',
+            'description',
+            'split_method',
+            'is_active',
+        ]);
 
-        if ($this->expenseTypeModel->insert($data)) {
-            return $this->response->setJSON([
-                'status' => 'success'
-            ]);
+        if (! $this->expenseTypeModel->insert($data)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->expenseTypeModel->errors(),
+                ]);
         }
 
         return $this->response->setJSON([
-            'status' => 'error'
+            'status' => 'success',
+            'message' => 'Expense type created successfully.',
+            'id' => $this->expenseTypeModel->getInsertID(),
         ]);
     }
 
     public function deleteExpenseType(int $id)
     {
-        if ($this->expenseTypeModel->delete($id)) {
-            return $this->response->setJSON([
-                'status' => 'success'
-            ]);
+        if (! $this->expenseTypeModel->delete($id)) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON([
+                    'status' => 'error',
+                    'message' => 'Expense type not found.',
+                ]);
         }
 
         return $this->response->setJSON([
-            'status' => 'error'
+            'status' => 'success',
+            'message' => 'Expense type deleted successfully.',
         ]);
     }
 }

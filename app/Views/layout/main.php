@@ -73,17 +73,17 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- SS.Table (custom table component — replaces DataTables) -->
-    <script src="<?= base_url('assets/js/ss-table.js') ?>?v=3"></script>
+    <script src="<?= base_url('assets/js/ss-table.js') ?>?v=4"></script>
 
     <!-- App javascript — externalized so the browser caches it across
          page navigations instead of re-downloading it with every
          request (bump ?v= when app.css changes) -->
-    <script src="<?= base_url('assets/js/app.js') ?>?v=3"></script>
+    <script src="<?= base_url('assets/js/app.js') ?>?v=4"></script>
 
     <!-- App stylesheet — externalized so the browser caches it across
          page navigations instead of re-downloading it with every
          request (bump ?v= when app.css changes) -->
-    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=3">
+    <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=4">
 </head>
 
 <body class="h-full bg-surface-50">

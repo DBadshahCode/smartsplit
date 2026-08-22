@@ -1,26 +1,27 @@
-<?php $this->extend('layout/main'); ?>
-
-<?= $this->section('title') ?>Profile<?= $this->endSection() ?>
-
-<?php $this->section('content'); ?>
-
 <?php
 /**
  * @var array{
  *     id: int,
  *     name: string,
  *     role: string,
- *    isLoggedIn: bool
+ *     isLoggedIn: bool
  * } $currentUser
  * @var App\Entities\User $user
+ * @var string $pageTitle
  */
 
 $isAdmin = $currentUser['role'] === 'admin';
 ?>
 
+<?php $this->extend('layout/main'); ?>
+
+<?= $this->section('title') ?><?= $pageTitle ?><?= $this->endSection() ?>
+
+<?php $this->section('content'); ?>
+
 <div class="page-header">
     <div>
-        <h1 class="page-title">Profile</h1>
+        <h1 class="page-title"><?= $pageTitle ?></h1>
         <p class="page-subtitle">View and update your account details</p>
     </div>
 </div>
@@ -153,7 +154,19 @@ $isAdmin = $currentUser['role'] === 'admin';
             </div>
 
             <div>
-                <label class="ss-label" for="pw-new">New Password</label>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="ss-label mb-0" for="pw-new">New Password</label>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="generatePassword('pw-new', { mirrorId: 'pw-confirm' })"
+                            class="text-xs font-semibold text-brand-600 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                            <i data-lucide="dices" class="w-3.5 h-3.5"></i> Generate
+                        </button>
+                        <button type="button" onclick="copyPasswordField('pw-new')"
+                            class="text-xs font-semibold text-surface-500 bg-transparent border-none cursor-pointer flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-100">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                        </button>
+                    </div>
+                </div>
                 <div class="relative">
                     <input class="ss-input pr-11" type="password" id="pw-new" placeholder="At least 6 characters"
                         autocomplete="new-password">

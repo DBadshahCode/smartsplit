@@ -26,7 +26,7 @@ class AdminFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         // Must be logged in first
-        if (! session()->get('isLoggedIn')) {
+        if (! session()->get('is_logged_in')) {
             return redirect()->to('/auth/login');
         }
 
