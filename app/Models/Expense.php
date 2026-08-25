@@ -80,4 +80,12 @@ class Expense extends Model
 
         return array_map(fn($row) => (int) $row['user_id'], $query);
     }
+
+    public function hasInvolvedUser(int $expenseId, int $userId): bool
+    {
+        return $this->db->table('expense_involvements')
+            ->where('expense_id', $expenseId)
+            ->where('user_id', $userId)
+            ->countAllResults() > 0;
+    }
 }
