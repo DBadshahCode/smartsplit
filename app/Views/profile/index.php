@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var array{
  *     id: int,
@@ -209,6 +210,27 @@ $isAdmin = $currentUser['role'] === 'admin';
         </div>
     </div>
 
+    <!-- ── Recovery code card ───────────────────────────────── -->
+    <div class="ss-card">
+        <div class="ss-card-header">
+            <div class="flex items-center gap-2">
+                <i data-lucide="life-buoy" class="w-4 h-4 text-brand-500"></i>
+                <span class="font-semibold text-[15px]">Recovery Code</span>
+            </div>
+        </div>
+        <div class="ss-card-body">
+            <p class="text-[13px] text-surface-500 leading-relaxed mb-4">
+                Your recovery code lets you reset your password from the login page without
+                your admin's help, in case you forget it. Generating a new code immediately
+                invalidates any earlier one.
+            </p>
+            <button type="button" id="btn-regen-recovery" class="ss-btn ss-btn-ghost">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                Generate New Recovery Code
+            </button>
+        </div>
+    </div>
+
 </div><!-- /max-width wrapper -->
 
 <script>
@@ -358,6 +380,35 @@ $isAdmin = $currentUser['role'] === 'admin';
                 complete: function() {
                     btn.disabled = false;
                     btn.textContent = 'Update Password';
+                }
+            });
+        });
+
+        /* ── Regenerate recovery code ────────────────────────── */
+        document.getElementById('btn-regen-recovery').addEventListener('click', function() {
+            ssConfirm({
+                title: 'Generate New Recovery Code',
+                message: 'This creates a new recovery code and immediately invalidates your current one. Continue?',
+                confirmText: 'Generate',
+                onConfirm: function() {
+                    $.ajax({
+                        url: '/profile/regenerateRecoveryCode',
+                        type: 'POST',
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                window.showRecoveryCode(res.recovery_code, {
+                                    title: 'New Recovery Code',
+                                    subtitle: 'Save this somewhere safe'
+                                });
+                            } else {
+                                ssToast(res.message || 'Could not generate recovery code.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong.';
+                            ssToast(msg, 'error');
+                        }
+                    });
                 }
             });
         });
