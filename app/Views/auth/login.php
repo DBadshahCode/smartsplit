@@ -25,8 +25,13 @@
             <p class="text-sm text-surface-500 m-0">Sign in to your SmartSplit account</p>
         </div>
 
-        <!-- Flash error -->
-        <?php if (session()->getFlashdata('error')): ?>
+        <!-- Flash messages -->
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="status-banner status-success mb-5">
+                <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
+                <span><?= session()->getFlashdata('success') ?></span>
+            </div>
+        <?php elseif (session()->getFlashdata('error')): ?>
             <div class="status-banner status-error mb-5">
                 <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
                 <span><?= session()->getFlashdata('error') ?></span>
@@ -48,7 +53,13 @@
 
             <!-- Password -->
             <div class="mb-6">
-                <label for="password" class="ss-label">Password</label>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label for="password" class="ss-label mb-0">Password</label>
+                    <a href="<?= base_url('/auth/forgotPassword') ?>"
+                        class="text-xs font-semibold text-brand-600 no-underline hover:underline">
+                        Forgot password?
+                    </a>
+                </div>
                 <div class="field-icon-wrap">
                     <i data-lucide="lock" class="field-icon"></i>
                     <input type="password" id="password" name="password" placeholder="••••••••" required

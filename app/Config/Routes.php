@@ -10,6 +10,8 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/auth/login', 'Auth::login');
 $routes->post('/auth/authenticate', 'Auth::authenticate');
 $routes->get('/auth/logout', 'Auth::logout');
+$routes->get('/auth/forgotPassword', 'Auth::forgotPassword');
+$routes->post('/auth/resetWithRecoveryCode', 'Auth::resetWithRecoveryCode');
 
 // ── Authenticated routes (any logged-in user) ────────────────────
 $routes->group('', ['filter' => 'auth'], function ($routes) {
@@ -48,6 +50,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/updateInfo', 'Profile::updateInfo');
     $routes->post('profile/updatePassword', 'Profile::updatePassword');
+    $routes->post('profile/regenerateRecoveryCode', 'Profile::regenerateRecoveryCode');
     $routes->get('user/generatePassword', 'User::generatePassword', ['filter' => 'auth']);
     $routes->get('profile/getLatestDistributionMonth', 'Profile::getLatestDistributionMonth');
     $routes->get('profile/getDistributionByMonth/(:segment)', 'Profile::getDistributionByMonth/$1');
@@ -68,6 +71,7 @@ $routes->group('', ['filter' => 'admin'], function ($routes) {
     $routes->delete('/user/deleteUser/(:num)', 'User::deleteUser/$1');
     $routes->post('/user/updateRole/(:num)', 'User::updateRole/$1');
     $routes->post('/user/resetPassword/(:num)', 'User::resetPassword/$1');
+    $routes->post('/user/regenerateRecoveryCode/(:num)', 'User::regenerateRecoveryCode/$1');
 
     // Final Distribution — generate (write action, admin only)
     $routes->post('/finaldistribution/generateDistribution/(:segment)', 'FinalDistribution::generateDistribution/$1');

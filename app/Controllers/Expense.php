@@ -52,49 +52,8 @@ class Expense extends BaseController
 
     public function getExpenses()
     {
-        $expenses = $this->expenseModel
-            ->select([
-                'expenses.id',
-                'expenses.description',
-                'expenses.amount',
-                'expenses.billing_month',
-                'expenses.from_date',
-                'expenses.to_date',
-                'expense_types.name AS expense_type',
-                'users.name AS paid_by_name',
-                'COUNT(DISTINCT expense_involvements.user_id) AS total_involved',
-                'GROUP_CONCAT(
-                    DISTINCT involved_users.name
-                    ORDER BY involved_users.name
-                    SEPARATOR ", "
-                ) AS involved_names',
-            ])
-            ->join(
-                'expense_types',
-                'expense_types.id = expenses.expense_type_id',
-                'left'
-            )
-            ->join(
-                'users',
-                'users.id = expenses.paid_by',
-                'left'
-            )
-            ->join(
-                'expense_involvements',
-                'expense_involvements.expense_id = expenses.id',
-                'left'
-            )
-            ->join(
-                'users AS involved_users',
-                'involved_users.id = expense_involvements.user_id',
-                'left'
-            )
-            ->groupBy('expenses.id')
-            ->orderBy('expenses.id', 'DESC')
-            ->findAll();
-
         return $this->response->setJSON([
-            'data' => $expenses,
+            'data' => $this->expenseModel->getExpenseList(),
         ]);
     }
 
@@ -322,7 +281,7 @@ class Expense extends BaseController
      */
     private function expenseExists(int $id): bool
     {
-        return $this->expenseModel->find($id) !== null;
+        return $this->expenseModel->existsById($id);
     }
 
     /**
@@ -378,15 +337,7 @@ class Expense extends BaseController
      */
     private function getInvolvedUserIdsByExpense(int $expenseId): array
     {
-        $rows = $this->expenseInvolvementModel
-            ->select('user_id')
-            ->where('expense_id', $expenseId)
-            ->findAll();
-
-        return array_map(
-            static fn($row): int => (int) $row->user_id,
-            $rows
-        );
+        return $this->expenseModel->getInvolvedUserIds($expenseId);
     }
 
     /**

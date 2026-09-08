@@ -2,15 +2,11 @@
 
 namespace App\Controllers;
 
-use \Config\Database as DB;
 use App\Controllers\BaseController;
-use App\Entities\AbsentDay as AbsentDayEntity;
-use App\Entities\ExpenseInvolvement as ExpenseInvolvementEntity;
-use App\Entities\FinalDistribution as FinalDistributionEntity;
-use App\Entities\User as UserEntity;
 use App\Libraries\ExcelExportService;
 use App\Libraries\ExpenseCalculatorService;
 use App\Models\AbsentDay as AbsentDayModel;
+use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
 use App\Models\FinalDistribution as FinalDistributionModel;
 use App\Models\User as UserModel;
@@ -21,6 +17,7 @@ class FinalDistribution extends BaseController
     protected ExpenseCalculatorService $expenseCalculatorService;
     protected FinalDistributionModel $finalDistributionModel;
     protected UserModel $userModel;
+    protected ExpenseModel $expenseModel;
     protected ExpenseInvolvementModel $involvementModel;
     protected AbsentDayModel $absentDayModel;
 
@@ -30,6 +27,7 @@ class FinalDistribution extends BaseController
         $this->expenseCalculatorService = new ExpenseCalculatorService();
         $this->finalDistributionModel = new FinalDistributionModel();
         $this->userModel = new UserModel();
+        $this->expenseModel = new ExpenseModel();
         $this->involvementModel = new ExpenseInvolvementModel();
         $this->absentDayModel = new AbsentDayModel();
     }
@@ -51,13 +49,8 @@ class FinalDistribution extends BaseController
      */
     public function getLatestMonth()
     {
-        $latest = $this->finalDistributionModel
-            ->select('month')
-            ->orderBy('generated_at', 'DESC')
-            ->first();
-
         return $this->response->setJSON([
-            'month' => $latest?->month,
+            'month' => $this->finalDistributionModel->getLatestGeneratedMonth(),
         ]);
     }
 
@@ -69,35 +62,20 @@ class FinalDistribution extends BaseController
     public function getDistribution(string $month)
     {
         $records = $this->finalDistributionModel
-            ->select([
-                'final_distributions.month',
-                'final_distributions.expenses_amount',
-                'final_distributions.advance_amount',
-                'final_distributions.due_amount',
-                'final_distributions.final_amount',
-                'final_distributions.generated_at',
-                'users.name AS user_name',
-            ])
-            ->join(
-                'users',
-                'users.id = final_distributions.user_id',
-                'left'
-            )
-            ->where('final_distributions.month', $month)
-            ->findAll();
+            ->getMonthWithUserNames($month);
 
         $data = [];
 
         foreach ($records as $record) {
             $data[] = [
-                'name' => $record->user_name,
-                'month' => $record->month,
-                'expenses_amount' => $record->expenses_amount,
-                'advance_amount' => $record->advance_amount,
-                'due_amount' => $record->due_amount,
-                'final_amount' => $record->final_amount,
-                'generated_at' => $record->generated_at
-                    ? (string) $record->generated_at
+                'name' => $record['user_name'],
+                'month' => $record['month'],
+                'expenses_amount' => $record['expenses_amount'],
+                'advance_amount' => $record['advance_amount'],
+                'due_amount' => $record['due_amount'],
+                'final_amount' => $record['final_amount'],
+                'generated_at' => $record['generated_at'] !== null
+                    ? (string) $record['generated_at']
                     : null,
             ];
         }
@@ -190,16 +168,12 @@ class FinalDistribution extends BaseController
      */
     private function buildUserList(): array
     {
-        $users = $this->userModel
-            ->select('id, name')
-            ->findAll();
-
         return array_map(
-            static fn(UserEntity $user): array => [
-                'id' => (int) $user->id,
-                'name' => (string) $user->name,
+            static fn(array $user): array => [
+                'id' => (int) $user['id'],
+                'name' => (string) $user['name'],
             ],
-            $users
+            $this->userModel->getIdNameList()
         );
     }
 
@@ -214,138 +188,58 @@ class FinalDistribution extends BaseController
      */
     private function buildDistributionMap(string $month): array
     {
-        $distRows = $this->finalDistributionModel
-            ->select([
-                'user_id',
-                'expenses_amount',
-                'advance_amount',
-                'final_amount',
-            ])
-            ->where('month', $month)
-            ->findAll();
-
-        $distributions = [];
-
-        foreach ($distRows as $distribution) {
-            $userId = (int) $distribution->user_id;
-
-            $distributions[$userId] = [
-                'expenses_amount' => $distribution->expenses_amount,
-                'advance_amount' => $distribution->advance_amount,
-                'final_amount' => $distribution->final_amount,
-            ];
-        }
-
-        return $distributions;
+        return $this->finalDistributionModel->getAmountsMapForMonth($month);
     }
 
     /**
      * Build the per-expense breakdown array required by ExcelExportService.
      *
+     * The whole month is read in three queries — expenses joined to their type
+     * and payer, every involvement, every absence — and the split maths then
+     * runs in memory. Previously the absence rows were fetched one query per
+     * daysPresent expense.
+     *
      * @return array<int, array<string, mixed>>
      */
     private function buildExpenseDetail(string $month): array
     {
-        /**
-         * 1. Get all expenses for the billing month.
-         *
-         * Expense type and paid-by user are fetched using JOINs,
-         * so we don't need separate queries for each expense.
-         */
-        $db = DB::connect();
-
-        $rawExpenses = $db->table('expenses e')
-            ->select([
-                'e.id',
-                'e.amount',
-                'e.from_date',
-                'e.to_date',
-                'e.billing_month',
-                'et.name AS expense_type',
-                'et.split_method',
-                'u.name AS paid_by_name',
-            ])
-            ->join('expense_types et', 'et.id = e.expense_type_id', 'left')
-            ->join('users u', 'u.id = e.paid_by', 'left')
-            ->where('e.billing_month', $month)
-            ->orderBy('e.id', 'DESC')
-            ->get()
-            ->getResultArray();
+        $rawExpenses = $this->expenseModel->getExpensesForMonth($month);
 
         // Nothing to process.
         if ($rawExpenses === []) {
             return [];
         }
 
-        /**
-         * 2. Collect all expense IDs.
-         *
-         * Example:
-         *
-         * expenses:
-         * 10, 11, 12, 13
-         *
-         * expenseIds:
-         * [10, 11, 12, 13]
-         */
         $expenseIds = array_map(
             static fn(array $expense): int => (int) $expense['id'],
             $rawExpenses
         );
 
         /**
-         * 3. Get ALL involvements in ONE query.
+         * All involvements for the month in ONE query, keyed by expense.
          *
-         * Before:
-         *
-         * expense 10 -> query
-         * expense 11 -> query
-         * expense 12 -> query
-         * expense 13 -> query
-         *
-         * Now:
-         *
-         * [10, 11, 12, 13] -> ONE query
+         * Before:  expense 10 -> query, 11 -> query, 12 -> query …
+         * Now:     [10, 11, 12, 13] -> ONE query
          */
-        $involvements = $this->involvementModel
-            ->whereIn('expense_id', $expenseIds)
-            ->findAll();
+        $involvementsByExpense = $this->involvementModel
+            ->getUserIdsByExpenseIds($expenseIds);
 
         /**
-         * 4. Organize involvements by expense ID.
-         *
-         * Result will look like:
-         *
-         * [
-         *     10 => [user1, user2, user3],
-         *     11 => [user2, user4],
-         *     12 => [user1, user3],
-         * ]
+         * Absences are only read for daysPresent expenses, so only those IDs
+         * are queried — an equal-split month issues no absence query at all.
          */
-        $involvementsByExpense = [];
+        $daysPresentIds = [];
 
-        foreach ($involvements as $involvement) {
-            $expenseId = (int) (
-                $involvement instanceof ExpenseInvolvementEntity
-                ? $involvement->expense_id
-                : $involvement['expense_id']
-            );
-
-            $involvementsByExpense[$expenseId][] = $involvement;
+        foreach ($rawExpenses as $expense) {
+            if (($expense['split_method'] ?? 'equal') === 'daysPresent') {
+                $daysPresentIds[] = (int) $expense['id'];
+            }
         }
 
-        /**
-         * 5. Build the final result.
-         */
-        $result = [];
+        $absentByExpense = $this->absentDayModel
+            ->getDaysByExpenseIds($daysPresentIds);
 
-        /**
-         * Cache absent days.
-         *
-         * calculateUserShares() already uses this cache,
-         * so we keep that behavior unchanged.
-         */
-        $absentByExpense = [];
+        $result = [];
 
         foreach ($rawExpenses as $expense) {
             $expenseId = (int) $expense['id'];
@@ -357,35 +251,7 @@ class FinalDistribution extends BaseController
 
             $splitMethod = $expense['split_method'] ?? 'equal';
 
-            /**
-             * Get involvements from memory instead of querying
-             * the database again.
-             */
-            $expenseInvolvements = $involvementsByExpense[$expenseId] ?? [];
-
-            /**
-             * Convert involvement records into user IDs.
-             *
-             * Example:
-             *
-             * [
-             *     involvement(user_id = 2),
-             *     involvement(user_id = 5),
-             *     involvement(user_id = 8),
-             * ]
-             *
-             * becomes:
-             *
-             * [2, 5, 8]
-             */
-            $involvedUserIds = array_map(
-                static fn($involvement): int => (int) (
-                    $involvement instanceof ExpenseInvolvementEntity
-                    ? $involvement->user_id
-                    : $involvement['user_id']
-                ),
-                $expenseInvolvements
-            );
+            $involvedUserIds = $involvementsByExpense[$expenseId] ?? [];
 
             /**
              * Calculate each user's share.
@@ -398,7 +264,7 @@ class FinalDistribution extends BaseController
                     $expenseId,
                     $fromDate,
                     $toDate,
-                    $absentByExpense
+                    $absentByExpense[$expenseId] ?? []
                 )
                 : [];
 
@@ -423,7 +289,7 @@ class FinalDistribution extends BaseController
 
     /**
      * @param  int[] $involvedIds
-     * @param  array<int, array<int, int>> $absentByExpense Lazy cache, passed by reference.
+     * @param  array<int, int> $absentMap [user_id => days_absent], prefetched.
      * @return array<int, float> [user_id => share]
      */
     private function calculateUserShares(
@@ -433,18 +299,13 @@ class FinalDistribution extends BaseController
         int $expId,
         string $fromStr,
         string $toStr,
-        array &$absentByExpense
+        array $absentMap
     ): array {
         $involvedCount = count($involvedIds);
 
         if ($splitMethod === 'daysPresent') {
             // Dates are already plain strings — strtotime() is safe here.
             $totalDays = (int) ((strtotime($toStr) - strtotime($fromStr)) / 86400) + 1;
-
-            if (!isset($absentByExpense[$expId])) {
-                $absentByExpense[$expId] = $this->loadAbsentDays($expId);
-            }
-            $absentMap = $absentByExpense[$expId];
 
             $presentDays = [];
             $totalPresent = 0;
@@ -477,22 +338,5 @@ class FinalDistribution extends BaseController
         }
 
         return $userShares;
-    }
-
-    /**
-     * @return array<int, int> [user_id => days_absent]
-     */
-    private function loadAbsentDays(int $expenseId): array
-    {
-        $rows = $this->absentDayModel->where('expense_id', $expenseId)->findAll();
-
-        $map = [];
-        foreach ($rows as $row) {
-            $uid = $row instanceof AbsentDayEntity ? $row->user_id : $row['user_id'];
-            $days = $row instanceof AbsentDayEntity ? $row->days_absent : $row['days_absent'];
-            $map[(int) $uid] = (int) $days;
-        }
-
-        return $map;
     }
 }

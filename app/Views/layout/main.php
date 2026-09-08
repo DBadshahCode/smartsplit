@@ -242,6 +242,52 @@
         </div>
     </div>
 
+    <!-- ── Recovery Code reveal modal (global, one-time reveal) ───────
+         No backdrop-click-to-close and no header X — dismissing this
+         accidentally would lose a code that's never shown again, so
+         the only way out is the explicit "I've saved this code" button. -->
+    <div id="recovery-code-backdrop" class="modal-backdrop"></div>
+    <div id="recovery-code-modal" class="modal-panel modal-shell" style="max-width:440px;">
+        <div class="modal-header">
+            <div class="modal-header-info">
+                <div class="modal-header-icon bg-emerald-100">
+                    <i data-lucide="life-buoy" class="w-4 h-4 text-emerald-600"></i>
+                </div>
+                <div>
+                    <h3 id="recovery-code-title" class="modal-header-title">Recovery Code</h3>
+                    <p id="recovery-code-subtitle" class="modal-header-subtitle">Save this somewhere safe</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="modal-form">
+                <div class="hint-box hint-warn" style="align-items:flex-start;margin-bottom:16px;">
+                    <i data-lucide="triangle-alert" class="w-[14px] h-[14px] flex-shrink-0 mt-px"></i>
+                    <p class="m-0" style="line-height:1.5;">
+                        This code is shown only once. Anyone with it and the account's email can reset
+                        that password — store it somewhere safe and don't share it carelessly.
+                    </p>
+                </div>
+
+                <div class="field-group-lg">
+                    <label class="ss-label">Recovery code</label>
+                    <div class="flex items-center gap-2">
+                        <div id="recovery-code-value" class="ss-input font-mono text-center"
+                            style="letter-spacing:.05em;font-weight:700;font-size:16px;user-select:all;"></div>
+                        <button type="button" onclick="copyRecoveryCode()" class="icon-btn icon-btn-muted"
+                            style="min-width:44px;min-height:44px;flex-shrink:0;" aria-label="Copy code">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="closeRecoveryCodeModal()" class="ss-btn ss-btn-primary w-full justify-center">
+                    I've saved this code
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══════════════════════════════════════════════════════
      GLOBAL JAVASCRIPT
 ════════════════════════════════════════════════════════ -->
@@ -462,6 +508,56 @@
         function _ssConfirmEsc(e) {
             if (e.key === 'Escape') ssConfirmCancel();
         }
+
+        // ── Recovery code reveal modal (global) ────────────────────
+        window.showRecoveryCode = function(code, opts) {
+            opts = opts || {};
+            document.getElementById('recovery-code-title').textContent = opts.title || 'Recovery Code';
+            document.getElementById('recovery-code-subtitle').textContent = opts.subtitle || 'Save this somewhere safe';
+            document.getElementById('recovery-code-value').textContent = code;
+            window.ssModalOpen({
+                modalId: 'recovery-code-modal',
+                backdropId: 'recovery-code-backdrop',
+                display: 'flex'
+            });
+        };
+
+        window.closeRecoveryCodeModal = function() {
+            window.ssModalClose({
+                modalId: 'recovery-code-modal',
+                backdropId: 'recovery-code-backdrop'
+            });
+        };
+
+        window.copyRecoveryCode = function() {
+            var el = document.getElementById('recovery-code-value');
+            if (!el || !el.textContent) return;
+            var text = el.textContent;
+
+            function fallbackCopy() {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    ssToast('Recovery code copied to clipboard.', 'success');
+                } catch (e) {
+                    ssToast('Could not copy code.', 'error');
+                }
+                document.body.removeChild(ta);
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    ssToast('Recovery code copied to clipboard.', 'success');
+                }).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+        };
     </script>
 
     <?= $this->renderSection('scripts') ?>

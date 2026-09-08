@@ -2,18 +2,21 @@
 
 namespace App\Controllers;
 
-use \Config\Database as DB;
 use App\Controllers\BaseController;
 use App\Entities\User as UserEntity;
+use App\Models\FinalDistribution as FinalDistributionModel;
 use App\Models\User as UserModel;
+use App\Libraries\RecoveryCodeService;
 
 class Profile extends BaseController
 {
     protected UserModel $userModel;
+    protected FinalDistributionModel $finalDistributionModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->finalDistributionModel = new FinalDistributionModel();
     }
 
     public function index()
@@ -67,11 +70,7 @@ class Profile extends BaseController
         }
 
         // Check email uniqueness (exclude current user)
-        $existing = $this->userModel->where('email', $email)
-            ->where('id !=', $userId)
-            ->first();
-
-        if ($existing !== null) {
+        if ($this->userModel->isEmailTakenByOther($email, $userId)) {
             return $this->response->setJSON([
                 'status' => 'error',
                 'message' => 'That email is already in use by another account.',
@@ -148,23 +147,49 @@ class Profile extends BaseController
     }
 
     /**
+     * (Re)generate the logged-in user's own recovery code.
+     * POST /profile/regenerateRecoveryCode
+     * Same semantics as User::regenerateRecoveryCode — overwrites any
+     * existing code, plain value returned once, never stored.
+     */
+    public function regenerateRecoveryCode()
+    {
+        $userId = (int) $this->currentUser['id'];
+
+        /** @var UserEntity|null $user */
+        $user = $this->userModel->find($userId);
+
+        if (!($user instanceof UserEntity)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not found.',
+            ])->setStatusCode(404);
+        }
+
+        $recoveryService = new RecoveryCodeService();
+        $recoveryCode = $recoveryService->generate();
+
+        $this->userModel->update($userId, [
+            'recovery_code_hash' => $recoveryService->hash($recoveryCode),
+        ]);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'recovery_code' => $recoveryCode,
+        ]);
+    }
+
+    /**
      * GET /profile/getLatestDistributionMonth
      * Returns the most recent month that has a distribution record for this user.
      */
     public function getLatestDistributionMonth()
     {
-        $db = DB::connect();
-        $userId = (int) $this->currentUser['id'];
-
-        $row = $db->table('final_distributions')
-            ->where('user_id', $userId)
-            ->orderBy('month', 'DESC')
-            ->limit(1)
-            ->get()
-            ->getRowArray();
+        $month = $this->finalDistributionModel
+            ->getLatestMonthForUser((int) $this->currentUser['id']);
 
         return $this->response->setJSON([
-            'month' => $row ? $row['month'] : null,
+            'month' => $month,
         ]);
     }
 
@@ -174,19 +199,15 @@ class Profile extends BaseController
      */
     public function getDistributionByMonth($month = '')
     {
-        $db = DB::connect();
-        $userId = (int) $this->currentUser['id'];
-
         if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
             return $this->response->setJSON(['data' => null])->setStatusCode(400);
         }
 
-        $row = $db->table('final_distributions')
-            ->where('user_id', $userId)
-            ->where('month', $month)
-            ->get()
-            ->getRowArray();
+        $row = $this->finalDistributionModel->getRowForUserMonth(
+            (int) $this->currentUser['id'],
+            $month
+        );
 
-        return $this->response->setJSON(['data' => $row ?: null]);
+        return $this->response->setJSON(['data' => $row]);
     }
 }

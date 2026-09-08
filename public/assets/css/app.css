@@ -645,6 +645,15 @@ body {
     padding: 0 16px;
 }
 
+/* Recovery code modal — z-index tier 400/401 per project convention */
+#recovery-code-backdrop {
+    z-index: 400;
+}
+
+#recovery-code-modal {
+    z-index: 401;
+}
+
 /* ═══════════════════════════════════════════════════════
    Expense view — form/modal/card kit (batch 1)
 ═══════════════════════════════════════════════════════ */

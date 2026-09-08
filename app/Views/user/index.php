@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var array{
  *     id: int,
@@ -356,6 +357,10 @@ $isAdmin = $currentUser['role'] === 'admin';
                         <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
                         Reset Password
                     </button>
+                    <button class="action-menu-item regenRecoveryBtn" data-id="${u.id}" data-name="${safeName}">
+                        <i data-lucide="life-buoy" class="w-3.5 h-3.5"></i>
+                        Recovery Code
+                    </button>
                     <div class="action-menu-divider"></div>
                     <button class="action-menu-item deleteUserBtn action-menu-danger" data-id="${u.id}" data-name="${safeName}">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -437,6 +442,38 @@ $isAdmin = $currentUser['role'] === 'admin';
                 });
             });
 
+            // ── Regenerate recovery code handler ─────────────────────────
+            document.querySelectorAll('.regenRecoveryBtn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    ssConfirm({
+                        title: 'Regenerate Recovery Code',
+                        message: 'This creates a new recovery code for "' + name + '" and invalidates their old one immediately. Continue?',
+                        confirmText: 'Regenerate',
+                        onConfirm: function() {
+                            $.ajax({
+                                url: '/user/regenerateRecoveryCode/' + id,
+                                type: 'POST',
+                                success: function(res) {
+                                    if (res.status === 'success') {
+                                        window.showRecoveryCode(res.recovery_code, {
+                                            title: 'New Recovery Code',
+                                            subtitle: 'For ' + name + ' — share it with them securely'
+                                        });
+                                    } else {
+                                        ssToast(res.message || 'Could not generate recovery code.', 'error');
+                                    }
+                                },
+                                error: function(xhr) {
+                                    ssToast((xhr.responseJSON && xhr.responseJSON.message) || 'Something went wrong.', 'error');
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
         }); // end $.get
     } // end loadUsers
 
@@ -515,6 +552,12 @@ $isAdmin = $currentUser['role'] === 'admin';
                         ssToast('User added successfully!', 'success');
                         closeAddModal();
                         loadUsers();
+                        if (res.recovery_code) {
+                            window.showRecoveryCode(res.recovery_code, {
+                                title: 'Recovery Code Created',
+                                subtitle: 'Give this to the new user along with their password'
+                            });
+                        }
                     } else {
                         ssToast(res.message || 'Could not add user.', 'error');
                         resetAddBtn();

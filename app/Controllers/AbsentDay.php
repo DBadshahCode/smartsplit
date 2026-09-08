@@ -5,19 +5,16 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\AbsentDay as AbsentDayModel;
 use App\Models\Expense as ExpenseModel;
-use App\Models\User as UserModel;
 use DateTimeImmutable;
 
 class AbsentDay extends BaseController
 {
     protected AbsentDayModel $absentDayModel;
-    protected UserModel $userModel;
     protected ExpenseModel $expenseModel;
 
     public function __construct()
     {
         $this->absentDayModel = new AbsentDayModel();
-        $this->userModel = new UserModel();
         $this->expenseModel = new ExpenseModel();
     }
 
@@ -60,45 +57,24 @@ class AbsentDay extends BaseController
 
         $totalDays = $this->calculateDaysInclusive($fromDate, $toDate);
 
-        $userIds = $this->expenseModel->getInvolvedUserIds($expenseId);
-
-        if ($userIds === []) {
-            return $this->response->setJSON([
-                'data' => [],
-                'total_days' => $totalDays,
-            ]);
-        }
-
-        $users = $this->userModel
-            ->whereIn('id', $userIds)
-            ->orderBy('name', 'ASC')
-            ->findAll();
-
-        $absentRecords = $this->absentDayModel
-            ->where('expense_id', $expenseId)
-            ->findAll();
-
-        $absentMap = [];
-
-        foreach ($absentRecords as $record) {
-            $absentMap[(int) $record->user_id] = [
-                'id' => (int) $record->id,
-                'days_absent' => (int) $record->days_absent,
-            ];
-        }
+        /**
+         * One query returns the involved users, their names and their absence
+         * record. This used to be three separate queries: involved user IDs,
+         * then those users, then the absent_days rows.
+         */
+        $roster = $this->absentDayModel->getRosterForExpense($expenseId);
 
         $data = [];
 
-        foreach ($users as $user) {
-            $userId = (int) $user->id;
-
-            $daysAbsent = $absentMap[$userId]['days_absent'] ?? 0;
-            $recordId = $absentMap[$userId]['id'] ?? null;
+        foreach ($roster as $row) {
+            $daysAbsent = (int) $row['days_absent'];
 
             $data[] = [
-                'record_id' => $recordId,
-                'user_id' => $userId,
-                'name' => $user->name,
+                'record_id' => $row['record_id'] !== null
+                    ? (int) $row['record_id']
+                    : null,
+                'user_id' => (int) $row['user_id'],
+                'name' => $row['name'],
                 'expense_id' => $expenseId,
                 'days_absent' => $daysAbsent,
                 'days_present' => max(0, $totalDays - $daysAbsent),

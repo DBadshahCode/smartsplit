@@ -15,6 +15,7 @@ class User extends Entity
         'password' => 'string',
         'role' => 'string',
         'joined_date' => 'datetime',
+        'recovery_code_hash' => '?string',
     ];
     protected $attributes = [
         'id' => null,
@@ -23,5 +24,6 @@ class User extends Entity
         'password' => null,
         'role' => null,
         'joined_date' => null,
+        'recovery_code_hash' => null,
     ];
 }

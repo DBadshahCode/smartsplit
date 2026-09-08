@@ -2,13 +2,11 @@
 
 namespace App\Libraries;
 
-use App\Entities\Expense as ExpenseEntity;
-use App\Entities\ExpenseType as ExpenseTypeEntity;
 use App\Models\AbsentDay as AbsentDayModel;
 use App\Models\Expense as ExpenseModel;
 use App\Models\ExpenseInvolvement as ExpenseInvolvementModel;
-use App\Models\ExpenseType as ExpenseTypeModel;
 use App\Models\FinalDistribution as FinalDistributionModel;
+use CodeIgniter\Database\BaseConnection;
 
 /**
  * Calculates and persists each user's final monthly distribution based on
@@ -17,22 +15,29 @@ use App\Models\FinalDistribution as FinalDistributionModel;
  * Chapati-related logic has been removed — this project no longer has a
  * chapati module. Only the "expenses" (equal | daysPresent) flow
  * remains.
+ *
+ * Query strategy: everything the month needs is read up front in three
+ * queries (expenses joined to their type, all involvements, all absences) and
+ * the split maths then runs entirely in memory. Persisting is a single batch
+ * insert. The whole wipe-and-rebuild runs inside one transaction so a failure
+ * cannot leave the month with its old rows deleted and no new ones.
  */
 class ExpenseCalculatorService
 {
     private ExpenseModel $expenseModel;
-    private ExpenseTypeModel $expenseTypeModel;
     private ExpenseInvolvementModel $expenseInvolvementModel;
     private AbsentDayModel $absentDayModel;
     private FinalDistributionModel $finalDistributionModel;
+    private BaseConnection $db;
 
     public function __construct()
     {
         $this->expenseModel = new ExpenseModel();
-        $this->expenseTypeModel = new ExpenseTypeModel();
         $this->expenseInvolvementModel = new ExpenseInvolvementModel();
         $this->absentDayModel = new AbsentDayModel();
         $this->finalDistributionModel = new FinalDistributionModel();
+
+        $this->db = db_connect();
     }
 
     /**
@@ -45,15 +50,24 @@ class ExpenseCalculatorService
      */
     public function calculateFinalDistribution(string $month): array
     {
-        // Wipe any previously generated rows for this month so re-running
-        // generation is idempotent.
-        $this->finalDistributionModel->where('month', $month)->delete();
-
         // $dist[user_id] = ['expenses_amount' => float, 'advance' => float]
         $dist = [];
 
         $this->applyOtherExpenses($month, $dist);
+
+        $this->db->transStart();
+
+        // Wipe any previously generated rows for this month so re-running
+        // generation is idempotent.
+        $this->finalDistributionModel->where('month', $month)->delete();
+
         $this->persistDistribution($month, $dist);
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === false) {
+            log_message('error', "ExpenseCalculatorService: transaction failed while persisting distribution for {$month}.");
+        }
 
         return $dist;
     }
@@ -76,92 +90,107 @@ class ExpenseCalculatorService
      */
     private function applyOtherExpenses(string $month, array &$dist): void
     {
-        $expenses = $this->expenseModel
-            ->where('billing_month', $month)
-            ->findAll();
+        $expenses = $this->expenseModel->getExpensesForMonth($month);
 
-        // Lazy-load cache: absent_days per expense, loaded on first
-        // daysPresent encounter for that expense. Avoids N+1 while not
-        // loading data that is never needed (e.g. months where every
-        // expense is split equally).
-        // Structure: $absentByExpense[expense_id][user_id] = days_absent
-        $absentByExpense = [];
+        if ($expenses === []) {
+            return;
+        }
+
+        $expenseIds = array_map(
+            static fn(array $expense): int => (int) $expense['id'],
+            $expenses
+        );
+
+        // One query for every involvement in the month, instead of one per
+        // expense.
+        $involvementsByExpense = $this->expenseInvolvementModel
+            ->getUserIdsByExpenseIds($expenseIds);
+
+        // One query for the absences of the daysPresent expenses only — the
+        // other split methods never read this data.
+        $daysPresentIds = [];
 
         foreach ($expenses as $expense) {
-            /** @var ExpenseTypeEntity|null $type */
-            $type = $this->expenseTypeModel->find($expense->expense_type_id);
+            if (($expense['split_method'] ?? null) === 'daysPresent') {
+                $daysPresentIds[] = (int) $expense['id'];
+            }
+        }
 
-            if ($type === null) {
-                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has unknown type, skipped.");
+        // Structure: $absentByExpense[expense_id][user_id] = days_absent
+        $absentByExpense = $this->absentDayModel
+            ->getDaysByExpenseIds($daysPresentIds);
+
+        foreach ($expenses as $expense) {
+            $expenseId = (int) $expense['id'];
+            $splitMethod = $expense['split_method'];
+
+            // type_id is null only when the joined expense type is missing.
+            if ($expense['type_id'] === null) {
+                log_message('warning', "ExpenseCalculatorService: expense #{$expenseId} has unknown type, skipped.");
                 continue;
             }
 
-            $userIds = $this->getInvolvedUserIds($expense->id);
+            $userIds = $involvementsByExpense[$expenseId] ?? [];
 
-            if (empty($userIds)) {
-                log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has no involvement records, skipped.");
+            if ($userIds === []) {
+                log_message('warning', "ExpenseCalculatorService: expense #{$expenseId} has no involvement records, skipped.");
                 continue;
             }
 
             $this->creditPayerAdvance($dist, $expense);
 
-            switch ($type->split_method) {
+            switch ($splitMethod) {
                 case 'equal':
                     $this->splitEqual($dist, $expense, $userIds);
                     break;
 
                 case 'daysPresent':
-                    $this->splitByDaysPresent($dist, $expense, $userIds, $absentByExpense);
+                    $this->splitByDaysPresent(
+                        $dist,
+                        $expense,
+                        $userIds,
+                        $absentByExpense[$expenseId] ?? []
+                    );
                     break;
 
                 case 'custom':
-                    log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} uses split_method='custom' which is not yet implemented.");
+                    log_message('warning', "ExpenseCalculatorService: expense #{$expenseId} uses split_method='custom' which is not yet implemented.");
                     break;
 
                 default:
-                    log_message('error', "ExpenseCalculatorService: expense #{$expense->id} has unknown split_method '{$type->split_method}', skipped.");
+                    log_message('error', "ExpenseCalculatorService: expense #{$expenseId} has unknown split_method '{$splitMethod}', skipped.");
                     break;
             }
         }
-    }
-
-    /**
-     * @return int[] User IDs involved in the given expense.
-     */
-    private function getInvolvedUserIds(int $expenseId): array
-    {
-        $involved = $this->expenseInvolvementModel
-            ->where('expense_id', $expenseId)
-            ->findAll();
-
-        return array_map(static fn($i) => (int) $i->user_id, $involved);
     }
 
     /**
      * Credit the expense's payer with the full amount as an advance.
      *
      * @param array<int, array{expenses_amount: float, advance: float}> $dist
+     * @param array<string, mixed> $expense
      */
-    private function creditPayerAdvance(array &$dist, ExpenseEntity $expense): void
+    private function creditPayerAdvance(array &$dist, array $expense): void
     {
-        if (empty($expense->paid_by)) {
+        if (empty($expense['paid_by'])) {
             return;
         }
 
-        $payerId = (int) $expense->paid_by;
+        $payerId = (int) $expense['paid_by'];
         $this->initUser($dist, $payerId);
-        $dist[$payerId]['advance'] += (float) $expense->amount;
+        $dist[$payerId]['advance'] += (float) $expense['amount'];
     }
 
     /**
      * Split an expense amount equally among involved users.
      *
      * @param array<int, array{expenses_amount: float, advance: float}> $dist
+     * @param array<string, mixed> $expense
      * @param int[] $userIds
      */
-    private function splitEqual(array &$dist, ExpenseEntity $expense, array $userIds): void
+    private function splitEqual(array &$dist, array $expense, array $userIds): void
     {
-        $share = (float) $expense->amount / count($userIds);
+        $share = (float) $expense['amount'] / count($userIds);
 
         foreach ($userIds as $uid) {
             $this->initUser($dist, $uid);
@@ -174,26 +203,22 @@ class ExpenseCalculatorService
      * within the expense's date range.
      *
      * @param array<int, array{expenses_amount: float, advance: float}> $dist
+     * @param array<string, mixed> $expense
      * @param int[] $userIds
-     * @param array<int, array<int, int>> $absentByExpense Lazy cache, passed
-     *                                                      by reference.
+     * @param array<int, int> $absentMap [user_id => days_absent], prefetched.
      */
-    private function splitByDaysPresent(array &$dist, ExpenseEntity $expense, array $userIds, array &$absentByExpense): void
+    private function splitByDaysPresent(array &$dist, array $expense, array $userIds, array $absentMap): void
     {
-        $from = $this->toTimestamp($expense->from_date);
-        $to = $this->toTimestamp($expense->to_date);
+        $expenseId = (int) $expense['id'];
+
+        $from = $this->toTimestamp($expense['from_date']);
+        $to = $this->toTimestamp($expense['to_date']);
         $totalDays = (int) floor(($to - $from) / 86400) + 1;
 
         if ($totalDays <= 0) {
-            log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} has zero/negative day range, skipped.");
+            log_message('warning', "ExpenseCalculatorService: expense #{$expenseId} has zero/negative day range, skipped.");
             return;
         }
-
-        if (!isset($absentByExpense[$expense->id])) {
-            $absentByExpense[$expense->id] = $this->loadAbsentDays($expense->id);
-        }
-
-        $absentMap = $absentByExpense[$expense->id];
 
         $presentDays = [];
         $sumPresentDays = 0;
@@ -206,34 +231,17 @@ class ExpenseCalculatorService
         }
 
         if ($sumPresentDays <= 0) {
-            log_message('warning', "ExpenseCalculatorService: expense #{$expense->id} — all involved users have 0 present days, share not distributed.");
+            log_message('warning', "ExpenseCalculatorService: expense #{$expenseId} — all involved users have 0 present days, share not distributed.");
             return;
         }
 
+        $amount = (float) $expense['amount'];
+
         foreach ($presentDays as $uid => $days) {
-            $share = ($days / $sumPresentDays) * (float) $expense->amount;
+            $share = ($days / $sumPresentDays) * $amount;
             $this->initUser($dist, $uid);
             $dist[$uid]['expenses_amount'] += $share;
         }
-    }
-
-    /**
-     * Load days_absent per user for a given expense.
-     *
-     * @return array<int, int> [user_id => days_absent]
-     */
-    private function loadAbsentDays(int $expenseId): array
-    {
-        $rows = $this->absentDayModel
-            ->where('expense_id', $expenseId)
-            ->findAll();
-
-        $map = [];
-        foreach ($rows as $row) {
-            $map[(int) $row->user_id] = (int) $row->days_absent;
-        }
-
-        return $map;
     }
 
     /**
@@ -255,6 +263,13 @@ class ExpenseCalculatorService
      */
     private function persistDistribution(string $month, array $dist): void
     {
+        if ($dist === []) {
+            return;
+        }
+
+        $generatedAt = date('Y-m-d H:i:s');
+        $rows = [];
+
         foreach ($dist as $uid => $row) {
             $other = (float) $row['expenses_amount'];
             $advancePaid = (float) $row['advance'];
@@ -262,19 +277,20 @@ class ExpenseCalculatorService
             $balance = $other - $advancePaid;
             $dueAmount = $balance > 0 ? $balance : 0.0;
 
-            $insertData = [
+            $rows[] = [
                 'user_id' => $uid,
                 'month' => $month,
                 'expenses_amount' => round($other, 0),
                 'advance_amount' => round($advancePaid, 0),
                 'due_amount' => round($dueAmount, 0),
                 'final_amount' => round($balance, 0),
-                'generated_at' => date('Y-m-d H:i:s'),
+                'generated_at' => $generatedAt,
             ];
+        }
 
-            if (!$this->finalDistributionModel->insert($insertData)) {
-                log_message('error', "ExpenseCalculatorService: failed to insert final_distribution for user #{$uid}: " . json_encode($this->finalDistributionModel->errors()));
-            }
+        // One INSERT for every user instead of one per user.
+        if ($this->finalDistributionModel->insertBatch($rows) === false) {
+            log_message('error', 'ExpenseCalculatorService: failed to insert final_distribution rows for ' . $month . ': ' . json_encode($this->finalDistributionModel->errors()));
         }
     }
 

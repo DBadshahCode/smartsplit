@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Entities\User as UserEntity;
 use App\Models\User as UserModel;
 use App\Libraries\PasswordGeneratorService;
+use App\Libraries\RecoveryCodeService;
 
 class User extends BaseController
 {
@@ -24,10 +25,17 @@ class User extends BaseController
 
     public function getUsers()
     {
-        $users = $this->userModel->findAll();
-        return $this->response->setJSON(['data' => $users]);
+        return $this->response->setJSON([
+            'data' => $this->userModel->getUserList(),
+        ]);
     }
 
+    /**
+     * Add a new user. Generates both the password (already handled by the
+     * caller via generatePassword()) and a recovery code — the code is
+     * hashed before storage and returned in plain text exactly once here,
+     * so the admin can hand it to the new user alongside their password.
+     */
     public function addUser()
     {
         $data = $this->request->getPost();
@@ -37,8 +45,16 @@ class User extends BaseController
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
+        $recoveryService = new RecoveryCodeService();
+        $recoveryCode = $recoveryService->generate();
+        $data['recovery_code_hash'] = $recoveryService->hash($recoveryCode);
+
         $this->userModel->save($data);
-        return $this->response->setJSON(['status' => 'success']);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'recovery_code' => $recoveryCode,
+        ]);
     }
 
     public function deleteUser(int $id)
@@ -79,8 +95,7 @@ class User extends BaseController
 
         // Demote guard — cannot demote the last remaining admin
         if ($newRole === 'user' && $currentUser->role === 'admin') {
-            $adminCount = $this->userModel->where('role', 'admin')->countAllResults();
-            if ($adminCount <= 1) {
+            if ($this->userModel->countAdmins() <= 1) {
                 return $this->response->setJSON([
                     'status' => 'error',
                     'message' => 'Cannot demote the only admin. Promote another user first.'
@@ -137,18 +152,46 @@ class User extends BaseController
         ]);
     }
 
+    /**
+     * (Re)generate a user's recovery code (admin action).
+     * Works whether the user already had a code or never had one —
+     * either way the previous hash is overwritten, so any old code is
+     * immediately invalidated. The plain code is returned once and is
+     * never stored or logged anywhere.
+     */
+    public function regenerateRecoveryCode(int $id)
+    {
+        /** @var UserEntity|null $user */
+        $user = $this->userModel->find((int) $id);
+
+        if (!($user instanceof UserEntity)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'User not found.'
+            ])->setStatusCode(404);
+        }
+
+        $recoveryService = new RecoveryCodeService();
+        $recoveryCode = $recoveryService->generate();
+
+        $this->userModel->update($id, [
+            'recovery_code_hash' => $recoveryService->hash($recoveryCode),
+        ]);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'recovery_code' => $recoveryCode,
+        ]);
+    }
+
     public function search()
     {
-        $users = $this->userModel
-            ->select('id, name')
-            ->findAll();
-
         $results = [];
 
-        foreach ($users as $user) {
+        foreach ($this->userModel->getIdNameList() as $user) {
             $results[] = [
-                'id' => $user->id,
-                'text' => $user->name
+                'id' => $user['id'],
+                'text' => $user['name']
             ];
         }
 

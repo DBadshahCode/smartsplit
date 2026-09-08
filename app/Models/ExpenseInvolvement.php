@@ -47,4 +47,33 @@ class ExpenseInvolvement extends Model
     protected $afterFind = [];
     protected $beforeDelete = [];
     protected $afterDelete = [];
+
+    /**
+     * Load the involved user IDs for many expenses in a single query.
+     *
+     * Callers that loop over expenses used to issue one query per expense.
+     *
+     * @param  int[] $expenseIds
+     * @return array<int, int[]> [expense_id => [user_id, ...]]
+     */
+    public function getUserIdsByExpenseIds(array $expenseIds): array
+    {
+        if ($expenseIds === []) {
+            return [];
+        }
+
+        $rows = $this->builder()
+            ->select(['expense_id', 'user_id'])
+            ->whereIn('expense_id', $expenseIds)
+            ->get()
+            ->getResultArray();
+
+        $map = [];
+
+        foreach ($rows as $row) {
+            $map[(int) $row['expense_id']][] = (int) $row['user_id'];
+        }
+
+        return $map;
+    }
 }
