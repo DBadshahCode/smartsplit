@@ -6,6 +6,15 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 
+/**
+ * AdminFilter
+ *
+ * Guards all routes in the 'admin' group.
+ * Requires the user to be logged in AND have role = 'admin'.
+ * Returns 403 JSON for AJAX requests so admin-only table endpoints
+ * don't silently break when a non-admin somehow reaches them.
+ */
+
 class AdminFilter implements FilterInterface
 {
     /**
@@ -25,14 +34,14 @@ class AdminFilter implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        // Must be logged in first
+        // Must be logged in first.
         if (! session()->get('is_logged_in')) {
-            return redirect()->to('/auth/login');
+            return $this->deny($request, 401, 'Unauthenticated.', '/auth/login');
         }
 
-        // Must be admin
+        // Must be an admin.
         if (session()->get('role') !== 'admin') {
-            return redirect()->to('/')->with('error', 'Access denied. Admin privileges required.');
+            return $this->deny($request, 403, 'Access denied. Admin privileges required.', '/');
         }
     }
 
@@ -51,5 +60,28 @@ class AdminFilter implements FilterInterface
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
         //
+    }
+
+    private function deny(
+        RequestInterface $request,
+        int $statusCode,
+        string $message,
+        string $redirectTo
+    ): ResponseInterface {
+        /** @var \CodeIgniter\HTTP\IncomingRequest $request */
+        $isAjax = $request->isAJAX()
+            || str_contains((string) $request->getHeaderLine('Accept'), 'application/json');
+
+        if ($isAjax) {
+            return response()
+                ->setJSON(['status' => 'error', 'message' => $message])
+                ->setStatusCode($statusCode);
+        }
+
+        if ($statusCode === 403) {
+            session()->setFlashdata('error', $message);
+        }
+
+        return redirect()->to($redirectTo);
     }
 }

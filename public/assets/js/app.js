@@ -361,3 +361,20 @@ window.copyPasswordField = function (inputId) {
     fallbackCopy();
   }
 };
+
+// ── Global AJAX 401 handler (session expiry) ───────────────────────────
+// When AuthFilter returns 401 JSON (expired or missing session), any
+// SS.Table reload or $.ajax call in any view hits this handler and
+// redirects cleanly to the login page instead of silently breaking.
+// The 'sessionExpired' flash key is read by the login view (see below).
+$(document).ajaxError(function (event, jqXHR) {
+    if (jqXHR.status === 401) {
+        // Give the user a brief visible clue before the redirect fires.
+        if (typeof window.ssToast === 'function') {
+            ssToast('Session expired — redirecting to sign-in…', 'info');
+        }
+        setTimeout(function () {
+            window.location.href = '/auth/login';
+        }, 1200);
+    }
+});

@@ -24,7 +24,7 @@
         <?php if (session()->getFlashdata('error')): ?>
             <div class="status-banner status-error mb-5">
                 <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
-                <span><?= session()->getFlashdata('error') ?></span>
+                <span><?= esc(session()->getFlashdata('error')) ?></span>
             </div>
         <?php endif; ?>
 
@@ -41,6 +41,8 @@
 
         <!-- Form -->
         <form method="post" action="<?= base_url('/auth/resetWithRecoveryCode') ?>" id="forgotForm" data-loading-submit>
+
+            <?= csrf_field() ?>
 
             <!-- Email -->
             <div class="mb-[18px]">

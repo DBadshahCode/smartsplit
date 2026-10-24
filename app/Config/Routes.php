@@ -8,10 +8,12 @@ use CodeIgniter\Router\RouteCollection;
 
 // ── Public routes (no auth required) ────────────────────────────
 $routes->get('/auth/login', 'Auth::login');
-$routes->post('/auth/authenticate', 'Auth::authenticate');
+$routes->post('/auth/authenticate', 'Auth::authenticate', ['filter' => 'throttle']);
 $routes->get('/auth/logout', 'Auth::logout');
 $routes->get('/auth/forgotPassword', 'Auth::forgotPassword');
 $routes->post('/auth/resetWithRecoveryCode', 'Auth::resetWithRecoveryCode');
+
+// ... rest of your routes unchanged
 
 // ── Authenticated routes (any logged-in user) ────────────────────
 $routes->group('', ['filter' => 'auth'], function ($routes) {

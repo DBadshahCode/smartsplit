@@ -26,20 +26,22 @@
         </div>
 
         <!-- Flash messages -->
-        <?php if (session()->getFlashdata('success')): ?>
-            <div class="status-banner status-success mb-5">
-                <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
-                <span><?= session()->getFlashdata('success') ?></span>
-            </div>
-        <?php elseif (session()->getFlashdata('error')): ?>
+        <?php if (session()->getFlashdata('error')): ?>
             <div class="status-banner status-error mb-5">
                 <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
-                <span><?= session()->getFlashdata('error') ?></span>
+                <span><?= esc(session()->getFlashdata('error')) ?></span>
+            </div>
+        <?php elseif (session()->getFlashdata('success')): ?>
+            <div class="status-banner status-success mb-5">
+                <i data-lucide="check-circle" class="w-4 h-4 flex-shrink-0"></i>
+                <span><?= esc(session()->getFlashdata('success')) ?></span>
             </div>
         <?php endif; ?>
 
         <!-- Form -->
         <form method="post" action="<?= base_url('/auth/authenticate') ?>" id="loginForm" data-loading-submit>
+
+            <?= csrf_field() ?>
 
             <!-- Email -->
             <div class="mb-[18px]">
