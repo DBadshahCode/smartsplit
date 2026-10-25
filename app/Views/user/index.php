@@ -97,6 +97,8 @@ $isAdmin = $currentUser['role'] === 'admin';
         <div class="modal-body">
             <form id="addUserForm" class="modal-form">
 
+                <?= csrf_field() ?>
+
                 <!-- Name -->
                 <div class="field-group">
                     <label class="ss-label" for="u-name">Full Name</label>
@@ -197,6 +199,9 @@ $isAdmin = $currentUser['role'] === 'admin';
 
         <div class="modal-body">
             <form id="resetPwdForm" class="modal-form">
+
+                <?= csrf_field() ?>
+
                 <input type="hidden" id="reset-user-id" value="">
 
                 <!-- Info strip -->

@@ -106,6 +106,8 @@
     <div class="modal-body">
         <form id="addExpenseTypeForm" class="modal-form">
 
+            <?= csrf_field() ?>
+
             <!-- Name -->
             <div class="field-group">
                 <label class="ss-label" for="et-name">Name <span class="required-star">*</span></label>

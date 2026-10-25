@@ -155,6 +155,8 @@ $isAdmin = $currentUser['role'] === 'admin';
     <div class="modal-body">
         <form id="addExpenseForm" class="modal-form">
 
+            <?= csrf_field() ?>
+
             <!-- Expense Type -->
             <div class="field-group">
                 <label class="ss-label" for="exp-type">Expense Type <span class="required-star">*</span></label>
@@ -335,6 +337,9 @@ $isAdmin = $currentUser['role'] === 'admin';
         </div>
 
         <form id="editExpenseForm" class="modal-form">
+
+            <?= csrf_field() ?>
+
             <input type="hidden" id="edit-expense-id" name="expense_id" value="">
 
             <!-- Expense Type -->
